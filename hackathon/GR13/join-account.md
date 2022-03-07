@@ -1,18 +1,20 @@
-# Initial token auction
+# Joint Account
 
 ## Purpose
 
-The Vite ecosystem needs a dapp for distributing an allotted amount of tokens to the highest bidders. This will enable:
-1. More efficient price discovery of new tokens
-2. Funding for teams in exchange for equity of their token
-3. Community engagement
+The Vite ecosystem needs a dapp for holding funds between multiple accounts. This will:
+1. Protect funds of compromised accounts
+2. Allow funds to only move by majority vote
+3. Enable escrow services
 
 ## Features
-- Anyone can start an auction by locking up a fixed amount of tokens and specifying an end date
-- To place a bid, users lock up however much Vite they want to spend and specify the unit price (in terms of Vite) that they are willing to pay per token.
-- Users can place/withdraw as many bids as they want before the end date
-- On the end date, the contract will halt bid placing/withdrawing and go down the list of bids from highest to lowest unit price. At each bid, the Vite amount is divided by the unit price to get the token amount which is then sent to the placer of the bid and Vite amount is sent to the auction starter. This process continues until the locked tokens are depleted (the last bid may possibly only receive a fraction of what they bid for).
-- All bidders who didn't specify a high enough unit price will have their Vite sent back to them. If the last winning bid could only get a fraction of what they were willing to pay for, the difference in Vite is sent back to them.
+- Anyone can create a joint account
+- Joint account makers can specify who can vote and the approval threshold to move funds
+- Joint accounts can hold multiple token types
+- Joint account members can propose a motion to move a specific token type and amount to a specific address
+- Joint account members can vote to pass the motion or not (not voting counts as rejecting the motion)
+- If the approval threshold to pass the motion is met, the transfer is executed and then the motion and votes are reset
+- Motions can be replaced or removed at any time by any joint account member; when this happens, votes are reset.
 
 ## Prizes
 - 2000 USD in VITE for developing a smart contract
@@ -22,8 +24,8 @@ The Vite ecosystem needs a dapp for distributing an allotted amount of tokens to
 - Takes into account "Features" and "UI Requirements"
 - Uses Solidity++ 0.8.0
 - Unit tests for all contract functionality using [ViteJS](https://github.com/vitelabs/vite.js "https://github.com/vitelabs/vite.js") and your unit testing library of choice.
-- Keeps track of all current and past auctions
-- Additional features are welcome! Keep in mind that this contract will be interacted with from a GUI so getters and setters suitable for the UI described below should be implemented. For example, a linked list sorting bids from highest to lowest might be useful for displaying them and sending winning bidders tokens.
+- Keeps track of all joint accounts
+- Additional features are welcome! Keep in mind that this contract will be interacted with from a GUI so getters and setters suitable for the UI described below should be implemented. For example, emitting events for various actions in the contract may be helpful for displaying joint account history.
 
 ## UI Requirements
 - Takes into account "Features" and "Contract Requirements"
@@ -34,12 +36,10 @@ The Vite ecosystem needs a dapp for distributing an allotted amount of tokens to
 - Be responsive to different screen sizes
 - Has a light and dark mode with a component to choose between dark/light/system themes
 - Has a homepage that describes what the dapp is, how to use it, and why it exists.
-- Shows the price in terms of Vite and USD for bidding and auction stats
-- Has a page that shows all ongoing auctions
-- Has a page that shows all ended auctions
-- Has a page that shows auction details like end date, total Vite locked, average bid, highest bid, list of bids
-- Has a component for placing and withdrawing bids
-- Has a component that shows token info like tti, total supply, amount being auctioned off, etc.
+- Has a page that shows all joint accounts your Vite address is a member of
+- Has a component for proposing/replacing/removing motions to move funds
+- Has a component for voting on motions
+- Has a component that shows all a joint account's history (sending/receiving funds, motion pass/reject/replace, etc.)
 - Additional features are welcome!
 
 ## Judging Criteria
