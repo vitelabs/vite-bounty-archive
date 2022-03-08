@@ -1,4 +1,4 @@
-# Initial token auction
+# Initial Token Auction
 
 ## Purpose
 
