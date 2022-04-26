@@ -1,0 +1,7 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma soliditypp ^0.8.0;
+
+interface ConsensusContract {
+    function VoteForSBP(string calldata sbpName) external;
+    function CancelSBPVoting() external;
+}

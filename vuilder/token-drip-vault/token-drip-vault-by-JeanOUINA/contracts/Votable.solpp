@@ -1,0 +1,25 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma soliditypp ^0.8.0;
+
+import "./Consensus.solpp";
+import "./Ownable.solpp";
+
+abstract contract Votable is Ownable {
+    ConsensusContract consensusContract = ConsensusContract("vite_0000000000000000000000000000000000000004d28108e76b");
+
+    event VoteCancel();
+    function cancelVote() external onlyOwner {
+        consensusContract.CancelSBPVoting();
+        emit VoteCancel();
+    }
+
+    event NewVote(string indexed sbpName);
+    function VoteForSBP(string calldata sbpName) external onlyOwner {
+        consensusContract.VoteForSBP(sbpName);
+        emit NewVote(sbpName);
+    }
+
+    receive() external payable {
+        payable(owner).transfer(msg.token, msg.value);
+    }
+}

@@ -1,0 +1,204 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma soliditypp ^0.8.0;
+
+import "./Votable.solpp";
+
+contract TokenVault is Votable {
+    // When removing a beneficiary, the contract needs to loop over them
+    // this is to avoid using too much quota/hitting the limit.
+    uint constant MAX_BENEFICIARIES = 5;
+
+    mapping(bytes32 => Vault) public vaults;
+    struct Vault {
+        // permanent
+        address owner;
+        uint balance;
+        uint frequency;
+        uint amountPerCycle;
+        vitetoken token;
+        bool ownerCanWithdrawAllFunds;
+        bool settingsLocked;
+        // settingsLocked
+        bool withdrawableAmountStacks;
+        bool acceptsAdditionalFunds;
+        // beneficiaries
+        mapping(address => bool) beneficiaries;
+        uint beneficiaryCount;
+        // state
+        uint startBlock;
+        uint lastWithdrawBlock;
+    }
+
+    function isBeneficiary(bytes32 id, address addr) view external returns(bool _isBeneficiary) {
+        return vaults[id].beneficiaries[addr];
+    }
+
+    event NewVault(bytes32 indexed id, address indexed owner);
+    event NewBeneficiary(bytes32 indexed id, address indexed beneficiary);
+    function createVault(
+        uint frequency,
+        uint amountPerCycle,
+        bool ownerCanWithdrawAllFunds,
+        bool settingsLocked,
+        bool withdrawableAmountStacks,
+        bool acceptsAdditionalFunds,
+        address[] calldata beneficiaries
+    ) external payable returns(bytes32 id) {
+        require(msg.value > 0); // require that the request contains funds to be locked
+        require(frequency > 0); // require that the frequency is above 0
+        require(amountPerCycle > 0); // require that the amount per cycle is above 0
+        require(amountPerCycle <= msg.value); // Don't unlock more what you can actually. 
+        require(beneficiaries.length > 0 && beneficiaries.length <= MAX_BENEFICIARIES); // Do not exceed max beneficiaries
+        require(beneficiaries[0] == msg.sender); // Require the owner to be a beneficiary.
+
+        id = fromhash();
+
+        emit NewVault(id, msg.sender);
+
+        // permanent
+        Vault storage vault = vaults[id];
+        vault.owner = msg.sender;
+        vault.balance = msg.value;
+        vault.frequency = frequency;
+        vault.amountPerCycle = amountPerCycle;
+        vault.token = msg.token;
+        vault.ownerCanWithdrawAllFunds = ownerCanWithdrawAllFunds;
+        vault.settingsLocked = settingsLocked;
+        // settingsLocked
+        vault.withdrawableAmountStacks = withdrawableAmountStacks;
+        vault.acceptsAdditionalFunds = acceptsAdditionalFunds;
+        // state
+        vault.startBlock = block.number;
+        vault.lastWithdrawBlock = block.number;
+        // benenficiaries
+        for(uint i = 0; i < beneficiaries.length; i++){
+            address beneficiary = beneficiaries[i];
+            require(!vault.beneficiaries[beneficiary] && beneficiary != address(0));
+            vault.beneficiaries[beneficiary] = true;
+            emit NewBeneficiary(id, beneficiary);
+        }
+        vault.beneficiaryCount = beneficiaries.length;
+    }
+    
+    event VaultEnd(bytes32 indexed id);
+    event VaultWithdrawal(bytes32 indexed id, address indexed beneficiary, uint amount, uint cycles, uint fromBlock, uint toBlock);
+    function withdraw(bytes32 id) external {
+        Vault storage vault = vaults[id];
+        require(vault.beneficiaries[msg.sender]); // require sender to be a beneficiary
+        require(vault.balance > 0); // require vault balance to be above 0
+
+        // find time elapsed since last withdrawal
+        uint lastWithdrawBlock = vault.lastWithdrawBlock;
+        uint elapsedBlocks = block.number - lastWithdrawBlock;
+        require(elapsedBlocks > 0); // no elapsed blocks, useless to continue
+
+        // calculate cycles
+        uint cycles = elapsedBlocks / vault.frequency;
+        require(cycles > 0); // no elapsed cycle, useless to continue
+        uint leftoversBlocks = elapsedBlocks - cycles * vault.frequency;
+        vault.lastWithdrawBlock = block.number - leftoversBlocks;
+
+        // if it doesn't stack, set it as 1
+        if(!vault.withdrawableAmountStacks){
+            cycles = 1;
+        }
+
+        // calculate amount & end vault
+        uint amount = vault.amountPerCycle * cycles;
+        if(amount >= vault.balance){
+            amount = vault.balance;
+            emit VaultEnd(id);
+        }
+
+        vault.balance -= amount;
+
+        // transfer the amount
+        payable(msg.sender).transfer(vault.token, amount);
+        emit VaultWithdrawal(id, msg.sender, amount, cycles, lastWithdrawBlock, vault.lastWithdrawBlock);
+    }
+
+    function withdrawEverything(bytes32 id) external {
+        Vault storage vault = vaults[id];
+        require(vault.owner == msg.sender); // only the owner can execute this
+        require(vault.balance > 0); // vault should not be ended
+        require(vault.ownerCanWithdrawAllFunds); // The settings must be enabled
+
+        // dispatch end events
+        emit VaultWithdrawal(id, msg.sender, vault.balance, 0, vault.lastWithdrawBlock, block.number);
+        emit VaultEnd(id);
+
+        // transfer the balance
+        payable(vault.owner).transfer(vault.token, vault.balance);
+        vault.lastWithdrawBlock = block.number;
+        vault.balance = 0;
+    }
+
+    event VaultDeposit(bytes32 indexed id, address indexed from, uint amount);
+    // Deposit more funds into the vault, effectively locking them.
+    function deposit(bytes32 id) external payable {
+        Vault storage vault = vaults[id];
+        require(vault.balance > 0); // require the vault to still be active.
+        require(vault.acceptsAdditionalFunds); // require the setting to be enabled
+        require(vault.token == msg.token); // require the token to be the same
+        require(msg.value > 0); // no empty deposit
+
+        vault.balance += msg.value;
+        emit VaultDeposit(id, msg.sender, msg.value);
+    }
+
+    event VaultSettingsLock(bytes32 indexed id, address indexed owner);
+    // lock settings, prevent changing acceptsAdditionalFunds & withdrawableAmountStacks
+    function lockSettings(bytes32 id) external {
+        Vault storage vault = vaults[id];
+        require(vault.owner == msg.sender); // the owner only
+        require(!vault.settingsLocked); // the settings shouldn't be locked
+
+        // lock the settings and dispatch an event
+        vault.settingsLocked = true;
+        emit VaultSettingsLock(id, msg.sender);
+    }
+
+    event VaultSettingsUpdate(bytes32 indexed id, bool withdrawableAmountStacks, bool acceptsAdditionalFunds, bool oldWithdrawableAmountStacks, bool oldAcceptsAdditionalFunds);
+    function updateSettings(bytes32 id, bool withdrawableAmountStacks, bool acceptsAdditionalFunds) external {
+        Vault storage vault = vaults[id];
+        require(vault.owner == msg.sender); // the owner must be making the change
+        require(!vault.settingsLocked); // settings shouldn't be locked
+        // the request should make a real change
+        require(vault.withdrawableAmountStacks != withdrawableAmountStacks || vault.acceptsAdditionalFunds != acceptsAdditionalFunds);
+
+        // update the settings and dispatch an event
+        emit VaultSettingsUpdate(id, withdrawableAmountStacks, acceptsAdditionalFunds, vault.withdrawableAmountStacks, vault.acceptsAdditionalFunds);
+        vault.withdrawableAmountStacks = withdrawableAmountStacks;
+        vault.acceptsAdditionalFunds = acceptsAdditionalFunds;
+    }
+
+    function addBeneficiary(bytes32 id, address beneficiary) external {
+        Vault storage vault = vaults[id];
+        require(vault.owner == msg.sender); // require owner
+        require(!vault.settingsLocked);
+        require(vault.beneficiaryCount+1 < MAX_BENEFICIARIES); // do not exceed maximum beneficiaries
+        require(!vault.beneficiaries[beneficiary]); // the new beneficiary must not be a beneficiary already
+        require(beneficiary != address(0)); // No Null address
+
+        vault.beneficiaries[beneficiary] = true;
+        vault.beneficiaryCount++;
+
+        emit NewBeneficiary(id, beneficiary);
+    }
+
+    event RemoveBeneficiary(bytes32 indexed id, address indexed beneficiary);
+    function removeBeneficiary(bytes32 id, address beneficiary) external {
+        Vault storage vault = vaults[id];
+        require(beneficiary != vault.owner); // the owner can't be removed
+        require(vault.beneficiaryCount >= 2); // need to have at least 2 people in it (owner; beneficiary to remove)
+        require(vault.beneficiaries[beneficiary]); // make sure the address to remove is there
+        require(msg.sender == beneficiary || (!vault.settingsLocked && msg.sender == vault.owner)); // can remove itself/the owner remove him if settings not locked
+        
+        // remove the beneficiary
+        vault.beneficiaries[beneficiary] = false;
+        // remove one from the count
+        vault.beneficiaryCount--;
+
+        emit RemoveBeneficiary(id, beneficiary);
+    }
+}

@@ -1,0 +1,283 @@
+// SPDX-License-Identifier: MIT
+pragma soliditypp >=0.8.0;
+
+contract DripVault {
+
+    // deployer of the vault                                       
+    address public owner;
+    // unique hash identifier                              
+    bytes32 public vaultID;  
+    // type of token id the vault holds 
+    vitetoken public vaultToken;                                    
+    // amount of tokens available per cycle             
+    uint public tokensPerCycle; 
+    // seconds per withdraw cycle                      
+    uint public withdrawFrequency;      
+    // timestamp vault was created                                  
+    uint public creationDate;
+    // total number of beneficiaries registered
+    uint public totalBeneficiaries; 
+    // total deposits by beneficiaries if enabled
+    uint public externalDeposits;
+    
+    // - Condition Flags (F(0)/T(1)) -
+
+    // conditions can be adjusted after deployment     
+    uint public settingsLocked;
+    // owner can remove all funds from vault                                  
+    uint public ownerCanRemoveFunds; 
+    // unwithdrawn funds can accumulate per cycle
+    uint public withdrawAmountStacks;
+    // beneficiaries can deposit additional tokens 
+    uint public acceptAdditionalDeposits; 
+   
+    struct Account {
+        // registration number
+        uint id;
+        // date of registration  
+        uint registerDate;
+        // cycle number at time of register
+        uint registerCycle;
+        // drip receive status
+        bool active;
+        // deposit/allocation balance 
+        uint balance;
+        // amount withdrawn from all cycles
+        uint withdrawn;
+        // amount withdrawn from a certain cycle
+        mapping(uint=>uint) WithdrawPerCycle;
+    }
+ 
+    // record of beneficiaries for the vault
+    mapping(address => Account) public Beneficiary;
+
+    // key events
+    event BeneficiaryAdded(address beneficiary);
+    event StatusRevoked(address beneficiary);
+    event Deposited(address sender, uint amount);
+    event Withdrawn(address sender, uint cycleNumber, uint amount);
+    event Allocated(address from, address to, uint amount);
+    event VaultDrained(uint amount);
+    event VaultReplenished(uint amount);
+    
+    constructor( vitetoken _vaultToken, 
+                 uint _tokensPerCycle,
+                 uint _withdrawFrequency,
+                 uint _ownerCanRemoveFunds,
+                 uint _settingsLocked ) payable {
+        owner = msg.sender;
+        vaultID = fromhash();
+        vaultToken = _vaultToken;
+        tokensPerCycle = _tokensPerCycle; 
+        withdrawFrequency = _withdrawFrequency;
+        creationDate = block.timestamp;
+        ownerCanRemoveFunds = _ownerCanRemoveFunds;
+        settingsLocked = _settingsLocked;
+    }
+
+    // - Owner Functions -
+ 
+    // prevent changing contract settings - once true cannot reverse
+    function lockSettings(uint arg) public {
+        require(msg.sender == owner);
+        require(settingsLocked == 0);
+        settingsLocked = arg;
+    }
+    // allows uncollected tokens for a cycle to be received
+    function enableTokenStacking(uint arg) public {
+        require(msg.sender == owner);
+        require(settingsLocked == 0);
+        withdrawAmountStacks = arg;
+    }
+    // allows for beneficiaries to make deposits
+    function enableAdditionalDeposits(uint arg) public {
+        require(owner == msg.sender);
+        require(settingsLocked == 0);
+        acceptAdditionalDeposits = arg;
+    }
+    // remove all tokens from vault - beneficiary deposits unaffected
+    function removeFromVaultBalance() public {
+        require(msg.sender == owner);
+        require(ownerCanRemoveFunds == 1);
+        uint tokensInVault = vaultTokenBalance();
+        uint totalWithdrawn = tokensInVault - externalDeposits;
+        payable(msg.sender).transfer(vaultToken, totalWithdrawn);
+        emit VaultDrained(totalWithdrawn);
+    }
+    // add more tokens to vault if supply is low to keep drip running
+    function topUpVaultBalance() public payable {
+        require(msg.sender == owner);
+        require(msg.token == vaultToken);
+        emit VaultReplenished(msg.value);
+    }
+    // add a single beneficiary
+    function addBeneficiary(address arg) public {
+        require(msg.sender == owner);
+        loadCurrentCycle();
+        // if already a previous beneficiary 
+        if(Beneficiary[arg].id > 0){
+            // re-activate status
+            Beneficiary[arg].active = true;
+            // update registration date
+            Beneficiary[arg].registerDate = timestamp;
+            Beneficiary[arg].registerCycle = viewCurrentCycle();
+        }
+        // else register with new ID number
+        totalBeneficiaries++;
+        uint newID = totalBeneficiaries;
+        Beneficiary[arg].id = newID;
+        Beneficiary[arg].registerDate = timestamp;
+        Beneficiary[arg].registerCycle = viewCurrentCycle();
+        Beneficiary[arg].active = true;
+        emit BeneficiaryAdded(arg);
+    }
+    // add a list of beneficiaries
+    function addMultiBeneficiaries(address[] memory args) external {
+        require(msg.sender == owner);
+        for(uint i = 0; i < args.length; i++){
+            addBeneficiary(args[i]);
+        }
+    }
+    // revoke drip status to no longer receive tokens - can also be called by beneficiary 
+    function revokeBeneficiaryStatus(address arg) public {
+        require(msg.sender == owner || msg.sender == arg);
+        require(getActiveStatus(arg));
+        Beneficiary[arg].active = false;
+        emit StatusRevoked(arg);
+    }
+
+    // - Beneficiary Functions -
+
+    // deposit same tokenID as vault
+    function deposit() public payable {
+      require(acceptAdditionalDeposits == 1);
+      require(msg.token == vaultToken);
+      require(getActiveStatus(msg.sender));
+      Beneficiary[msg.sender].balance += msg.value;
+      externalDeposits += msg.value;
+      emit Deposited(msg.sender, msg.value);
+    }
+    // withdraw from the current vault cycle
+    function withdrawFromCycle(uint amount) public {
+        // check if contract has enough to transfer
+        require(balance(vaultToken) > amount);
+        // must be an active beneficiary to withdraw
+        require(getActiveStatus(msg.sender));
+        // calculate current cycle number
+        loadCurrentCycle();
+        // get current cycle
+        uint currentCycle = viewCurrentCycle();
+        // check if withdraw amount will not exceed current cycle limit 
+        require(
+            (Beneficiary[msg.sender].WithdrawPerCycle[currentCycle] + amount) <= tokensPerCycle
+        );
+        // if condition setting is enabled by owner check for any uncollected tokens 
+        if(withdrawAmountStacks == 1){
+            // credit withdraw for current cycle first
+            Beneficiary[msg.sender].WithdrawPerCycle[currentCycle] += amount;
+            // uncollected withdraws for all previous cycles
+            uint uncollectedWithdraws = 0; 
+            // start checking uncollected tokens since time of registration
+            uint startPoint = getCycleRegisteredAt(msg.sender);
+            // check all cycles registered as a beneficiary
+            for(uint i = startPoint; i < currentCycle; i++){
+                // uncollected tokens per cycle
+                uint counted = tokensPerCycle - Beneficiary[msg.sender].WithdrawPerCycle[i];
+                // credit the amount owed for this cycle 
+                Beneficiary[msg.sender].WithdrawPerCycle[i] += counted;
+                // mark tokens as collected
+                uncollectedWithdraws += counted;
+            }
+            // transfer withdraw plus uncollected withdraws
+            uint toReceive = amount + uncollectedWithdraws;
+            payable(msg.sender).transfer(vaultToken, toReceive);
+            Beneficiary[msg.sender].withdrawn += toReceive;
+        // else credit the withdraw as normal
+        } else { 
+            Beneficiary[msg.sender].WithdrawPerCycle[currentCycle] += amount;
+            payable(msg.sender).transfer(vaultToken, amount);
+            Beneficiary[msg.sender].withdrawn += amount;
+        }
+        emit Withdrawn(msg.sender, currentCycle, amount);
+    }
+    // withdraw from balance - deposited or allocated - without cycle checks
+    function withdrawFromBalance(uint amount) public {
+        require(amount <= Beneficiary[msg.sender].balance);
+        payable(msg.sender).transfer(vaultToken, amount);
+        Beneficiary[msg.sender].balance -= amount;
+    }
+    // transfer an amount of funds internally from balance to another beneficiary 
+    function allocate(address to, uint amount) public {
+        require(getActiveStatus(to) == true);
+        require(Beneficiary[msg.sender].balance >= amount);
+        Beneficiary[msg.sender].balance -= amount;
+        Beneficiary[to].balance += amount;
+        emit Allocated(msg.sender,to, amount);
+    }
+
+    // - Public View Functions -
+
+    // returns timestamp of registration date
+    function getDateRegisteredAt(address arg) public view returns (uint){
+       return Beneficiary[arg].registerDate;
+    }
+    // cycle number at time of registration - used as a starting point when checking for uncollected tokens
+    function getCycleRegisteredAt(address arg) public view returns (uint){
+       return Beneficiary[arg].registerCycle;
+    }
+    // checks if beneficiary is still receiving tokens from the vault 
+    function getActiveStatus(address arg) public view returns (bool) {
+        return Beneficiary[arg].active;
+    }
+    // amount deposited to the contract - not counting tokens received from vault
+    function getDepositBalance(address arg) public view returns (uint) {
+        return Beneficiary[arg].balance;
+    }
+    // total amount withdrawn from cycles
+    function getTotalWithdrawn(address arg) public view returns (uint) {
+        return Beneficiary[arg].withdrawn;
+    }
+    // amount withdrawn for a specific cycle number
+    function getAmountWithdrawnPerCycle(address arg, uint cycleNumber) public view returns (uint) {
+        return Beneficiary[arg].WithdrawPerCycle[cycleNumber];
+    }
+    // checks if an account has ever been a registered beneficiary - active or inactive 
+    function wasEverBeneficiary(address arg) public view returns (bool) {
+        if(Beneficiary[arg].id > 0){
+            return true;
+        }
+        return false;
+    }
+    // view most recent vault cycle - use load method first -
+    function viewCurrentCycle() public view returns (uint) {
+        return current_cycle;
+    }
+    // calculate most recent vault cycle 
+    uint current_cycle;
+    function loadCurrentCycle() public {
+        _updateTimestamp();
+        uint sinceCreation = timestamp - creationDate;
+        uint cycleNumber = sinceCreation / withdrawFrequency;
+        current_cycle = cycleNumber;
+    }
+    // total amount of tokens inside the vault 
+    function vaultTokenBalance() public view returns (uint) {
+        return balance(vaultToken);
+    }
+    // timestamp workaround
+    uint timestamp;
+    function _updateTimestamp() internal {
+        timestamp = block.timestamp;
+    }
+}
+
+/* Program Modifications ** 
+
+    The following methods were done for testing purposes only and can be easily modified for production enviroment: 
+
+        - type 'uint' instead of 'bool' for condition variables
+            + to modify: switch the types and change the condition values from 1/0 to true/false
+
+        - timestamp method '_updateTimestamp' and variable 'timestamp'
+            + to modify: comment the method wherever used and replace variable 'timestamp' with 'block.timestamp' 
+*/
