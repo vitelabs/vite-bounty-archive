@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="./css/vite-creator-token.css" rel="stylesheet" id="light-css">
+    <link href="./css/vite-creator-token-dark.css" rel="stylesheet" media="none" id="dark-css">
+    <link href="./lib/fontawesome/css/all.css" rel="stylesheet">
+    
+    <script type="text/javascript" src="./js/vite-creator-token.js"></script>
+    
+    <title>VITE Creator Token Platform</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="index.html"><img src="./img/vite-logo.svg" width="120" alt="VITE"></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav ms-auto fs-5">
+            <li class="nav-item">
+              <a class="nav-link" href="#"><i class="fas fa-user pe-2"></i> vite_233ae...d290a </a></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    
+    <div class="container">
+      
+      <h1 class="mt-5 mb-4">Welcome to VITE Creator Token Plateform</h1>
+      
+      <div class="lead mb-4">
+        <p>This platform allows VITE members to have their own <a href="https://blog.relevant.community/how-to-make-bonding-curves-for-continuous-token-models-3784653f8b17">tradeable token</a> (creator token) via a 
+        <a href="https://medium.com/coinmonks/token-bonding-curves-explained-7a9332198e0e">bonding curve</a>.</p>
+        
+        <p>A bonding curve is an application that mints tokens through buy and sell functions. 
+        The price increases as more tokens are in circulation. The amount paid for the token is deposited in a common account.</p>
+        
+        <p>At any point in time, a token can be withdrawn from the active supply, and a proportional part of the communal deposit can be taken with.</p>
+      </div>
+      
+      <div class="row mb-3 gy-3">
+        <div class="col-sm-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title mb-3">View all creator tokens</h5>
+              <div class="d-grid">
+                <a href="creator-token-list.html" class="btn btn-primary">Show list</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title mb-3">Find a creator token</h5>
+              <div class="input-group">
+                <input type="text" class="form-control" placeholder="Token's address" aria-label="Token's address" aria-describedby="button-addon">
+                <a href="bonding-curve.html" class="btn btn-primary" type="button" id="button-addon"><i class="fas fa-search"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="d-flex">
+        <div class="form-check form-switch mb-4 ms-auto">
+          <input class="form-check-input" type="checkbox" role="switch" id="switch-theme" onclick="changeTheme();">
+          <label class="form-check-label text-muted" for="switch-theme">Dark / light mode</label>
+        </div>
+      </div>
+      
+    </div><!-- /.container -->
+
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="./lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+  </body>
+</html>

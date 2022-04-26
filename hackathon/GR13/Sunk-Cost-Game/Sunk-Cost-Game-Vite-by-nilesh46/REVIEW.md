@@ -1,0 +1,10 @@
+- Logo is a slightly altered stock image
+	- https://stock.adobe.com/images/Bitcoin-and-Piggy-Bank-icon%2C-Cryptocurrency-related-vector/439989037
+- The UI itself is basic and ugly
+	- uses redux (old tech now), lots of duplicate code (e.g. `vite_signAndSendTx`)
+- Test fails but I think this was supposed to
+	- RuntimeError: abort(Error: done() called multiple times in test <SunkCostGame Tests Claim Reward Fail to claim Reward of already claimed Pot> of file /Users/michaelleung/repos/vite/hackathon-archive/GR13/Sunk-Cost-Game/Sunk-Cost-Game-Vite-by-nilesh46/test/test.spec.ts; in addition, done() received error: AssertionError: expected '0' to equal '1'
+- Contract has an owner - not a fan of that `owner = msg.sender;`
+	- `owner` can `claimFee`
+	- who would want this besides a greedy owner?
+- 

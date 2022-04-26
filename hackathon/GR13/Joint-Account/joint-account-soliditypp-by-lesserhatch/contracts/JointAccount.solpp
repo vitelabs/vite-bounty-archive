@@ -1,0 +1,161 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma soliditypp ^0.8.0;
+
+/// @title Joint account contract manager
+/// @author Seth Charles (@lesserhatch)
+contract JointAccountManager {
+    uint256 id = 0;
+    address[] public accounts;
+
+    /// @notice Get list of joint account contracts
+    function getAccounts() external view returns (address[] memory) {
+        return accounts;
+    }
+
+    /// @notice Add new joint account contract to accounts list
+    function addJointAccount(address _account) external {
+        accounts.push(_account);
+    }
+}
+
+
+/// @title Joint account contract
+/// @author Seth Charles (@lesserhatch)
+contract JointAccount {
+    event ProposalCreated(
+        uint256 id,
+        address from,
+        address to,
+        vitetoken token,
+        uint256 amount
+    );
+    event ProposalFunded(uint256 id);
+    event ProposalRejected(uint256 id);
+    event ProposalRemoved(uint256 id);
+    event Received(address sender, vitetoken token, uint256 amount);
+    event VoteReceived(address member, uint256 proposalId);
+
+    struct Proposal {
+        uint256 id;
+        address from;
+        address payable to;
+        vitetoken token;
+        uint256 amount;
+        uint256 approvalCount;
+        mapping(address => uint256) approvals;
+    }
+
+    uint256 public approvalThreshold;
+    address[] public members;
+    Proposal public proposal;
+
+    /// @notice Construct new JointAccount contract
+    /// @param _manager Address to JointAccountManager contract
+    /// @param _members List of addresses permitted to interact with contract
+    /// @param _approvalThreshold Number of approvals required to fund proposal
+    constructor(
+        address _manager,
+        address[] memory _members,
+        uint256 _approvalThreshold
+    ) payable {
+        require(
+            _approvalThreshold <= _members.length,
+            "approval threshold cannot be larger than number of members"
+        );
+
+        members = _members;
+        approvalThreshold = _approvalThreshold;
+
+        JointAccountManager manager = JointAccountManager(_manager);
+        manager.addJointAccount(address(this));
+    }
+
+    receive() external payable {
+        address sender = msg.sender;
+        vitetoken token = msg.token;
+        uint256 amount = msg.value;
+
+        emit Received(sender, token, amount);
+    }
+
+    /// @notice Create new proposal
+    /// @param _to Address to receive proposal funds
+    /// @param _token Token type
+    /// @param _amount Proposal token amount
+    function newProposal(
+        address payable _to,
+        vitetoken _token,
+        uint256 _amount
+    ) external {
+        require(_isMember(), "must be an account member");
+        require(balance(_token) >= _amount, "insufficient token balance");
+
+        if (proposal.to != payable(address(0))) {
+            emit ProposalRejected(proposal.id);
+        }
+
+        proposal.id = proposal.id + 1;
+        proposal.from = msg.sender;
+        proposal.to = _to;
+        proposal.token = _token;
+        proposal.amount = _amount;
+        proposal.approvalCount = 0;
+
+        emit ProposalCreated(
+            proposal.id,
+            proposal.from,
+            proposal.to,
+            proposal.token,
+            proposal.amount
+        );
+    }
+
+    /// @notice Remove current proposal from joint account
+    function removeProposal() external {
+        require(_isMember(), "must be an account member");
+        _removeProposal();
+    }
+
+    /// @notice Add an approval to the current proposal
+    function approveProposal() external {
+        require(_isMember(), "must be an account member");
+        require(proposal.to != payable(address(0)));
+        require(
+            proposal.approvals[msg.sender] != proposal.id,
+            "already voted on this proposal"
+        );
+        require(
+            proposal.approvalCount != approvalThreshold,
+            "proposal already approved"
+        );
+
+        proposal.approvals[msg.sender] = proposal.id;
+        proposal.approvalCount = proposal.approvalCount + 1;
+
+        emit VoteReceived(msg.sender, proposal.id);
+
+        if (proposal.approvalCount == approvalThreshold) {
+            proposal.to.transfer(proposal.token, proposal.amount);
+            emit ProposalFunded(proposal.id);
+            _removeProposal();
+        }
+    }
+
+    function _removeProposal() private {
+        proposal.approvalCount = 0;
+        proposal.from = payable(address(0));
+        proposal.to = payable(address(0));
+        proposal.amount = 0;
+        proposal.approvalCount = 0;
+        emit ProposalRemoved(proposal.id);
+    }
+
+    function _isMember() private view returns (bool) {
+        for (uint256 i = 0; i < members.length; i++) {
+            if (msg.sender == members[i]) {
+                return true;
+            }
+        }
+        return false;
+    }
+}

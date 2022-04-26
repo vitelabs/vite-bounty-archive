@@ -1,0 +1,37 @@
+{
+  "name": "vitetipbot",
+  "version": "1.0.0",
+  "description": "A bot can send cyptocurrency on the vite blockchain",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "watchexec -e js -r node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@koa/router": "^10.1.1",
+    "@vite/vitejs": "^2.3.16",
+    "@vite/vitejs-ws": "^2.3.14",
+    "crypto": "^1.0.1",
+    "dotenv": "^10.0.0",
+    "json-format": "^1.0.1",
+    "koa": "^2.13.3",
+    "koa-bodyparser": "^4.3.0",
+    "qrcode": "^1.4.4",
+    "redis": "^4.0.0-rc.3",
+    "tracer": "^1.1.5",
+    "twitter-api-v2": "^1.6.0",
+    "websocket": "^1.0.34"
+  },
+  "devDependencies": {
+    "commander": "^8.2.0",
+    "inquirer": "^8.2.0"
+  },
+  "keywords": [
+    "cyptocurrency",
+    "vite",
+    "tipbot"
+  ]
+}

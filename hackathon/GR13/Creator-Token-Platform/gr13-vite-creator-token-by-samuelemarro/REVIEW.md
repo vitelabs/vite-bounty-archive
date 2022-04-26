@@ -1,0 +1,4 @@
+- Contracts look good
+	- Mapping sorts holders by balance!
+	- However `topHolders` does not have a limit on total returned holders meaning space complexity increases as more total holders increase
+- 

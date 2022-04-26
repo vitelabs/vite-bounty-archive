@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import url('https://fonts.googleapis.com/css2?family=Signika+Negative:wght@300;400;500;600&display=swap');
+
+h1 {
+  @apply text-black text-2xl font-black text-center cursor-default;
+}
+p {
+  @apply text-gray-600 font-medium text-xl;
+}
+input[type='password'] {
+  font: large Verdana, sans-serif;
+  letter-spacing: 1px;
+  line-height: 24px;
+}
+input[type='password']::placeholder {
+  font-size: 16px;
+  letter-spacing: 0px;
+  line-height: 24px;
+}
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

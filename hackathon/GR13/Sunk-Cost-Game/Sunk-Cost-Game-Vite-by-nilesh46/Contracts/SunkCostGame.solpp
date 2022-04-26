@@ -1,0 +1,216 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma soliditypp ^0.8.0;
+
+/* INTERFACES */
+interface TokenIssuanceContract {
+
+    /// @notice To burn certain amount of a token
+    function Burn() external payable; 
+
+    /// @notice Get All Info related to a token
+    // function GetTokenInformation(vitetoken _tokenId) external; 
+}
+/* ---------- */
+
+contract SunkCostGame {
+    /* EVENTS */
+    event PotCreated(address _from, uint256 _potIndex, uint256 _time);
+    event RewardClaimed(address _from, uint256 _potIndex);
+    event PotBought(address _from, uint256 _potIndex, uint256 _potCurrentPrice, uint256 _potEndTime, uint256 _time);
+    event CreationFeeUpdated(uint256 _newCreationFee);
+    /* ------ */
+ 
+    /* VARIABLES */
+    uint256 public potCreationFee;
+    address public owner;
+    uint256 public totalPotsCreated;
+    uint256 public totalFeeAccumulated;
+    vitetoken viteTokenId = "tti_5649544520544f4b454e6e40";
+
+    struct Pot {
+      address PotOwner;
+      uint256 maxTimerLimit;
+      uint256 buyInIncrementAmount;
+      uint256 burnAmount;
+      uint256 extensionAmount;
+      address winner;
+      uint256 potAmount;
+      uint256 currentPrice;
+      vitetoken tokenId;
+      uint256 start;
+      uint256 end;
+      bool claimed;
+    }
+
+    mapping(uint256 => Pot) public Pots;
+
+    TokenIssuanceContract TokenIssuance = TokenIssuanceContract("vite_000000000000000000000000000000000000000595292d996d");
+    /* -------- */
+
+    /* MODIFIERS */
+
+    /// @notice Pot existance check
+    modifier potExists(uint256 _potIndex) {
+      require(_potIndex < totalPotsCreated , "Pot does not exist!");
+      _;
+    }
+
+    /// @notice Owner Restricted Check
+    modifier restricted {
+      require(msg.sender == owner , "Restricted to owner!");
+      _;
+   }
+   /* -------- */
+
+   /* SETTERS */
+
+    /// @notice Set New Owner
+    function setOwner(address _newOwnerAddress) public restricted {
+      owner = _newOwnerAddress;
+    }
+
+    /// @notice Set New Pot Creation Fee
+    function setFee(uint256 _fee) public restricted returns (uint256) {
+      potCreationFee = _fee;
+      emit CreationFeeUpdated(potCreationFee);
+      return potCreationFee;
+    }
+
+    /// @notice Claim Protocol/Contract Fee
+    function claimFee() public restricted {
+      uint256 fee = totalFeeAccumulated;
+      totalFeeAccumulated = 0;
+      payable(owner).transfer(viteTokenId, fee);
+    }
+   /* ----------------- */
+
+    /* GETTERS */
+    function currentWinner(uint256 _potIndex) public view returns (address) {
+      return Pots[_potIndex].winner;
+    }
+
+    function currentPriceOfPot(uint256 _potIndex) public view returns (uint256) {
+      return Pots[_potIndex].currentPrice;
+    }
+
+    function currentPotAmount(uint256 _potIndex) public view returns (uint256) {
+      return Pots[_potIndex].potAmount;
+    }
+
+    function isPotClaimed(uint256 _potIndex) public view returns (bool) {
+      return Pots[_potIndex].claimed;
+    }
+
+    /* -------- */
+
+    /// @notice Initailize the contract with details of owner & Pot creation fee
+    /// @param _creationFee Initial buy in or Fee to create a Pot
+    constructor (uint256 _creationFee) {
+        potCreationFee = _creationFee;
+        owner = msg.sender;
+        totalPotsCreated = 0;
+    }
+
+    /// @notice Invoke/Call to get info of token
+    /// @param _tokenId
+    // function invoke(vitetoken _tokenId) external {
+    //   TokenIssuance.GetTokenInformation(_tokenId);
+    // }
+
+    /// @notice Get data for any token
+    // function GetTokenInformationCallback(bytes32 id, vitetoken tokenId, bool exist, bool isReIssuable, string calldata tokenName, string calldata tokenSymbol, uint totalSupply, uint8 decimals, uint maxSupply, bool isOwnerBurnOnly, uint16 index, address ownerAddress) external {
+    //   // Process the data
+    //   Pots[totalPotsCreated-1].isOwnerBurnOnly = isOwnerBurnOnly;
+    // }
+
+    /// @notice Send Extra Amount back to player
+    /// @param _tokenId Token Id that needs to be sent
+    /// @param _amount Amount to be sent
+    /// @param _to Player Address
+    function sendExtraAmountBack(vitetoken _tokenId, uint256 _amount, address _to) private {
+      payable(_to).transfer(_tokenId, _amount);
+    }
+
+    /// @notice Create a New Pot
+    /// @param _initialTimer Inital Timer for which Pot remains Active
+    /// @param _maxTimerLimit Max Timer Limit push back by players
+    /// @param _buyInIncrementAmount Increment Amount for each buy in by Player
+    /// @param _burnAmount Amount to be burned
+    /// @param _extensionAmount Timer extension at every buy in
+    /// @param _tokenId Token that will be used for buying the pot
+    function createPot(uint256 _initialTimer, uint256 _maxTimerLimit, uint256 _buyInIncrementAmount, uint256 _burnAmount, uint256 _extensionAmount, vitetoken _tokenId) public payable {
+      require(msg.token == viteTokenId, "Fee must be sent in VITE token");
+      require(msg.value >= potCreationFee, "Amount sent is less than the fee required");
+      require(_initialTimer >= _maxTimerLimit, "Initial timer must be more than equal to max timer limit");
+      require(_burnAmount < _buyInIncrementAmount, "Burn Amount Should be less than initial buy in amount");
+      
+      uint256 PotId = totalPotsCreated++;
+      Pot storage pot = Pots[PotId];
+
+    //   invoke(_tokenId);
+    //   if(pot.isOwnerBurnOnly && _burnAmount > 0) {
+    //     totalPotsCreated--;
+    //     revert("Token can't be burned by Contract");
+    //   }
+
+      pot.maxTimerLimit = _maxTimerLimit;
+      pot.buyInIncrementAmount = _buyInIncrementAmount;
+      pot.burnAmount = _burnAmount;
+      pot.extensionAmount = _extensionAmount;
+      pot.currentPrice = _buyInIncrementAmount;
+      pot.PotOwner = msg.sender;
+      pot.winner = msg.sender;
+      pot.potAmount = 0;
+      pot.tokenId = _tokenId;
+      pot.start = block.timestamp;
+      pot.end = _initialTimer + pot.start;
+      pot.claimed = false;
+      totalFeeAccumulated += potCreationFee;
+      
+      sendExtraAmountBack(viteTokenId, msg.value-potCreationFee, msg.sender);
+      
+      emit PotCreated(msg.sender, PotId, block.timestamp);
+    }
+
+    /// @notice Buy any active Pot
+    /// @param _potIndex Index or ID of Pot for buy in
+    function buyPot(uint256 _potIndex) public payable potExists(_potIndex) {
+      require(Pots[_potIndex].end >= block.timestamp, "Pot Expired!");
+      require(msg.token == Pots[_potIndex].tokenId, "You can't buy this pot with this token");
+      require(msg.value >= Pots[_potIndex].currentPrice, "Pot price is more than amount sent");
+
+      if(Pots[_potIndex].end - block.timestamp <= Pots[_potIndex].maxTimerLimit){
+          if(Pots[_potIndex].end + Pots[_potIndex].extensionAmount >= block.timestamp + Pots[_potIndex].maxTimerLimit)
+            Pots[_potIndex].end = block.timestamp + Pots[_potIndex].maxTimerLimit;
+          else
+            Pots[_potIndex].end += Pots[_potIndex].extensionAmount;
+      }
+      
+      Pots[_potIndex].potAmount += Pots[_potIndex].currentPrice - Pots[_potIndex].burnAmount;
+      Pots[_potIndex].winner = msg.sender;
+      
+      sendExtraAmountBack(Pots[_potIndex].tokenId, msg.value-Pots[_potIndex].currentPrice, msg.sender);
+      
+      Pots[_potIndex].currentPrice += Pots[_potIndex].buyInIncrementAmount;
+      
+      // Burn Token
+      TokenIssuance.Burn{value: (Pots[_potIndex].burnAmount) , token : Pots[_potIndex].tokenId}();
+      
+      emit PotBought(msg.sender, _potIndex, Pots[_potIndex].currentPrice, Pots[_potIndex].end, block.timestamp);
+    }
+
+    /// @notice Claim the Reward of the Pot
+    /// @param _potIndex Index or ID of Pot whose reward is to be claimed
+    function claimReward(uint256 _potIndex) public potExists(_potIndex) {
+      require(Pots[_potIndex].claimed != true, "Reward Already Claimed!");
+      require(Pots[_potIndex].end < block.timestamp, "Pot not expired yet");
+      require(msg.sender == Pots[_potIndex].winner, "Unfortunately, you are not the winner of this Pot");
+
+      uint256 amountToSend = Pots[_potIndex].potAmount;
+      Pots[_potIndex].potAmount = 0;
+      Pots[_potIndex].claimed = true;
+      payable(msg.sender).transfer(Pots[_potIndex].tokenId, amountToSend);
+
+      emit RewardClaimed(msg.sender, _potIndex);
+    }
+}

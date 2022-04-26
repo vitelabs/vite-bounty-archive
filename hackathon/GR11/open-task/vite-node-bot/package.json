@@ -1,0 +1,39 @@
+{
+  "name": "vite_node_bot",
+  "version": "1.0.0",
+  "description": "Vite Node Discord bot",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean:dist": "rm -rf dist/*",
+    "clean:node": "rm -rf node_modules",
+    "clean": "npm run clean:dist && npm run clean:node",
+    "start": "npm run start:dev",
+    "start:prod": "tsc && pm2 start dist/index.js --name \"Vite Node Bot\"",
+    "start:dev": "tsc && node dist/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ViNo-community/vite-node-bot.git"
+  },
+  "author": "ViNo Community",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/ViNo-community/vite-node-bot/issues"
+  },
+  "homepage": "https://github.com/ViNo-community/vite-node-bot#readme",
+  "dependencies": {
+    "@vite/vitejs": "^2.3.14",
+    "@vite/vitejs-http": "^2.3.14",
+    "@vite/vitejs-ws": "^2.3.16",
+    "discord.js": "^12.5.3",
+    "dotenv": "^10.0.0",
+    "luxon": "^2.0.2",
+    "vitejs-notthomiz": "^2.3.15",
+    "winston": "^3.3.3"
+  },
+  "devDependencies": {
+    "ts-node": "^10.1.0",
+    "typescript": "^4.3.4"
+  }
+}

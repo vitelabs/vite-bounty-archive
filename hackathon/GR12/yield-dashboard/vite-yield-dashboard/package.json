@@ -1,0 +1,60 @@
+{
+  "name": "vite-yield-dashboard",
+  "license": "MIT",
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "lint": "vue-cli-service lint",
+    "deploy": "firebase deploy"
+  },
+  "dependencies": {
+    "@braid/vue-formulate": "^2.5.2",
+    "@mdi/js": "^5.9.55",
+    "@vite/vitejs": "^2.3.16",
+    "@vite/vitejs-http": "^2.3.16",
+    "@vite/vitejs-utils": "^2.3.16",
+    "@vite/vitejs-ws": "^2.3.16",
+    "@vue/composition-api": "1.0.4",
+    "@vuetify/cli-plugin-utils": "^0.0.9",
+    "apexcharts": "^3.27.3",
+    "axios": "^0.24.0",
+    "bignumber.js": "^9.0.1",
+    "core-js": "^3.6.5",
+    "firebase": "^9.6.0",
+    "firebase-tools": "^9.23.1",
+    "numeral": "^2.0.6",
+    "socket.io": "^4.4.0",
+    "socket.io-client": "^4.4.0",
+    "vue": "^2.6.11",
+    "vue-apexcharts": "^1.6.2",
+    "vue-router": "^3.2.0",
+    "vue-router-user-roles": "^0.1.92",
+    "vuetify": "^2.4.0",
+    "vuex": "^3.4.0",
+    "webpack": "^4.3.0"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-plugin-router": "~4.5.0",
+    "@vue/cli-plugin-vuex": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "@vue/eslint-config-airbnb": "^5.0.2",
+    "babel-eslint": "^10.1.0",
+    "bip39": "^3.0.4",
+    "eslint": "^6.7.2",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-vue": "^6.2.2",
+    "sass": "~1.32.0",
+    "sass-loader": "^10.0.0",
+    "vue-cli-plugin-vuetify": "~2.4.2",
+    "vue-template-compiler": "^2.6.11",
+    "vuetify-loader": "^1.7.0"
+  },
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zachdolph/vite-yield-dashboard"
+  }
+}

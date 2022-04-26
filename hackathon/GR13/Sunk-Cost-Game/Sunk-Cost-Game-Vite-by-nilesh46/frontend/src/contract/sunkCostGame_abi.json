@@ -1,0 +1,342 @@
+[
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_creationFee",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_newCreationFee",
+                "type": "uint256"
+            }
+        ],
+        "name": "CreationFeeUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_from",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_potIndex",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_potCurrentPrice",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_potEndTime",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_time",
+                "type": "uint256"
+            }
+        ],
+        "name": "PotBought",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_from",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_potIndex",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_time",
+                "type": "uint256"
+            }
+        ],
+        "name": "PotCreated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "address",
+                "name": "_from",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "_potIndex",
+                "type": "uint256"
+            }
+        ],
+        "name": "RewardClaimed",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "name": "Pots",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "PotOwner",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "maxTimerLimit",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "buyInIncrementAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "burnAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "extensionAmount",
+                "type": "uint256"
+            },
+            { "internalType": "address", "name": "winner", "type": "address" },
+            {
+                "internalType": "uint256",
+                "name": "potAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "currentPrice",
+                "type": "uint256"
+            },
+            { "internalType": "tokenId", "name": "tokenId", "type": "tokenId" },
+            { "internalType": "uint256", "name": "start", "type": "uint256" },
+            { "internalType": "uint256", "name": "end", "type": "uint256" },
+            { "internalType": "bool", "name": "claimed", "type": "bool" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_potIndex",
+                "type": "uint256"
+            }
+        ],
+        "name": "buyPot",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "claimFee",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_potIndex",
+                "type": "uint256"
+            }
+        ],
+        "name": "claimReward",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_initialTimer",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_maxTimerLimit",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_buyInIncrementAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_burnAmount",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_extensionAmount",
+                "type": "uint256"
+            },
+            { "internalType": "tokenId", "name": "_tokenId", "type": "tokenId" }
+        ],
+        "name": "createPot",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_potIndex",
+                "type": "uint256"
+            }
+        ],
+        "name": "currentPotAmount",
+        "outputs": [
+            { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_potIndex",
+                "type": "uint256"
+            }
+        ],
+        "name": "currentPriceOfPot",
+        "outputs": [
+            { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_potIndex",
+                "type": "uint256"
+            }
+        ],
+        "name": "currentWinner",
+        "outputs": [
+            { "internalType": "address", "name": "", "type": "address" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_potIndex",
+                "type": "uint256"
+            }
+        ],
+        "name": "isPotClaimed",
+        "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            { "internalType": "address", "name": "", "type": "address" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "potCreationFee",
+        "outputs": [
+            { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            { "internalType": "uint256", "name": "_fee", "type": "uint256" }
+        ],
+        "name": "setFee",
+        "outputs": [
+            { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_newOwnerAddress",
+                "type": "address"
+            }
+        ],
+        "name": "setOwner",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "totalFeeAccumulated",
+        "outputs": [
+            { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "totalPotsCreated",
+        "outputs": [
+            { "internalType": "uint256", "name": "", "type": "uint256" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
+]

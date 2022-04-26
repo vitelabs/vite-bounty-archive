@@ -1,0 +1,49 @@
+pragma soliditypp ^0.4.3;
+
+contract Faucet {
+
+  address owner;
+  uint256 contractBalance;
+  tokenId viteID = tokenId("tti_5649544520544f4b454e6e40");
+  uint256 sendAmount = 1000000000000000000/4;
+
+  mapping(address => uint) paymentRecord;
+  mapping(address => uint) donationRecord;
+
+  event transfer(address indexed addr,uint256 amount,string status);
+  event walletBalance(address indexed addr, uint256 balance);
+
+  constructor() public {
+    owner = msg.sender;
+  }
+  
+  // off-chain method to access owner
+  getter getOwner() returns(address) {
+    return owner;
+  }
+
+  getter getPayout(address addr) returns(uint256) {
+    return paymentRecord[addr];
+  }
+
+  // Note: Balance doesn't appear if there is only one argument in walletBalance event
+  onMessage getBalance() {
+    emit walletBalance(address(this),balance(viteID));
+  }
+
+  onMessage receiveDonation() payable {
+    address(this).transfer(viteID, msg.amount);
+    emit transfer(address(this), msg.amount, 'SUCCESS');
+  }
+ 
+  // 1000000000000000000 = 1 vite
+  onMessage sendVite() payable {
+    if (paymentRecord[msg.sender] < 1000000000000000000) {
+      address(msg.sender).transfer(viteID, sendAmount);
+      paymentRecord[msg.sender] += sendAmount;
+      emit transfer(address(this), sendAmount, 'SUCCESS');
+    } else {
+      emit transfer(address(this), sendAmount,'FAILED');  
+    }
+  }
+}

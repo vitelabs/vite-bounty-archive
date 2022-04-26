@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pool</title>
+    <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+
+    	<meta name="viewport" content="width=device-width, initial-scale=1">
+    	<link rel="stylesheet" href="../css/bootstrap.rtl.min.css">
+	<link rel="stylesheet" href="../css/animate.min.css">
+	<link rel="stylesheet" href="../css/bootstrap-grid.min.css">
+	<link rel="stylesheet" href="../css/bootstrap-grid.rtl.min.css">
+	<link rel="stylesheet" href="../css/bootstrap-reboot.min.css">
+	<link rel="stylesheet" href="../css/bootstrap-reboot.rtl.min.css">
+	<link rel="stylesheet" href="../css/bootstrap-utilities.min.css">
+	<link rel="stylesheet" href="../css/bootstrap-utilities.rtl.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<link rel="stylesheet" href="../css/style.css">
+	<link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="../img/favicon-16x16.png">
+<link rel="manifest" href="../img/site.webmanifest">
+</head>
+
+<body onload=getPoolName()>
+
+<nav class="navbar navbar-expand-lg navbar-light navbar-custom" style="z-index:10;position:relative;">
+  <a class="navbar-brand" href="/index.html" style="margin-top: -12px">ViteTokens Faucet</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <ul class="nav navbar-nav">
+		<li><a class="nav-link" href="/pool/Public%20Pool">Public Pool</a></li>
+
+		<li><a class="nav-link" href="/donators.html">Donors</a></li>
+		<li><a class="nav-link" href="/donate.html">Become a Donor</a></li>
+    <li><a class="nav-link" href="/create.html"><b>Create a Pool</b></a></li>
+    <li><a class="nav-link" href="https://discord.gg/DKaYwVaaHd"><b>Discord Server</b></a></li>
+	  </ul>
+	  
+	  
+	  
+	  
+	  
+	  <ul class="nav navbar-nav ml-auto" style="padding:15px 0 0 0;margin:0">
+		  <li style="margin:0"><p style="margin:0;line-height:34px;"><span style="margin-top:5px;padding-right:5px">Dark Mode</span> <label class="form-inline switch">
+  <input type="checkbox" class="btn-toggle" id="checkbox">
+  <span class="slider round"></span>
+		  </label></p></li></ul>
+  </div>
+</nav>
+	
+<div class="body-wrapper animate__animated animate__fadeIn">	
+	
+	
+   
+	  <div class="col-md-12">
+      <center>
+        <div class="banner" style="width: 100%; max-width: 100%; max-height: 100%; background-size: contain;">  <img src="https://i.imgur.com/MwcuAZb.png" id="alterimg" style="width: 100%; height: 100%;">        </div>
+           
+
+ </center>
+	   </div><br><br>
+	<div class="row">
+        <div class="col-md-4">
+			<h1 id="poolname">Cat Pool</h1>
+			
+      <h5 id="balance">Balance: no TOKEN</h5> 
+			
+			<h5 id="reward">Reward: no TOKEN</h5>
+      
+      <h5 id="tokenname">Token name: N/A</h5>
+
+      <h5 id="tokenid">Token ID: N/A</h5>
+			<br><br>
+		   </div>
+	     <div class="col-md-4">
+			<h4 id="aboutx">About this Pool</h4>
+			 <p id="description">If this won't change it means there's no pool  Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+      <br><br>
+         <p id="smalltext">https://cats.co.uk</p>
+		   </div>
+             <br><br>
+       <div class="col-md-4">
+        <h4>Add this token to your wallet</h4>
+        <button type="button" class="btn btn-primary "onclick="window.open('https://vitetokens.cc/doc/desktop.pdf');" id="claimbtn" style="margin-top:10px; height: 3rem; padding: 0px 10px;">Desktop Wallet</button>
+        <br>
+        <button type="button" class="btn btn-primary "onclick="window.open('https://vitetokens.cc/doc/mobile.pdf');" id="claimbtn" style="margin-top:10px; height: 3rem; padding: 0px 10px;">Mobile Wallet </button>
+        <br><br>
+         </div>
+	</div>
+
+
+
+<script>
+   async function getPoolName() {
+        var parts = window.location.href.split('/');
+        var lastSegment = parts.pop() || parts.pop();
+        var pooldatajson = await fetch(`https://vitetokens.cc/api/poolinfo?name=${unescape(lastSegment)}`).then(res => res.json())
+        document.getElementById('poolname').innerHTML
+        = unescape(lastSegment.replace(/%20/g, ' '));
+        document.getElementById('description').innerHTML
+        = unescape(pooldatajson.desc)
+        document.getElementById('reward').innerHTML
+        = `Reward: ${unescape(pooldatajson.reward)} ${pooldatajson.symbol}`
+        document.getElementById('balance').innerHTML
+        = `Balance: ${pooldatajson.balance} ${pooldatajson.symbol}`
+        document.getElementById('smalltext').innerHTML
+        = `<font size=20%>${unescape(pooldatajson.smalltext)}</font>`
+        document.getElementById('alterimg').src
+        = pooldatajson.img
+        document.getElementById('tokenname').innerHTML
+        = `Token name: ${pooldatajson.tokenname}`
+        document.getElementById('tokenid').innerHTML
+        = `Token ID: ${pooldatajson.tokenid}`
+
+
+        
+// poolname
+// reward
+// desc
+// smalltext
+// img
+       }
+</script>
+
+		
+<div class="box">
+  <div class="head"></div>
+  <div class="head-copy">
+    <div class="face-left"></div>
+    <div class="face-right"></div>
+    <div class="face">
+      <div class="eyes">
+        <div class="pupil"></div>
+      </div>
+      <div class="eyes left">
+        <div class="pupil"></div>
+      </div>
+      <div class="blush"></div>
+      <div class="blush-right"></div>
+      <div class="nose">
+        <div class="line"></div>
+      </div>
+      <div class="mouth"></div>
+      <div class="mouth2"></div>
+    </div>
+    <div class="face-left"></div>
+    <div class="face-right"></div>
+    <div class="ears-left">
+      <div class="inner-ear"></div>
+    </div>
+    <div class="ears-right">
+      <div class="inner-ear right"></div>
+    </div>
+  </div>
+</div>
+</div>
+	</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="../js/bananocoin-bananojs.js"></script>
+	<script src="../js/bootstrap.bundle.min.js"></script>
+	<script src="../js/bootstrap.esm.min.js"></script>
+	
+	<script src="../js/utils.js"></script>
+</html>

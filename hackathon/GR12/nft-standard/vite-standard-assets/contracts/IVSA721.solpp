@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: MIT
+// Vite Standard Assets v0.1.0 (IVSA721 non-fungible token interface)
+
+pragma soliditypp >=0.7.0 <0.9.0;
+
+interface IVSA721 {
+    event Approval(address indexed owner, address indexed approved, uint256 indexed token);
+
+    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
+
+    event Transfer(address indexed from, address indexed to, uint256 indexed token);
+
+    function name() offchain view returns (string memory);
+
+    function symbol() offchain view returns (string memory);
+
+    function balanceOf(address owner) offchain view returns (uint256);
+
+    function ownerOf(uint256 token) offchain view returns (address);
+
+    function isApproved(address owner, address operator, uint256 token) offchain view returns (bool);
+
+    function approve(address to, uint256 token) external async;
+
+    function isApprovedForAll(address owner, address operator) offchain view returns (bool);
+
+    function approveForAll(address operator, bool approved) external async;
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 token
+    ) external async;
+
+    function mint(address to, uint256 token) external async;
+
+    function burn(address from, uint256 token) external async;
+}

@@ -1,0 +1,13 @@
+.image {
+  border-radius: 100%;
+  margin-top: 2rem;
+}
+
+.header {
+  text-align: center;
+}
+
+.link {
+  text-decoration: none;
+  color: rgba(0,0,0,.7);
+}

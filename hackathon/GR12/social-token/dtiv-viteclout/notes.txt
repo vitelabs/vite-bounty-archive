@@ -1,0 +1,5 @@
+Viteclout server
+-----------------
+
+1. Create Schema in models folder
+2. Import model into Routes to create a route

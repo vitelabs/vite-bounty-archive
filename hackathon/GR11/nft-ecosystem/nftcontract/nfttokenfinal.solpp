@@ -1,0 +1,260 @@
+pragma soliditypp ^0.4.3;
+
+
+
+contract artistwallet 
+{
+    address creator; 
+    string artist;
+    uint256[] nfts;
+    mapping(uint256 => nftinfo) nftid;
+    struct nftinfo{
+        string name;
+        string artist2;
+        string link;
+        address owner;
+        address approved;
+        uint256 creationdate;
+        uint256 state; //0 = inactive, 1 = being openly sold, 2 = being sold to address, 3 being auctioned
+        uint256 price;
+        uint256 selltime;
+        uint256 starttime;
+        address buyer;
+    }
+    mapping(address => uint256) amountofnfts;
+    uint256 counter;
+    uint256 quotapool;
+    uint256 basefee;
+    address constant stakeContract = "vite_0000000000000000000000000000000000000003f6af7459b9";
+    tokenId constant viteTokenId = "tti_5649544520544f4b454e6e40";
+    //message StakeForQuota(address recipient) payable; // not compilable in vscode
+    uint256[]   activesales;
+    uint256[]   activeauctions;
+    mapping(uint256 => uint256) indexsale;
+    mapping(uint256 => uint256) indexauction;
+    //uint256 during;
+
+
+constructor(string memory _artist) public{
+        basefee = 10 vite;
+        creator = msg.sender;
+        artist = _artist;
+}
+
+
+onMessage stakefeesforquota() payable { //most interactions with the contract require paying a basefee
+    require(msg.amount >= basefee);     //this amount can then be used by the contract to stake quota for itself
+    quotapool += msg.amount;//making people be able to keep interacting with it, and resistant to spam.
+    //send(stakeContract, StakeForQuota(this), viteTokenId, quotapool); // <not compilable in vscode
+    quotapool = 0; //^send in the stake to the stakecontract.
+}   
+//through this method the fees are used for quota, and cannot be withdrawn, can be though of as burnt whilst still providing quota.
+
+onMessage changebasefee(uint256 _basefee){ // if enough quota is reached, or more is needed, basefee can be changed between 1 and 20 vite.
+    require(
+    msg.sender == creator 
+    && _basefee >= 1 vite 
+    && _basefee <= 20 vite
+    );
+    basefee = _basefee;
+}
+
+onMessage mintnft(string calldata _name, address _owner, string calldata link) payable {
+        require(msg.sender == creator 
+        && msg.amount >= basefee);
+        nfts.push(counter);
+        nftinfo memory _nftinfo = nftinfo(_name, artist, link, _owner, _owner, now, 0, 100000000000000, 0, 0, msg.sender);
+        nftid[counter] = _nftinfo;
+        counter = counter + 1;
+        amountofnfts[_owner] += 1;
+        quotapool += msg.amount;
+}
+
+onMessage sellnft(uint256 identifier, uint256 _price) {
+    require(nftid[identifier].approved == msg.sender 
+        && nftid[identifier].state == 0
+        && nftid[identifier].approved == nftid[identifier].owner 
+    );
+    nftid[identifier].price = _price;
+    nftid[identifier].state = 1;
+    //activesales.push(identifier);
+    activesales.push(identifier);
+    indexsale[identifier] = activesales.length -1;
+}
+
+onMessage buynft(uint256 identifier) payable{
+    require(
+        nftid[identifier].price == msg.amount 
+        && nftid[identifier].state == 1
+        && msg.amount >= basefee
+    );
+    nftid[identifier].owner.transfer(msg.tokenid, msg.amount - basefee);
+    nftid[identifier].state = 0;
+    amountofnfts[msg.sender] += 1;
+    amountofnfts[nftid[identifier].owner] -= 1;
+    nftid[identifier].owner = msg.sender;
+    nftid[identifier].approved = msg.sender;
+    quotapool += basefee;
+    indexsale[activesales[activesales.length-1]] = indexsale[identifier];
+    activesales[indexsale[identifier]] = activesales[activesales.length-1];
+    activesales.pop();
+
+}
+
+onMessage selltoaddress(uint256 identifier, uint256 _price, address _buyaddress){
+    require(
+        nftid[identifier].approved == msg.sender 
+        && nftid[identifier].state == 0 
+        && nftid[identifier].approved == nftid[identifier].owner 
+    );
+    nftid[identifier].price = _price;
+    nftid[identifier].state = 2;
+    nftid[identifier].buyer = _buyaddress;
+}
+
+onMessage buytoaddress(uint256 identifier) payable{
+    require(nftid[identifier].buyer == msg.sender 
+        && nftid[identifier].state == 2 
+        && nftid[identifier].price == msg.amount 
+        && msg.amount >= basefee);
+    nftid[identifier].state = 0;
+    nftid[identifier].owner.transfer(msg.tokenid, msg.amount - basefee);
+    amountofnfts[msg.sender] += 1;
+    amountofnfts[nftid[identifier].owner] -= 1;
+    nftid[identifier].owner = msg.sender;
+    nftid[identifier].approved = msg.sender;
+    quotapool += basefee;
+}
+
+onMessage cancelsales(uint256 identifier) payable{
+    require(nftid[identifier].approved == msg.sender && msg.amount >= basefee 
+    && nftid[identifier].state != 3);
+    nftid[identifier].state = 0;
+    quotapool += msg.amount;
+    indexsale[activesales[activesales.length-1]] = indexsale[identifier];
+    activesales[indexsale[identifier]] = activesales[activesales.length-1];
+    activesales.pop();
+}
+
+onMessage startauction(uint256 identifier, uint _startprice, uint256 _selltime) payable{
+    require(nftid[identifier].approved == msg.sender 
+        && nftid[identifier].state == 0 
+        && nftid[identifier].approved == nftid[identifier].owner 
+        &&  msg.amount >= basefee);
+    nftid[identifier].price = _startprice;
+    nftid[identifier].buyer = msg.sender;
+    nftid[identifier].starttime = now;
+    nftid[identifier].selltime = _selltime;
+    nftid[identifier].state = 3;
+    activeauctions.push(identifier);
+    indexauction[identifier] = activeauctions.length -1;
+    quotapool += basefee;
+
+}
+
+onMessage bidauction(uint256 identifier) payable{
+    require(
+        nftid[identifier].state == 3 
+        && now < nftid[identifier].selltime+nftid[identifier].starttime 
+        && (msg.amount - nftid[identifier].price) > basefee
+        && msg.sender != nftid[identifier].approved
+        );
+    if(nftid[identifier].buyer != nftid[identifier].owner) {
+    nftid[identifier].buyer.transfer("tti_5649544520544f4b454e6e40", nftid[identifier].price - basefee);
+    nftid[identifier].buyer = msg.sender;
+    nftid[identifier].price = msg.amount;
+    quotapool += basefee;}
+    else {nftid[identifier].buyer = msg.sender;
+    nftid[identifier].price = msg.amount;
+    quotapool += basefee;}
+
+}
+
+onMessage resolveauction(uint256 identifier) payable {
+    require(
+        nftid[identifier].state == 3 
+        && now > nftid[identifier].selltime+nftid[identifier].starttime
+        && msg.amount >= basefee
+    );
+    if(nftid[identifier].buyer != nftid[identifier].owner) {
+    amountofnfts[nftid[identifier].buyer] += 1;
+    amountofnfts[nftid[identifier].owner] -= 1;
+    nftid[identifier].owner.transfer("tti_5649544520544f4b454e6e40", nftid[identifier].price - basefee);
+    nftid[identifier].owner = nftid[identifier].buyer;
+    nftid[identifier].approved = nftid[identifier].buyer;
+    nftid[identifier].state = 0;
+    indexauction[activeauctions[activeauctions.length-1]] = indexauction[identifier];
+    activeauctions[indexauction[identifier]] = activeauctions[activeauctions.length-1];
+    activeauctions.pop();
+    quotapool += basefee;
+    }
+    else {nftid[identifier].state = 0;
+    indexauction[activeauctions[activeauctions.length-1]] = indexauction[identifier];
+    activeauctions[indexauction[identifier]] = activeauctions[activeauctions.length-1];
+    activeauctions.pop();
+    quotapool += basefee;}
+
+}
+
+onMessage approving(uint256 identifier, address _approve) payable{ //approving/unapproving not fully complete//allows transfers of nft only not sell/auction
+    require(nftid[identifier].owner == msg.sender 
+    && nftid[identifier].state == 0
+    && msg.amount >= (basefee/2));
+    nftid[identifier].approved =_approve;
+    quotapool += msg.amount;
+}
+
+onMessage stopapproving(uint256 identifier) {
+    require(nftid[identifier].owner == msg.sender);
+    nftid[identifier].approved = nftid[identifier].owner;
+}
+
+onMessage transfernft(uint256 identifier, address toaddress) payable{
+    require(nftid[identifier].approved == msg.sender 
+        && nftid[identifier].state == 0
+        && msg.amount >= basefee);
+    amountofnfts[toaddress] += 1;
+    amountofnfts[nftid[identifier].owner] -= 1;
+    nftid[identifier].owner = toaddress;
+    quotapool += msg.amount;
+}
+
+getter getnfts() returns(uint256[] memory){
+    return(nfts);
+
+}
+
+getter getnftinfo(uint256 identifier) returns(string memory titel, string memory link, string memory by, address owner_, uint256 whencreated, uint256 state, uint256 _price){
+    return(nftid[identifier].name, nftid[identifier].link, nftid[identifier].artist2, nftid[identifier].owner, nftid[identifier].creationdate, nftid[identifier].state, nftid[identifier].price);
+}
+
+getter getsaleinfo(uint256 identifier)returns(uint256 state, uint256 _price, uint256 _selltime, uint256 starttime){
+    return(nftid[identifier].state, nftid[identifier].price, nftid[identifier].selltime, nftid[identifier].starttime);
+
+}
+getter getamountofnfts(address _address) returns(uint256) {
+    return(amountofnfts[_address]);
+}
+
+getter getactivesales() returns(uint256[] memory ids){
+    return(activesales);
+    
+}
+
+getter getactiveauctions() returns(uint256[] memory ids){
+    return(activeauctions);
+
+}
+/*
+getter getactiveauctions2() returns(uint256[] memory ids){          //assuming getter does not access now this does not function yet.
+    uint256[] memory _ids = new uint[](activeauctions.length);
+    for(uint i=0; i<activeauctions.length;i++){
+        if((nftid[activeauctions[i]].selltime + nftid[activeauctions[i]].starttime) > now){
+            _ids[i] = activeauctions[i];
+        }
+
+    }
+    return _ids;
+
+}*/
+}

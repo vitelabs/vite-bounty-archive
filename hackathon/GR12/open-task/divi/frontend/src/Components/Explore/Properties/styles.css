@@ -1,0 +1,37 @@
+.Properties {
+    margin-top: 2.5rem;
+}
+
+.Properties-header {
+    text-align: center;
+}
+
+.Property {
+    width: 25%;
+}
+
+.Properties-Button {
+    margin: 2rem;
+}
+
+.Create-Property-Icon {
+    margin-left: 0.22rem;
+}
+
+@media (min-width: 800px) and  (max-width: 1000px) {
+	.Property {
+        width: 50%;
+	}
+}
+
+@media ((min-width: 1001px) and (max-width: 1200px)) {
+	.Property {
+        width: 33%;
+	}
+}
+
+@media (min-width: 1201px) {
+	.Property {
+        width: 25%;
+	}
+}

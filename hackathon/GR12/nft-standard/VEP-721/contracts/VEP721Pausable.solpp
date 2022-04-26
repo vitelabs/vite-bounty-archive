@@ -1,0 +1,25 @@
+pragma soliditypp ^0.4.3;
+
+import "./VEP721.solpp";
+import "./utils/Pausable.solpp";
+
+/**
+ * @title VEP721 Non-Fungible Pausable token
+ * @dev VEP721 modified with pausable transfers.
+ */
+contract VEP721Pausable is VEP721, Pausable {
+    onMessage approve(address to, uint256 token) {
+        _mustNotPaused();
+        super._approve(to, token);
+    }
+
+    onMessage setApprovalForAll(address to, bool approved) {
+        _mustNotPaused();
+        super._setApprovalForAll(to, approved);
+    }
+
+    function _transferFrom(address from, address to, uint256 token) internal {
+        _mustNotPaused();
+        super._transferFrom(from, to, token);
+    }
+}

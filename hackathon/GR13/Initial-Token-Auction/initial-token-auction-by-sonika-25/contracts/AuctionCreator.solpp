@@ -1,0 +1,172 @@
+pragma soliditypp 0.8.0;
+
+contract AuctionCreator{
+   event auctionCreated (uint256 auctionId, uint256 time);
+   event bidPlaced (uint256 auctionId, uint256 bidId, uint256 time);
+   event TokensSold (uint256 auctionId, uint256 time);
+   event viteReturned (uint256 auctionId, uint256 time);
+   event BidChanged (uint256 auctionId, uint256 bidId);
+   event BidCancelled (uint256 auctionId, uint256 bidId);
+
+   enum AuctionStatus {
+      ComingSoon,
+      Ongoing,
+      Over
+   }
+   struct Auction {
+      uint256 auctionId;
+      uint256 amount;
+      uint256 endDate;
+      uint256 minPrice;
+      address [] buyers;
+      address payable seller;
+      vitetoken assetId;
+      AuctionStatus status;
+   }
+   struct Bid {
+      uint256 bidId;
+      address payable buyer;
+      uint256 amount;
+      uint256 unitPrice;
+   }
+   Auction [] public auctions;
+   mapping (uint256 => Bid[]) public bidsPerAuction;
+   vitetoken public constant VITE = "tti_5649544520544f4b454e6e40";
+   constructor () payable {}
+
+   function startAuction(vitetoken _token, uint256 _endDate, uint256 _amount, uint256 _minPrice) public {
+      require(msg.token == _token, "send same token");
+      require(balance(_token)>=_amount , "token not sufficient");
+      Auction memory auction;
+      auction.auctionId = auctions.length;
+      auction.amount = _amount;
+      auction.endDate = _endDate;
+      auction.minPrice = _minPrice;
+      auction.seller = payable(msg.sender);
+      auction.assetId = _token;
+      auction.status = AuctionStatus.Ongoing;
+
+      auctions.push (auction);
+      emit auctionCreated (auctions.length, block.timestamp);
+   }
+   function getAuctionInfo (uint256 _auctionId) public view returns (
+      uint256 id,
+      uint256 amount,
+      uint256 endDate,
+      uint256 minPrice,
+      address[] memory buyers,
+      address seller,
+      vitetoken token,
+      AuctionStatus status
+
+    ){
+      Auction memory auction = auctions[_auctionId];
+      return (
+         auction.auctionId,
+         auction.amount,
+         auction.endDate,
+         auction.minPrice,
+         auction.buyers,
+         auction.seller,
+         auction.assetId,
+         auction.status
+      );
+    }
+
+   function returnBidInfo (uint256 _auctionId, uint256 _bidId) public view returns (
+   uint256 bidId,
+   address buyer,
+   uint256 amont,
+   uint256 unitPrice
+   ) {
+   Bid memory bid = bidsPerAuction[_auctionId][_bidId];
+   return (
+      bid.bidId,
+      bid.buyer,
+      bid.amount,
+      bid.unitPrice
+   );
+   }
+   function placeBid (uint256 _auctionId, uint256 _bidAmount, uint256 _unitPrice) public payable withinDuration(_auctionId) {
+      require (msg.value == _bidAmount, "msg.value not equal to bid amount");
+      require (_unitPrice >= auctions[_auctionId].minPrice, "unit price too low");
+      require(msg.token == VITE, "TokenAuction: bid must be placed in VITE");
+      bidsPerAuction[_auctionId].push (Bid(
+         bidsPerAuction[_auctionId].length,
+         payable (msg.sender),
+         _bidAmount,
+         _unitPrice
+      ));
+      emit bidPlaced (_auctionId, bidsPerAuction[_auctionId].length, block.timestamp);
+   }
+   function changeBid (uint256 _auctionId, uint256 _bidId, uint256 _newBidAmount, uint256 _newUnitPrice) public withinDuration(_auctionId) {
+      require (_newUnitPrice >= auctions[_auctionId].minPrice, "unit price too low");
+      bidsPerAuction[_auctionId][_bidId].amount = _newBidAmount;
+      bidsPerAuction[_auctionId][_bidId].unitPrice = _newUnitPrice;
+      emit BidChanged (_auctionId, _bidId);
+   }
+   function cancelBid (uint256 _auctionId, uint256 _bidId) public withinDuration (_auctionId){
+      require(bidsPerAuction[_auctionId][_bidId].buyer != address(0), "bid does not exist");
+      bidsPerAuction[_auctionId][_bidId].buyer = payable(address(0));
+      bidsPerAuction[_auctionId][_bidId].amount = 0;
+      bidsPerAuction[_auctionId][_bidId].unitPrice = 0;
+      bidsPerAuction[_auctionId][_bidId].bidId = 0;
+      emit BidCancelled (_auctionId, _bidId);
+   }
+   function ResolveAuction (uint256 _auctionId) public payable {
+      require (block.timestamp > auctions[_auctionId].endDate , "Auction Ongoing");
+      uint256 len = bidsPerAuction[_auctionId].length;
+      //Bid [] memory aBids = bidsPerAuction[_auctionId];
+      if (len>1){
+         for (uint i =0; i< len; i++){
+            for (uint j=0; j< (len-i-1); j++){
+               if (bidsPerAuction[_auctionId][j].amount > bidsPerAuction[_auctionId][j+1].amount){
+                  Bid memory highBid = bidsPerAuction[_auctionId][j];
+                  bidsPerAuction[_auctionId][j]= bidsPerAuction[_auctionId][j+1];
+                  bidsPerAuction[_auctionId][j+1]=highBid;
+               }
+            }
+         }
+      }
+      //bidsPerAuction[_auctionId] = aBids;
+      while (auctions[_auctionId].amount >0){
+         uint256 currBidId;
+         Bid memory currBid = bidsPerAuction[_auctionId][currBidId];
+         address payable to = currBid.buyer;
+         uint256 sellamount = currBid.amount/ currBid.unitPrice;
+         vitetoken asset = auctions[_auctionId].assetId;
+         if (auctions[_auctionId].amount >= sellamount){
+            to.transfer(asset, sellamount);
+            auctions[_auctionId].seller.transfer("tti_5649544520544f4b454e6e40",currBid.amount);
+            auctions[_auctionId].buyers.push(to);
+         }
+         if (auctions[_auctionId].amount <sellamount) {
+            to.transfer(asset, auctions[_auctionId].amount);
+            uint returnVal = currBid.amount - ((auctions[_auctionId].amount) * (currBid.unitPrice));
+            to.transfer("tti_5649544520544f4b454e6e40", returnVal);
+            auctions[_auctionId].seller.transfer("tti_5649544520544f4b454e6e40", currBid.amount-returnVal);
+            auctions[_auctionId].buyers.push(to);
+         }
+         auctions[_auctionId].amount -=sellamount;
+         currBidId++;
+      }
+      emit TokensSold (_auctionId, block.timestamp);
+
+      uint256 buyersLength = auctions[_auctionId].buyers.length;
+      Bid [] memory bidsArr = bidsPerAuction[_auctionId];
+      for (uint i= buyersLength ; i< bidsArr.length ;i++){
+         uint256 amount = bidsArr[i].amount;
+         address payable bidPlacer = bidsArr[i].buyer;
+         bidPlacer.transfer("tti_5649544520544f4b454e6e40", amount);
+      }
+      emit viteReturned (_auctionId, block.timestamp);
+
+      auctions[_auctionId].status = AuctionStatus.Over;
+   }
+
+   modifier withinDuration (uint256 _auctionId) {
+      require (block.timestamp<= auctions[_auctionId].endDate, "aution over");
+      require (auctions[_auctionId].status == AuctionStatus.Ongoing, "auction over");
+      _;
+   }
+}

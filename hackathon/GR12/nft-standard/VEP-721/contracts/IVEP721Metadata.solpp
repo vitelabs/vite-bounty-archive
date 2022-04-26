@@ -1,0 +1,35 @@
+pragma soliditypp ^0.4.3;
+
+import "./IVEP721.solpp";
+
+/**
+ * @title VEP-721 Non-Fungible Token Standard, optional metadata extension
+ */
+contract IVEP721Metadata is IVEP721 {
+    message sendName(string);
+
+    message sendSymbol(string);
+
+    message sendTokenURI(string);
+
+    getter name() returns (string memory);
+
+    getter symbol() returns (string memory);
+
+    getter tokenURI(uint256 token) returns (string memory);
+
+    /**
+     * @dev Sends sendName(string) with the name of the token.
+     */
+    onMessage requestName();
+
+    /**
+     * @dev Sends sendSymbol(string) with the symbol of the token.
+     */
+    onMessage requestSymbol();
+
+    /**
+     * @dev Sends sendTokenURI(string) with the token URI of the token.
+     */
+    onMessage requestTokenURI(uint256 token);
+}

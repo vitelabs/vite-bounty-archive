@@ -1,0 +1,348 @@
+pragma soliditypp ^0.4.3;
+
+import "./IVEP721.solpp";
+import "./utils/Counters.solpp";
+import "./utils/SafeMath.solpp";
+import "./utils/Context.solpp";
+
+/**
+ * @title VEP721 Non-Fungible Token Standard basic implementation
+ */
+contract VEP721 is Context, IVEP721 {
+    using SafeMath for uint256;
+    using Counters for Counters.Counter;
+
+    // Mapping from token ID to owner
+    mapping (uint256 => address) private _tokenOwner;
+
+    // Mapping from token ID to approved address
+    mapping (uint256 => address) private _tokenApprovals;
+
+    // Mapping from owner to number of owned token
+    mapping (address => Counters.Counter) private _ownedTokensCount;
+
+    // Mapping from owner to operator approvals
+    mapping (address => mapping (address => bool)) private _operatorApprovals;
+
+    /**
+     * @dev Gets the balance of the specified address.
+     * Note that this getter allows querying for the zero address
+     * @param owner address to query the balance of
+     * @return uint256 representing the amount owned by the passed address
+     */
+    getter balanceOf(address owner) returns (uint256 ownerBalance) {
+        return _balanceOf(owner);
+    }
+
+    /**
+     * @dev Gets the owner of the specified token ID.
+     * Note that this getter allows querying for the zero address
+     * @param token uint256 ID of the token to query the owner of
+     * @return address currently marked as the owner of the given token ID
+     */
+    getter ownerOf(uint256 token) returns (address owner) {
+        address _owner = _tokenOwner[token];
+
+        return _owner;
+    }
+
+    /**
+     * @dev Gets the approved address for a token ID, or zero if no address set
+     * Reverts if the token ID does not exist.
+     * Note that this getter allows querying for the non-existent token
+     * @param token uint256 ID of the token to query the approval of
+     * @return address currently approved for the given token ID
+     */
+    getter getApproved(uint256 token) returns (address operator) {
+        return _tokenApprovals[token];
+    }
+
+    /**
+     * @dev Tells whether an operator is approved by a given owner.
+     * @param owner owner address which you want to query the approval of
+     * @param operator operator address which you want to query the approval of
+     * @return bool whether the given operator is approved by the given owner
+     */
+    getter isApprovedForAll(address owner, address operator) returns (bool) {
+        return _operatorApprovals[owner][operator];
+    }
+
+    /**
+     * @dev Replies sendBalanceOf(uint256 balance) with the balance of the specified address.
+     * @param owner address to query the balance of
+     */
+    onMessage requestBalanceOf(address owner) {
+        require(owner != address(0), "VEP721: balance query for the zero address");
+
+        send(msg.sender, sendBalanceOf(_balanceOf(owner)));
+    }
+
+    onMessage requestOwnerOf(uint256 token) {
+        address owner = _ownerOf(token);
+
+        send(msg.sender, sendOwnerOf(owner));
+    }
+
+    /**
+     * @dev Safely transfers the ownership of a given token ID to another address
+     * If the target address is a contract, it must implement {IVEP721Receiver-onVEP721Received},
+     * which is called upon a safe transfer, and return the magic value
+     * `bytes4(keccak256("onVEP721Received(address,address,uint256,bytes)"))`; otherwise,
+     * the transfer is reverted.
+     * Requires the msg.sender to be the owner, approved, or operator
+     * @param from current owner of the token
+     * @param to address to receive the ownership of the given token ID
+     * @param token uint256 ID of the token to be transferred
+     */
+    onMessage safeTransferFrom(address from, address to, uint256 token) {
+        _safeTransferFrom(from, to, token, "");
+    }
+
+    /**
+     * @dev Transfers the ownership of a given token ID to another address.
+     * Usage of this method is discouraged, use {safeTransferFrom} whenever possible.
+     * Requires the msg.sender to be the owner, approved, or operator.
+     * @param from current owner of the token
+     * @param to address to receive the ownership of the given token ID
+     * @param token uint256 ID of the token to be transferred
+     */
+    onMessage transferFrom(address from, address to, uint256 token) {
+        require(_isApprovedOrOwner(_msgSender(), token), "VEP721: transfer caller is not owner nor approved");
+
+        _transferFrom(from, to, token);
+    }
+
+    /**
+     * @dev Approves another address to transfer the given token ID
+     * The zero address indicates there is no approved address.
+     * There can only be one approved address per token at a given time.
+     * Can only be called by the token owner or an approved operator.
+     * @param to address to be approved for the given token ID
+     * @param token uint256 ID of the token to be approved
+     */
+    onMessage approve(address to, uint256 token) {
+        _approve(to, token);
+    }
+
+    /**
+     * @dev Replies sendGetApproved(address operator) with the operator.
+     */
+    onMessage requestGetApproved(uint256 token) {
+        address operator = _getApproved(token);
+
+        send(msg.sender, sendGetApproved(operator));
+    }
+
+    /**
+     * @dev Sets or unsets the approval of a given operator
+     * An operator is allowed to transfer all tokens of the sender on their behalf.
+     * @param to operator address to set the approval
+     * @param approved representing the status of the approval to be set
+     */
+    onMessage setApprovalForAll(address to, bool approved) {
+        _setApprovalForAll(to, approved);
+    }
+
+    onMessage requestIsApprovedForAll(address owner, address operator) {
+        send(msg.sender, sendIsApprovedForAll(_isApprovedForAll(owner, operator)));
+    }
+
+    /**
+     * @dev Safely transfers the ownership of a given token ID to another address
+     * If the target address is a contract, it must implement {IVEP721Receiver-onVEP721Received},
+     * which is called upon a safe transfer, and return the magic value
+     * `bytes4(keccak256("onVEP721Received(address,address,uint256,bytes)"))`; otherwise,
+     * the transfer is reverted.
+     * Requires the _msgSender() to be the owner, approved, or operator
+     * @param from current owner of the token
+     * @param to address to receive the ownership of the given token ID
+     * @param token uint256 ID of the token to be transferred
+     * @param data bytes data to send along with a safe transfer check
+     */
+    onMessage safeTransferFrom(address from, address to, uint256 token, bytes calldata data) {
+        require(_isApprovedOrOwner(_msgSender(), token), "VEP721: transfer caller is not owner nor approved");
+        _safeTransferFrom(from, to, token, data);
+    }
+
+    /**
+     * @dev Gets the approved address for a token ID, or zero if no address set
+     * Reverts if the token ID does not exist.
+     * @param token uint256 ID of the token to query the approval of
+     * @return address currently approved for the given token ID
+     */
+    function _getApproved(uint256 token) public view returns (address) {
+        require(_exists(token), "VEP721: approved query for nonexistent token");
+
+        return _tokenApprovals[token];
+    }
+
+    function _isApprovedForAll(address owner, address operator) public view returns (bool) {
+        return _operatorApprovals[owner][operator];
+    }
+
+    /**
+     * @dev Safely transfers the ownership of a given token ID to another address
+     * If the target address is a contract, it must implement `onVEP721Received`,
+     * which is called upon a safe transfer, and return the magic value
+     * `bytes4(keccak256("onVEP721Received(address,address,uint256,bytes)"))`; otherwise,
+     * the transfer is reverted.
+     * Requires the msg.sender to be the owner, approved, or operator
+     * @param from current owner of the token
+     * @param to address to receive the ownership of the given token ID
+     * @param token uint256 ID of the token to be transferred
+     * @param data bytes data to send along with a safe transfer check
+     */
+    function _safeTransferFrom(address from, address to, uint256 token, bytes memory data) internal {
+        _transferFrom(from, to, token);
+
+        send(to, onVEP721Received(from, to, token, data));
+    }
+
+    /**
+     * @dev Returns whether the specified token exists.
+     * @param token uint256 ID of the token to query the existence of
+     * @return bool whether the token exists
+     */
+    function _exists(uint256 token) internal view returns (bool) {
+        address owner = _tokenOwner[token];
+        return owner != address(0);
+    }
+
+    /**
+     * @dev Returns whether the given spender can transfer a given token ID.
+     * @param spender address of the spender to query
+     * @param token uint256 ID of the token to be transferred
+     * @return bool whether the msg.sender is approved for the given token ID,
+     * is an operator of the owner, or is the owner of the token
+     */
+    function _isApprovedOrOwner(address spender, uint256 token) internal returns (bool) {
+        require(_exists(token), "VEP721: operator query for nonexistent token");
+        address owner = _ownerOf(token);
+        return (spender == owner || _getApproved(token) == spender || _isApprovedForAll(owner, spender));
+    }
+
+    /**
+     * @dev Internal function to safely mint a new token.
+     * Reverts if the given token ID already exists.
+     * If the target address is a contract, it must implement `onVEP721Received`,
+     * which is called upon a safe transfer, and return the magic value
+     * `bytes4(keccak256("onVEP721Received(address,address,uint256,bytes)"))`; otherwise,
+     * the transfer is reverted.
+     * @param to The address that will own the minted token
+     * @param token uint256 ID of the token to be minted
+     */
+    function _safeMint(address to, uint256 token) internal {
+        _safeMint(to, token, "");
+    }
+
+    /**
+     * @dev Internal function to safely mint a new token.
+     * Reverts if the given token ID already exists.
+     * If the target address is a contract, it must implement `onVEP721Received`,
+     * which is called upon a safe transfer, and return the magic value
+     * `bytes4(keccak256("onVEP721Received(address,address,uint256,bytes)"))`; otherwise,
+     * the transfer is reverted.
+     * @param to The address that will own the minted token
+     * @param token uint256 ID of the token to be minted
+     * @param data bytes data to send along with a safe transfer check
+     */
+    function _safeMint(address to, uint256 token, bytes memory data) internal {
+        _mint(to, token);
+
+        send(to, onVEP721Received(address(0), to, token, data));
+    }
+
+    /**
+     * @dev Internal function to mint a new token.
+     * Reverts if the given token ID already exists.
+     * @param to The address that will own the minted token
+     * @param token uint256 ID of the token to be minted
+     */
+    function _mint(address to, uint256 token) internal {
+        require(to != address(0), "VEP721: mint to the zero address");
+        require(!_exists(token), "VEP721: token already minted");
+
+        _tokenOwner[token] = to;
+        _ownedTokensCount[to].increment();
+
+        emit Transfer(address(0), to, token);
+    }
+
+    /**
+     * @dev Internal function to burn a specific token.
+     * Reverts if the token does not exist.
+     * @param token uint256 ID of the token being burned
+     */
+    function _burn(uint256 token) internal {
+        address owner = _ownerOf(token);
+
+        _clearApproval(token);
+
+        _ownedTokensCount[owner].decrement();
+        _tokenOwner[token] = address(0);
+
+        emit Transfer(owner, address(0), token);
+    }
+
+    function _ownerOf(uint256 token) internal returns (address owner) {
+        address _owner = _tokenOwner[token];
+
+        require(_owner != address(0), "VEP721: owner query for nonexistent token");
+
+        return _owner;
+    }
+
+    /**
+     * @dev Internal function to transfer ownership of a given token ID to another address.
+     * As opposed to {transferFrom}, this imposes no restrictions on msg.sender.
+     * @param from current owner of the token
+     * @param to address to receive the ownership of the given token ID
+     * @param token uint256 ID of the token to be transferred
+     */
+    function _transferFrom(address from, address to, uint256 token) internal {
+        require(_ownerOf(token) == from, "VEP721: transfer of token that is not own");
+        require(to != address(0), "VEP721: transfer to the zero address");
+
+        _clearApproval(token);
+
+        _ownedTokensCount[from].decrement();
+        _ownedTokensCount[to].increment();
+
+        _tokenOwner[token] = to;
+
+        emit Transfer(from, to, token);
+    }
+
+    /**
+     * @dev Private function to clear current approval of a given token ID.
+     * @param token uint256 ID of the token to be transferred
+     */
+    function _clearApproval(uint256 token) private {
+        if (_tokenApprovals[token] != address(0)) {
+            _tokenApprovals[token] = address(0);
+        }
+    }
+
+    function _balanceOf(address owner) internal view returns (uint256) {
+        return _ownedTokensCount[owner].current();
+    }
+
+    function _approve(address to, uint256 token) internal {
+        address owner = _ownerOf(token);
+        require(to != owner, "VEP721: approval to current owner");
+        require(_msgSender() == owner || _isApprovedForAll(owner, _msgSender()),
+            "VEP721: approve caller is not owner nor approved for all"
+        );
+
+        _tokenApprovals[token] = to;
+
+        emit Approval(owner, to, token);
+    }
+
+    function _setApprovalForAll(address to, bool approved) internal {
+        require(to != _msgSender(), "VEP721: approve to caller");
+
+        _operatorApprovals[_msgSender()][to] = approved;
+        emit ApprovalForAll(_msgSender(), to, approved);
+    }
+}

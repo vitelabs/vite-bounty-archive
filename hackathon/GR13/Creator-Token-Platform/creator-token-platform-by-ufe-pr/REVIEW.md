@@ -1,0 +1,9 @@
+- Contracts looks decent
+- The `tokenHolders` functions cannot return a sorted list unfortunately
+- `yarn`, `yarn test` doesn't work (missing steps?)
+- Tests don't cover all functions
+	- `_calculateInversePrice` should be private, not public
+- `IterableMap` is from https://solidity-by-example.org/app/iterable-mapping/
+	- Fine but I wish he gave credit to the original author
+- unclear function signature: `function _calculateInversePrice(address _token, uint256 _price, bool _reversed) public view returns (uint256 _amount, uint256 _excess) {`
+- 

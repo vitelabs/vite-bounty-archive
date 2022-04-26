@@ -1,0 +1,355 @@
+// SPDX-License-Identifier: MIT
+/// @title Joint Account implementation for GR13 Hackathon
+/// @author Samuele Marro
+
+pragma soliditypp ^0.8.0;
+
+contract JointAccount {
+    event MotionCreated (
+        uint256 indexed motionId,
+        uint256 indexed motionType,
+        address indexed proposer,
+        vitetoken tokenId,
+        uint256 transferAmount,
+        address to,
+        uint256 threshold
+    );
+
+    event MotionCancelled (
+        uint256 motionId
+    );
+
+    event Vote (
+        uint256 indexed motionId,
+        address indexed voter,
+        bool vote
+    );
+
+    event Transfer (
+        uint256 indexed motionId,
+        vitetoken indexed tokenId,
+        address indexed to,
+        uint256 amount
+    );
+
+    event MemberAdded (
+        uint256 indexed motionId,
+        address indexed member
+    );
+
+    event MemberRemoved (
+        uint256 indexed motionId,
+        address indexed member
+    );
+
+    event ThresholdChanged (
+        uint256 indexed motionId,
+        uint256 threshold
+    );    
+
+    uint256 private constant NULL = 2**256 - 1;
+    address private constant NULL_ADDRESS = "vite_0000000000000000000000000000000000000000a4f3a0cb58";
+    vitetoken private constant NULL_TOKEN = "tti_000000000000000000004cfd";
+    enum MotionType { TRANSFER, ADD_MEMBER, REMOVE_MEMBER, CHANGE_THRESHOLD }
+    struct Motion {
+        MotionType motionType;
+        vitetoken tokenId;
+        uint256 transferAmount;
+        address to;
+        uint256 threshold;
+
+        address proposer;
+        uint256 voteCount;
+        bool active;
+    }
+    address[] members;
+    uint256 public approvalThreshold;
+    bool isStatic;
+
+    Motion[] motions;
+    mapping(uint256 => mapping(address => bool)) votes;
+
+    constructor(address[] memory _members, uint256 _approvalThreshold, bool _isStatic) {
+        require(_members.length > 0, "JointAccount: at least one member must be specified");
+        require(_approvalThreshold > 0, "JointAccount: approval threshold must be greater than 0");
+        require(_approvalThreshold <= _members.length, "JointAccount: approval threshold must be less than or equal to the number of members");
+
+        members = _members;
+        approvalThreshold = _approvalThreshold;
+        isStatic = _isStatic;
+    }
+
+    // ===Getters===
+
+    /// @notice Returns the current members
+    function getMembers() external view returns (address[] memory) {
+        return members;
+    }
+
+    /// @notice Returns true if the given address is a member
+    ///
+    /// @param _member The queried address
+    function isMember(address _member) public view returns (bool) {
+        return _findMember(_member) != NULL;
+    }
+
+    /// @notice Returns the number of members
+    function memberCount() external view returns (uint256) {
+        return members.length;
+    }
+
+    /// @notice Returns true if a motion exists
+    ///
+    /// @param _motionId The queried motion id
+    function exists(uint256 _motionId) public view returns (bool) {
+        return _motionId < motions.length;
+    }
+
+    /// @notice Returns the type of a motion
+    ///
+    /// @param _motionId The queried motion id
+    ///
+    /// @return 0 = Transfer, 1 = Add Member, 2 = Remove Member, 3 = Change Threshold
+    function motionType(uint256 _motionId) external view returns (uint256) {
+        require(exists(_motionId), "JointAccount: motion does not exist");
+        return uint256(motions[_motionId].motionType);
+    }
+
+    /// @notice Returns the token id of a motion
+    ///
+    /// @param _motionId The queried motion id
+    function tokenId(uint256 _motionId) external view returns (vitetoken) {
+        require(exists(_motionId), "JointAccount: motion does not exist");
+        return motions[_motionId].tokenId;
+    }
+
+    /// @notice Returns the transfer amount of a motion
+    ///
+    /// @param _motionId The queried motion id
+    function transferAmount(uint256 _motionId) external view returns (uint256) {
+        require(exists(_motionId), "JointAccount: motion does not exist");
+        return motions[_motionId].transferAmount;
+    }
+
+    /// @notice Returns the relevant address of a motion
+    ///
+    /// @param _motionId The queried motion id
+    function to(uint256 _motionId) external view returns (address) {
+        require(exists(_motionId), "JointAccount: motion does not exist");
+        return motions[_motionId].to;
+    }
+
+    /// @notice Returns the proposed threshold of a motion
+    ///
+    /// @param _motionId The queried motion id
+    function threshold(uint256 _motionId) external view returns (uint256) {
+        require(exists(_motionId), "JointAccount: motion does not exist");
+        return motions[_motionId].threshold;
+    }
+
+    /// @notice Returns the proposer of a motion
+    ///
+    /// @param _motionId The queried motion id
+    function proposer(uint256 _motionId) external view returns (address) {
+        require(exists(_motionId), "JointAccount: motion does not exist");
+        return motions[_motionId].proposer;
+    }
+
+    /// @notice Returns the number of votes for a motion
+    ///
+    /// @param _motionId The queried motion id
+    function voteCount(uint256 _motionId) external view returns (uint256) {
+        require(exists(_motionId), "JointAccount: motion does not exist");
+        return motions[_motionId].voteCount;
+    }
+
+    /// @notice Returns the number of votes for a motion
+    ///
+    /// @param _motionId The queried motion id
+    function active(uint256 _motionId) external view returns (bool) {
+        require(exists(_motionId), "JointAccount: motion does not exist");
+        return motions[_motionId].active;
+    }
+
+    /// @notice Returns true if a member voted for a motion
+    ///
+    /// @param _motionId The queried motion id
+    /// @param _voter The queried member
+    function voted(uint256 _motionId, address _voter) external view returns (bool) {
+        require(exists(_motionId), "JointAccount: motion does not exist");
+        return votes[_motionId][_voter];
+    }
+
+    // ===Motion Creation===
+
+    /// @notice Creates a new transfer motion
+    ///
+    /// @param _tokenId The token id of the transfer
+    /// @param _transferAmount The amount to transfer
+    /// @param _to The address to transfer to
+    function createTransferMotion(vitetoken _tokenId, uint256 _transferAmount, address _to) external {
+        require(isMember(msg.sender), "JointAccount: not a member");
+        require(balance(_tokenId) >= _transferAmount, "JointAccount: insufficient balance");
+        motions.push(Motion(MotionType.TRANSFER, _tokenId, _transferAmount, _to, NULL, msg.sender, 0, true));
+
+        emit MotionCreated(motions.length - 1, uint256(MotionType.TRANSFER), msg.sender, _tokenId, _transferAmount, _to, NULL);
+        _voteMotion(motions.length - 1);
+    }
+
+    /// @notice Creates a new add member motion
+    ///
+    /// @param _member The address to add
+    function createAddMemberMotion(address _member) external {
+        require(!isStatic, "JointAccount: cannot add members to a static account");
+        require(isMember(msg.sender), "JointAccount: not a member");
+        require(!isMember(_member), "JointAccount: address is already a member");
+        motions.push(Motion(MotionType.ADD_MEMBER, NULL_TOKEN, NULL, _member, NULL, msg.sender, 0, true));
+
+        emit MotionCreated(motions.length - 1, uint256(MotionType.ADD_MEMBER), msg.sender, NULL_TOKEN, NULL, _member, NULL);
+        _voteMotion(motions.length - 1);
+    }
+
+    /// @notice Creates a new remove member motion
+    ///
+    /// @param _member The address to remove
+    function createRemoveMemberMotion(address _member) external {
+        require(!isStatic, "JointAccount: cannot remove members from a static account");
+        require(isMember(msg.sender), "JointAccount: not a member");
+        require(isMember(_member), "JointAccount: address is not a member");
+        require(approvalThreshold < members.length, "JointAccount: removing would make the threshold impossible to reach");
+
+        motions.push(Motion(MotionType.REMOVE_MEMBER, NULL_TOKEN, NULL, _member, NULL, msg.sender, 0, true));
+
+        emit MotionCreated(motions.length - 1, uint256(MotionType.REMOVE_MEMBER), msg.sender, NULL_TOKEN, NULL, _member, NULL);
+        _voteMotion(motions.length - 1);
+    }
+
+    /// @notice Creates a new change threshold motion
+    ///
+    /// @param _threshold The new threshold
+    ///
+    /// @dev Note that it is possible to set the threshold to the current threshold
+    function createChangeThresholdMotion(uint256 _threshold) external {
+        require(!isStatic, "JointAccount: cannot change the threshold of a static account");
+        require(isMember(msg.sender), "JointAccount: not a member");
+        require(_threshold > 0, "JointAccount: threshold must be greater than 0");
+        require(_threshold <= members.length, "JointAccount: threshold too high");
+
+        motions.push(Motion(MotionType.CHANGE_THRESHOLD, NULL_TOKEN, NULL, NULL_ADDRESS, _threshold, msg.sender, 0, true));
+
+        emit MotionCreated(motions.length - 1, uint256(MotionType.CHANGE_THRESHOLD), msg.sender, NULL_TOKEN, NULL, NULL_ADDRESS, _threshold);
+        _voteMotion(motions.length - 1);
+    }
+
+    function _transfer(uint256 _motionId, vitetoken _tokenId, uint256 _transferAmount, address _to) internal {
+        require(balance(_tokenId) >= _transferAmount, "JointAccount: insufficient balance");
+        payable(_to).transfer(_tokenId, _transferAmount);
+
+        emit Transfer(_motionId, _tokenId, _to, _transferAmount);
+    }
+
+    function _addMember(uint256 _motionId, address _member) internal {
+        require(!isMember(_member), "JointAccount: address is already a member");
+        members.push(_member);
+
+        emit MemberAdded(_motionId, _member);
+    }
+
+    function _findMember(address _member) private view returns(uint256) {
+        bool found = false;
+        uint256 index;
+        for (index = 0; index < members.length && !found; index++) {
+            if (members[index] == _member) {
+                found = true;
+            }
+        }
+
+        if (found) {
+            return index;
+        } else {
+            return NULL;
+        }
+    }
+
+    function _removeMember(uint256 _motionId, address _member) internal {
+        require(approvalThreshold < members.length, "JointAccount: removing would make the threshold impossible to reach");
+
+        uint256 index = _findMember(_member);
+        require(index != NULL, "JointAccount: address is not a member");
+
+        for (uint256 i = index; i < members.length - 1; i++) {
+            members[i] = members[i + 1];
+        }
+
+        members.pop();
+
+        emit MemberRemoved(_motionId, _member);
+    }
+
+    function _changeThreshold(uint256 _motionId, uint256 _threshold) internal {
+        require(_threshold <= members.length, "JointAccount: threshold too high");
+
+        approvalThreshold = _threshold;
+
+        emit ThresholdChanged(_motionId, _threshold);
+    }
+
+    function _voteMotion(uint256 _motionId) internal {
+        votes[_motionId][msg.sender] = true;
+        motions[_motionId].voteCount++;
+
+        emit Vote(_motionId, msg.sender, true);
+
+        if (motions[_motionId].voteCount >= approvalThreshold) {
+            motions[_motionId].active = false;
+
+            // Note: Solidity doesn't have switch statements
+            if (motions[_motionId].motionType == MotionType.TRANSFER) {
+                _transfer(_motionId, motions[_motionId].tokenId, motions[_motionId].transferAmount, motions[_motionId].to);
+            } else if (motions[_motionId].motionType == MotionType.ADD_MEMBER) {
+                _addMember(_motionId, motions[_motionId].to);
+            } else if (motions[_motionId].motionType == MotionType.REMOVE_MEMBER) {
+                _removeMember(_motionId, motions[_motionId].to);
+            } else if (motions[_motionId].motionType == MotionType.CHANGE_THRESHOLD) {
+                _changeThreshold(_motionId, motions[_motionId].threshold);
+            }
+        }
+    }
+
+    // ===Motion Voting===
+
+    /// @notice Votes on a motion
+    ///
+    /// @param _motionId The id of the motion to vote on
+    function voteMotion(uint256 _motionId) external {
+        require(isMember(msg.sender), "JointAccount: not a member");
+        require(motions[_motionId].active, "JointAccount: motion is not active");
+        require(!votes[_motionId][msg.sender] || motions[_motionId].voteCount >= approvalThreshold, "JointAccount: you have already voted on this motion");
+        _voteMotion(_motionId);
+    }
+
+    /// @notice Cancels a vote on a motion
+    ///
+    /// @param _motionId The id of the motion to cancel the vote on
+    function cancelVote(uint256 _motionId) external {
+        require(isMember(msg.sender), "JointAccount: not a member");
+        require(motions[_motionId].active, "JointAccount: motion is not active");
+        require(votes[_motionId][msg.sender], "JointAccount: you have not voted on this motion");
+        votes[_motionId][msg.sender] = false;
+        motions[_motionId].voteCount--;
+
+        emit Vote(_motionId, msg.sender, false);
+    }
+
+    /// @notice Cancels a motion
+    ///
+    /// @param _motionId The id of the motion to cancel
+    function cancelMotion(uint256 _motionId) external {
+        require(isMember(msg.sender), "JointAccount: not a member");
+        require(motions[_motionId].active, "JointAccount: motion is not active");
+        require(motions[_motionId].proposer == msg.sender, "JointAccount: you are not the proposer of this motion");
+        motions[_motionId].active = false;
+
+        emit MotionCancelled(_motionId);
+    }
+}

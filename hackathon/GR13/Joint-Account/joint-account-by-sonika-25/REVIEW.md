@@ -1,0 +1,2 @@
+- This too treats the whole contract as a single joint account
+- Other than that, functions seem to fit the spec

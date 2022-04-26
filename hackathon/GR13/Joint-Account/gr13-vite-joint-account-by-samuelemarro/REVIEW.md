@@ -1,0 +1,4 @@
+- The contract itself is a single joint account rather than a contract that lets anyone make an arbitrary amount of join accounts
+- has several motion types which is a nice touch
+	- `enum MotionType { TRANSFER, ADD_MEMBER, REMOVE_MEMBER, CHANGE_THRESHOLD }`
+- 

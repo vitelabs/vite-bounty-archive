@@ -1,0 +1,10 @@
+- Design looks alright
+- UX well thought out
+- has Wallet Connect and MetaMask buttons for some reason
+- Joint account members have appear to have a message button - idk y
+- Missing custom logo (ok, I didn't say "custom logo" but I thought that was implied since everything else is custom)
+- Some text is false (e.g. "Use any network of your choice")
+- Landing page has a footer that looks a lot like vite.org's and wtih links that presumably go nowhere
+- No log out button
+- "Family Trust" button has a down arrow indicating a dropdown that expands to nothing?
+- Overall the design has potential!

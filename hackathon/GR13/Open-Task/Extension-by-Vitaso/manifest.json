@@ -1,0 +1,23 @@
+{
+  "manifest_version": 2,
+  "name": "Vitaso",
+  "version": "0.0.1",
+  "description": "Easy browser-integrated Vite wallet for everyone.",
+  "icons": {
+    "128": "icon128.png",
+    "32": "icon128.png",
+    "48": "icon128.png"
+  },
+  "permissions": [
+    "storage"
+  ],
+  "browser_action": {
+    "default_icon": {
+      "16": "icon128.png",
+      "32": "icon128.png"
+    },
+    "default_popup": "popup.html",
+    "default_title": "Control your wallet"
+  }
+}
+

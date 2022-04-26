@@ -1,0 +1,162 @@
+pragma soliditypp ^0.4.2;
+
+contract TipBot {
+   tokenId viteTokenId = tokenId("tti_5649544520544f4b454e6e40");
+
+   address owner;
+   uint256 userFunds;
+   uint256 donateFunds;
+
+   // A ledger for recording user balances
+   mapping(address => uint256) balanceMap;
+   // Double maps that record the binding relationship between users and addresses
+   mapping(uint72 => address) userMap;
+   mapping(address => uint72) addressMap;
+   uint72[] userList;
+   address[] addressList;
+
+   //events
+   event ResultEvent(string name, string result);
+
+   constructor() public payable {
+      owner = msg.sender;
+   }
+   getter getOwner() returns(address) {
+      return owner;
+   }
+   getter getUserFunds() returns(uint256) {
+      return userFunds;
+   }
+   getter getDonateFunds() returns(uint256) {
+      return donateFunds;
+   }
+   getter getUserList() returns(uint72[] memory) {
+      return userList;
+   }
+   getter getAddressList() returns(address[] memory) {
+      return addressList;
+   }
+   // the below getters have privacy issue? 
+   getter getUserBlanace(uint64 originalUserId, uint8 prefix) returns (uint256) {
+      uint72 userId = generateUserId(originalUserId, prefix);
+      address addr = userMap[userId];
+      return balanceMap[addr];
+   }
+   getter getUserBalanceByAddress(address addr) returns (uint256) {
+      return balanceMap[addr];
+   }
+   getter getUserAddress(uint64 originalUserId, uint8 prefix) returns (address) {
+      uint72 userId = generateUserId(originalUserId, prefix);
+      return userMap[userId];
+   }
+   getter getUserId(address addr) returns (uint72) {
+      return addressMap[addr];
+   }
+   getter getOriginalUserId(address addr) returns (uint64) {
+      uint72 userId = addressMap[addr];
+      uint64 originalUserId = getOriginalUserId(userId);
+      return originalUserId;
+   }
+   getter getPrefix(uint72 userId) returns (uint8) {
+      return decodePrefix(userId);
+   }
+   getter getPrefixByAddress(address addr) returns (uint8) {
+      uint72 userId = addressMap[addr];
+      return decodePrefix(userId);
+   }
+
+   onMessage donate(string calldata email) payable {
+      donateFunds += msg.amount;
+      emit ResultEvent("donate", email);
+   }
+
+   onMessage addUser(uint64 originalUserId, uint8 prefix, address addr) {
+      require(owner == msg.sender);
+      require(originalUserId > 0);
+      require(addr != address(0));
+
+      uint72 userId = generateUserId(originalUserId, prefix);
+      address checkAddr = userMap[userId];
+      uint72 checkUserId = addressMap[addr];
+
+      if (checkUserId == 0 && checkAddr == address(0)) {
+         userMap[userId] = addr;
+         addressMap[addr] = userId;
+         userList.push(userId);
+         addressList.push(addr);
+
+         emit ResultEvent("addUser", "success");
+      } else {
+         emit ResultEvent("addUser", "error");
+      }
+   }
+
+   onMessage deposit() payable {
+      require(msg.tokenid == viteTokenId);
+      require(msg.amount > 0);
+
+      addBalance(msg.sender, msg.amount);
+      emit ResultEvent("deposit", "success");
+   }
+
+   onMessage tipByOwner(address fromAddr, address toAddr, uint256 amount) {
+      require(fromAddr != address(0));
+      require(toAddr != address(0));
+
+      bool ret = reduceBalance(fromAddr, amount);
+      if (ret) {
+         addBalance(toAddr, amount);
+         emit ResultEvent("tipByOwner", "success");
+      } else {
+         emit ResultEvent("tipByOwner", "error");
+
+      }
+   }
+
+   onMessage withdrawByOwner(address addr, address withdrawAddress, uint256 amount) {
+      require(owner == msg.sender);
+      require(addr != address(0));
+      require(withdrawAddress != address(0));
+
+      bool ret = reduceBalance(addr, amount);
+      if (ret) {
+         withdrawAddress.transfer(viteTokenId, amount);
+         emit ResultEvent("withdrawByOwner", "success");
+      } else {
+         emit ResultEvent("withdrawByOwner", "error");
+      }
+   }
+
+   function generateUserId(uint64 originalUserId, uint8 prefix) internal pure returns (uint72) {
+      return (uint72(prefix) << 64 ) | uint72(originalUserId);
+   }
+
+   function getOriginalUserId(uint72 uniqueUserId) internal pure returns (uint64) {
+      uint8 prefix = decodePrefix(uniqueUserId);
+      return uint64((uint72(prefix) << 64) ^ uniqueUserId);
+   }
+
+   function decodePrefix(uint72 uniqueUserId) internal pure returns (uint8) {
+      return uint8(uniqueUserId >> 64);
+   }
+
+   function addBalance(address addr, uint256 amount) private returns (bool) {
+      if (addr != address(0)) {
+         balanceMap[addr] += amount;
+         userFunds += amount;
+         return true;
+      } else {
+         return false;
+      }
+   }
+
+   function reduceBalance(address addr, uint256 amount) private returns (bool) {
+      if (addr != address(0) && amount <= balanceMap[addr]) {
+         balanceMap[addr] -= amount;
+         userFunds -= amount;
+         return true;
+      } else {
+         return false;
+      }
+   }
+}

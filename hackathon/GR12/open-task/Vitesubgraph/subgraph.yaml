@@ -1,0 +1,33 @@
+specVersion: 0.0.2
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Vite
+    network: mainnet
+    source:
+      address: "0xadd5e881984783dd432f80381fb52f45b53f3e70"
+      abi: Vite
+      startBlock: 12044483
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Approval
+        - Paused
+        - Transfer
+        - Unpaused
+      abis:
+        - name: Vite
+          file: ./abis/Vite.json
+      eventHandlers:
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        - event: Paused(address)
+          handler: handlePaused
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Unpaused(address)
+          handler: handleUnpaused
+      file: ./src/mapping.ts

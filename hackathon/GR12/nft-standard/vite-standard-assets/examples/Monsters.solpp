@@ -1,0 +1,82 @@
+// SPDX-License-Identifier: MIT
+// Vite Standard Assets v0.1.0 (Monsters non-fungible example)
+
+pragma soliditypp >=0.7.0 <0.9.0;
+
+import "./node_modules/vite-standard-assets/contracts/VSA721.solpp";
+
+contract Monsters is VSA721 {
+	enum FurColor {
+		Blue,
+		Orange,
+		Gray,
+		Black
+	}
+
+	uint256 private _lastId;
+
+	address private _master;
+
+	mapping(uint256 => FurColor) public furColors;
+
+	mapping(uint256 => uint256) public strengths;
+
+	string[] public battleHistory;
+
+    constructor() VSA721(address(0), "Monsters", "MNST") {
+    	_master = msg.sender;
+    }
+
+    function awardMonster(
+    	address player,
+    	FurColor furColor_,
+    	uint256 strength_
+    ) public async returns (uint256) {
+    	require(msg.sender == _master, "Only master can award monsters");
+
+        uint256 id = _lastId++;
+
+        furColors[id] = furColor_;
+        strengths[id] = strength_;
+
+        await mint(player, id);
+
+        return id;
+    }
+
+    function battle(uint256 first, uint256 second) public async {
+    	if (strengths[first] > strengths[second]) {
+    		battleHistory.push("First monster won!");
+    	} else if (strengths[first] < strengths[second]) {
+    		battleHistory.push("Second monster won!");
+    	} else {
+    		battleHistory.push("Draw!");
+    	}
+    }
+
+    function breed(uint256 first, uint256 second) public async {
+    	address firstOwner = await _vsa.ownerOfAsync(first);
+    	address secondOwner = await _vsa.ownerOfAsync(second);
+
+    	require(firstOwner == msg.sender && secondOwner == msg.sender);
+
+    	uint256 child = _lastId++;
+
+    	furColors[child] = _dominantFur(furColors[first], furColors[second]);
+    	strengths[child] = (strengths[first] + strengths[second]) / 2;
+
+        await mint(msg.sender, child);
+    }
+
+    function _dominantFur(FurColor first, FurColor second) internal view returns(FurColor) {
+    	if (first == FurColor.Blue || second == FurColor.Blue) {
+    		return FurColor.Blue;
+    	} else if (first == FurColor.Black || second == FurColor.Black) {
+    		return FurColor.Black;
+    	} else if (first == FurColor.Orange || second == FurColor.Orange) {
+    		return FurColor.Orange;
+    	} else {
+    		return FurColor.Gray;
+    	}
+    }
+}

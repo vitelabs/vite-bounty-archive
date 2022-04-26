@@ -1,0 +1,84 @@
+.Box{
+    padding: 80px 60px;
+    background: black;
+    bottom: 0;
+    width: 100%;
+    position: relative;
+    margin-top: 3rem; 
+}
+  
+@media (max-width: 1000px) {
+    .Box {
+        padding: 70px 30px;
+    }
+}
+   
+.Footer-Container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 1000px;
+    margin: 2rem;
+}
+   
+#Column {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    margin-left: 60px;
+}
+
+@media (max-width: 1000px) {
+    .Row {
+        grid-template-columns: repeat(auto-fill, 
+                               minmax(200px, 1fr));
+    }
+}
+   
+.FooterLink {
+    color: #fff;
+    margin-bottom: 20px;
+    font-size: 18px;
+    text-decoration: none;
+}
+   
+.Heading {
+    font-size: 24px;
+    color: #fff;
+    margin-bottom: 40px;
+    font-weight: bold;
+}
+
+.Icons {
+    display: flex;
+}
+
+.Icon {
+    height: 60px;
+    width:  60px;
+    margin-right: 1rem;
+}
+
+#Get-In {
+    border-radius: 27px;
+    height: 4rem;
+}
+
+#Im-In {
+    background-color: purple;
+    color: white;
+    border-radius: 27px;
+    cursor: pointer;
+}
+
+.Title {
+    color: white;  
+    margin-top: -2rem;
+    font-size: 30px;
+}
+
+.Policy {
+    display: flex;
+    justify-content: space-between;
+    color: white;
+}

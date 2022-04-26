@@ -1,0 +1,86 @@
+// SPDX-License-Identifier: MIT
+/// @title Indexed Mapping
+/// @author Samuele Marro
+
+pragma soliditypp ^0.8.0;
+
+library IndexedMapping {
+
+    struct HolderInfo {
+        address holder;
+        uint128 balance;
+    }
+
+    struct Map {
+        mapping(uint256 => HolderInfo) holderInfos;
+        mapping(address => uint256) addressToId;
+        uint256 length;
+    }
+
+    function exists(Map storage self, address _address) internal view returns (bool) {
+        return self.addressToId[_address] != 0;
+    }
+
+    function set(Map storage self, address _address, uint128 _balance) internal {
+        if (exists(self, _address)) {
+            self.holderInfos[self.addressToId[_address]].balance = _balance;
+        }
+        else {
+            uint256 id = self.length + 1; // ID 0 is reserved for the null element
+            self.holderInfos[id] = HolderInfo(_address, _balance);
+            self.addressToId[_address] = id;
+            self.length++;
+        }
+    }
+
+    function get(Map storage self, address _address) internal view returns (uint128) {
+        return self.holderInfos[self.addressToId[_address]].balance;
+    }
+
+    function topKs(Map storage self, uint256 k) internal view returns (address[] memory) {
+        HolderInfo[] memory holderInfoCopy = new HolderInfo[](self.length);
+
+        uint256 copyLength = 0;
+        for (uint256 i = 1; i < self.length + 1; i++) {
+            if (self.holderInfos[i].balance != 0) {
+                holderInfoCopy[copyLength] = self.holderInfos[i];
+                copyLength++;
+            }
+        }
+
+        uint256 numElements = k < copyLength ? k : copyLength;
+
+        for (uint256 i = 0; i < numElements; i++) {
+            uint256 maxIndex = i;
+            for (uint256 j = i + 1; j < copyLength; j++) {
+                if (holderInfoCopy[j].balance > holderInfoCopy[maxIndex].balance) {
+                    maxIndex = j;
+                }
+            }
+
+            if (maxIndex != i) {
+                HolderInfo memory temp = holderInfoCopy[i];
+                holderInfoCopy[i] = holderInfoCopy[maxIndex];
+                holderInfoCopy[maxIndex] = temp;
+            }
+        }
+
+        address[] memory topK = new address[](numElements);
+
+        for (uint256 i = 0; i < numElements; i++) {
+            topK[i] = holderInfoCopy[i].holder;
+        }
+
+        return topK;
+    }
+
+    function countNonZero(Map storage self) internal view returns(uint256) {
+        uint256 count = 0;
+        for (uint256 i = 1; i < self.length + 1; i++) {
+            if (self.holderInfos[i].balance != 0) {
+                count++;
+            }
+        }
+        return count;
+    }
+}

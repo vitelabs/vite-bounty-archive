@@ -1,0 +1,38 @@
+.Property {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+    width:      auto;
+    height:     22rem;
+    max-width:  auto;
+    max-height: 25rem;
+}
+
+#Component {
+    display: "flex";
+    margin-top: "1rem";
+}
+
+.Overflow-Main-Text {
+    white-space: nowrap;
+    width: 50%; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.Overflow-Second-Text {
+    white-space: nowrap;
+    width: 50%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: rgb(94, 93, 93);
+}
+
+.Card-Image {
+    height:     15rem;
+    max-height: 15rem;
+    width:      auto;
+    max-width:  auto;
+    border-radius: "10%"
+}

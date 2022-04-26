@@ -1,0 +1,12 @@
+config.json
+config.json.backup
+logs*
+node_modules
+*.map
+commands/*.js
+*.js
+.env
+nohup.out
+*.code-workspace
+dist
+temp/*.csv

@@ -1,0 +1,19 @@
+.skeleton{
+    background: white;
+    width:100%;
+    height: 25px;
+    border-radius: 8px;
+}
+.wrapper{
+    position: absolute;
+    top:0;
+    left:0;
+    width: 100%;
+    height: 100%;
+}
+.effect{
+    width: 50%;
+    height: 100%;
+    background: rgba(255,255,0,0.2);
+    transform: skewX(-20deg);
+}

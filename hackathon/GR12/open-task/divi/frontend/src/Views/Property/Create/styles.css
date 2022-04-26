@@ -1,0 +1,27 @@
+.form {
+    display: grid;
+    justify-content: center;
+}
+
+.Property-header {
+    margin-bottom: 3rem;
+}
+
+@media (max-width: 810px) {
+	.Property {
+        width: 100%;
+	}
+}
+
+#Image {
+    display: grid;
+    justify-items: center;
+}
+
+.Property-Image {
+    border-radius: 7%;
+    height:     30rem;
+    max-height: 30rem;
+    width:      auto;
+    max-width:  auto;
+}

@@ -1,0 +1,301 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma soliditypp >=0.8.0;
+
+contract TokenAuction {
+
+    // team name auctioning token
+    string public organization;
+    // team member in charge of auctions
+    address public administrator;
+    // number of auctions created by team
+    uint public totalAuctions;
+    // token ask rate minimum 
+    uint public teamRate;
+
+    struct Auction {
+        // auction number
+        uint id;
+        // token being auctioned
+        vitetoken tokenID;
+        // amount of tokens auctioned
+        uint amountLocked;
+        // start date - bidding starts
+        uint startDate;
+        // end date - bidding stops
+        uint endDate;
+        // total volume deposited 
+        uint volume;
+        // settled status of auction
+        bool resolved;
+        // list of all bidders
+        address[] bidders;
+        // [bidder] vite deposit amount 
+        mapping(address=>uint) Deposit;
+        // [bidder] vite paid per token 
+        mapping(address=>uint) AskRate;
+    }
+
+    // record of every auction created by the team
+    mapping(uint => Auction) public AuctionIndex;
+
+    // key events 
+    event AuctionStarted(uint auctionID, vitetoken token, uint startdate, uint enddate);
+    event BidPlaced(uint auctionID, address bidder, uint deposit, uint unitPrice);
+    event BidCancelled(uint auctionID, address bidder);
+    event BidderReceived(uint autionID, address bidder, uint amount);
+    event TeamReceived(uint autionID, uint amount);
+    event AuctionResolved(uint auctionID);
+    event AuctionCancelled(uint auctionID);
+
+    // deploy contract with team name 
+    constructor(string memory _organization) { 
+        administrator = msg.sender;
+        organization = _organization;
+    }
+
+    // - Administrator Functions -
+
+    // change admin role
+    function setAdmin(address arg) public {
+        require(msg.sender == administrator);
+        administrator = arg;
+    }
+    // change team name
+    function setOrganization(string memory arg) public {
+        require(msg.sender == administrator);
+        organization = arg;
+    }
+    // set a minimum team rate of tokens disbursed per VITE
+    function setTeamRate(uint arg) public {
+        require(msg.sender == administrator);
+        teamRate = arg;
+    }
+    // start an auction for a token
+    function startAuction(vitetoken token, uint duration) public payable {
+        _updateTimestamp();
+        require(msg.sender == administrator);
+        require(msg.token == token);
+        totalAuctions++;
+        Auction storage newAuction = AuctionIndex[totalAuctions];
+        newAuction.id = totalAuctions;
+        newAuction.tokenID = token;
+        newAuction.startDate = timestamp;
+        newAuction.endDate = timestamp + duration;
+        newAuction.amountLocked = msg.value;
+        emit AuctionStarted(totalAuctions, token, timestamp, newAuction.endDate);
+    }
+    // resolves an auction - must be inactive & unresolved 
+    function resolveAuction(uint auctionID) public { 
+        Auction storage auction = AuctionIndex[auctionID];
+        require(msg.sender == administrator);
+        require(_isActive(auctionID) == false);
+        require(auction.resolved == false);
+        _sortBids(auctionID);
+        // disburse tokens based on highest to lowest bids 
+        for(uint i = 0; i < auction.bidders.length; i++){
+            address bidder = auction.bidders[i];
+            uint bid = _askRate(auctionID, bidder);
+            // if no more tokens available to cover bid return deposit and deduce from volume counted
+            if(auction.amountLocked == 0 || auction.amountLocked < bid){
+                 payable(bidder).transfer('tti_5649544520544f4b454e6e40', auction.Deposit[bidder]);
+                 auction.volume -= auction.Deposit[bidder];
+            } else { // else transfer token and adjust amount
+                payable(bidder).transfer(auction.tokenID, bid);
+                BidderReceived(auctionID, bidder, bid);
+                payable(administrator).transfer('tti_5649544520544f4b454e6e40', auction.Deposit[bidder]);
+                TeamReceived(auctionID, auction.Deposit[bidder]);
+                auction.amountLocked -= bid;
+            }
+        }
+        auction.resolved = true;
+        emit AuctionResolved(auctionID);
+    }
+    // cancels an auction - returns all deposits 
+    function cancelAuction(uint auctionID) public {
+        Auction storage auction = AuctionIndex[auctionID];
+        require(msg.sender == administrator);
+        // can cancel if still active or in resolve state
+        require(_isActive(auctionID) || auction.resolved == false);
+        // return VITE to bidders
+        if(auction.bidders.length != 0){
+            for(uint i = 0; i < auction.bidders.length; i++){
+                address bidder = auction.bidders[i];
+                payable(bidder).transfer('tti_5649544520544f4b454e6e40', auction.Deposit[bidder]);
+            }
+        }
+        // return tokens to team
+        payable(administrator).transfer(auction.tokenID, auction.amountLocked);
+        _updateTimestamp();
+        auction.endDate = timestamp;
+        auction.volume = 0;
+        auction.resolved = true;
+        emit AuctionCancelled(auctionID);
+    }
+
+    // - Public Bidding Functions -
+
+    // start new bid or add to existing one
+    function placeBid(uint auctionID, uint unitPrice) payable public {
+        Auction storage auction = AuctionIndex[auctionID];
+        require(msg.value > teamRate);
+        require(_isActive(auctionID) == true);
+        if(auction.Deposit[msg.sender] == 0) {
+           auction.bidders.push(msg.sender);
+        }
+        auction.volume += msg.value;
+        auction.AskRate[msg.sender] += unitPrice;
+        auction.Deposit[msg.sender] += msg.value;
+        emit BidPlaced(auctionID, msg.sender, msg.value, unitPrice);
+    }    
+    // cancel a bid - returns vite deposit 
+    function cancelBid(uint auctionID) public {
+        Auction storage auction = AuctionIndex[auctionID];
+        require(_isActive(auctionID));
+        require(auction.Deposit[msg.sender] > 0);
+        payable(msg.sender).transfer('tti_5649544520544f4b454e6e40', auction.Deposit[msg.sender]);
+        auction.volume -= auction.Deposit[msg.sender];
+        auction.AskRate[msg.sender] = 0;
+        auction.Deposit[msg.sender] = 0;
+        _popList(auction.bidders, msg.sender);
+        emit BidCancelled(auctionID, msg.sender);
+    }
+
+    // - Auction Helper Functions -
+
+    // get all bids placed for an auction
+    function getAllBids(uint auctionID) public view returns (uint[] memory){
+        Auction storage auction = AuctionIndex[auctionID];
+        uint[] memory bidAmounts = new uint[](auction.bidders.length);
+        for(uint i = 0; i < auction.bidders.length; i++){
+            address bidder = auction.bidders[i];
+            uint bid = auction.Deposit[bidder];
+            bidAmounts[i] = bid;
+        }
+        return bidAmounts;
+    }
+    // get number of people bidding in an auction
+    function getTotalBidders(uint auctionID) public view returns (uint){
+        return AuctionIndex[auctionID].bidders.length;
+    }
+    // get total volume deposited to an auction
+    function getTotalVolume(uint auctionID) public view returns (uint) {
+        return AuctionIndex[auctionID].volume;
+    }
+    // get total tokens locked by team for an auction
+    function getAmountLockedbyTeam(uint auctionID) public view returns (uint) {
+        return AuctionIndex[auctionID].amountLocked;
+    }
+    // get unix timestamp of end date for an auction
+    function getEndDate(uint auctionID) public view returns (uint) {
+        return AuctionIndex[auctionID].endDate;
+    }
+    // check wether tokens have been disbursed and auction marked as ended
+    function isResolved(uint auctionID) public view returns (bool) {
+        return AuctionIndex[auctionID].resolved;
+    }
+
+    // - View Auction States - 
+
+    // returns every auction id in active state - call load method first
+    function viewActiveAuctions() public view returns (uint[] memory){
+        return activeAuctions;
+    }
+    // returns every auction id in resolve state - call load method first
+    function viewUnresolvedAuctions() public view returns (uint[] memory){
+        return unresolvedAuctions;
+    }
+    // returns every auction id in end state - call load method first
+    function viewEndedAuctions() public view returns (uint[] memory){
+        return endedAuctions;
+    }
+
+    // - Load Auction States - 
+
+    uint[] activeAuctions;
+    // gets every auction id in active state 
+    function loadActiveAuctions() public {
+        // reset variable
+        delete activeAuctions;
+        for(uint i = 1; i <= totalAuctions; i++){
+            if(_isActive(i)){
+                activeAuctions.push(AuctionIndex[i].id);
+            } 
+        }
+    }
+    uint[] unresolvedAuctions;
+    // gets every auction id in resolve state 
+    function loadUnresolvedAuctions() public {
+        // reset variable
+        delete unresolvedAuctions;
+        for(uint i = 1; i <= totalAuctions; i++){
+            if(_isActive(i) == false && AuctionIndex[i].resolved == false){
+                unresolvedAuctions.push(AuctionIndex[i].id);
+            } 
+        }
+    }
+    uint[] endedAuctions;
+    // gets every auction id in ended state 
+    function loadEndedAuctions() public {
+        // reset variable
+        delete endedAuctions;
+        for(uint i = 1; i <= totalAuctions; i++){
+            if(_isActive(i) == false && AuctionIndex[i].resolved == true){
+                endedAuctions.push(AuctionIndex[i].id);
+            } 
+        }
+    }
+
+    // - Internal Functions - 
+
+    // token disburse rate, how much VITE bidder is willing to spend per token
+    function _askRate(uint auctionID, address user) internal view returns (uint) {
+        uint deposit = AuctionIndex[auctionID].Deposit[user];
+        uint askPrice = AuctionIndex[auctionID].AskRate[user];
+        uint toReceive = (deposit/askPrice) * 1e18;
+        return toReceive;
+    }
+
+    // bubble sort bids placed for an auction - high to low 
+    function _sortBids(uint id) internal {
+        address[] storage list = AuctionIndex[id].bidders;
+        address temp;
+        for (uint i = 0; i < list.length-1; i++){
+            for (uint j = i+1; j < list.length; j++){
+                // if bid was greater
+                if (AuctionIndex[id].Deposit[list[i]] < AuctionIndex[id].Deposit[list[j]]){
+                    // swap place in the list
+                    temp = list[i];
+                    list[i] = list[j];
+                    list[j] = temp;
+                }
+            }
+        }
+    }
+    // remove from list of bidders if bid is withdrawn
+    function _popList (address[] storage list, address user) internal {
+       for(uint i = 0; i < list.length; i++){
+           if(list[i] == user){
+               address temp = list[list.length - 1];
+               list[list.length - 1] = list[i];
+               list[i] = temp;
+               list.pop();
+           }
+       }
+    }
+    // determines if an auction is active based on timestamp
+    function _isActive(uint auctionID) internal returns (bool) {
+        require(auctionID > 0 && auctionID <= totalAuctions);
+        _updateTimestamp();
+        if(timestamp < AuctionIndex[auctionID].endDate){
+            return true;
+        } else {
+            return false;
+        }
+    }
+    // timestamp workaround
+    uint timestamp;
+    function _updateTimestamp() internal {
+        timestamp = block.timestamp;
+    }
+}
+

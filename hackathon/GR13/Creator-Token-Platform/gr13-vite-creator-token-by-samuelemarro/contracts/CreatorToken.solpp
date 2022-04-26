@@ -1,0 +1,441 @@
+// SPDX-License-Identifier: MIT
+/// @title Creator Token implementation for GR13 Hackathon
+/// @author Samuele Marro
+/// @dev Uses linear bonding curves.
+
+pragma soliditypp ^0.8.0;
+
+import "./IndexedMapping.solpp";
+
+contract CreatorToken {
+    using IndexedMapping for IndexedMapping.Map;
+    event TokenMinted(address indexed tokenId, address indexed owner, uint128 amount);
+    event TokenBurned(address indexed tokenId, address indexed owner, uint128 amount);
+    event TokenTransferred(address indexed tokenId, address indexed from, address indexed to, uint128 amount);
+
+    vitetoken public constant VITE = "tti_5649544520544f4b454e6e40";
+
+    // We use uint128 so that squares don't overflow in uint256 math
+    mapping(address => uint128) private tradableSupplies;
+
+    uint128 public coefficient;
+    // tokenId => (owner => amount) mapping
+    mapping(address => IndexedMapping.Map) private balances;
+
+    // owner => bool mapping
+    mapping(address => bool) private ownerCollectedSupply;
+
+    uint128 public minimumSupply;
+
+    constructor (uint128 _minimumSupply, uint128 _coefficient) {
+        require(_coefficient > 0, "_coefficient must be greater than 0");
+        minimumSupply = _minimumSupply;
+        coefficient = _coefficient;
+    }
+
+    // ===Getters===
+
+    /// @notice Returns the amount of tokens owned by an address
+    /// @param _tokenId The id of the token
+    /// @param _owner The address to check
+    /// @dev This function only gives the appearance that an unitialized owner has the
+    //       initial supply; in practice, it gets added during the owner's first mint, transfer, burn or swap.
+    function _balanceOf(address _tokenId, address _owner) internal view returns (uint128) {
+        if (_tokenId != _owner || ownerCollectedSupply[_owner]) {
+            return balances[_tokenId].get(_owner);
+        } else {
+            return minimumSupply;
+        }
+    }
+
+    /// @notice Returns the amount of tokens owned by an address
+    /// @param _tokenId The id of the token
+    /// @param _owner The address to check
+    /// @dev This function only gives the appearance that an unitialized owner has the
+    //       initial supply; in practice, it gets added during the owner's first mint, transfer, burn or swap.
+    function balanceOf(address _tokenId, address _owner) public view returns(uint128) {
+        return _balanceOf(_tokenId, _owner);
+    }
+
+    function _totalSupply(address _tokenId) internal view returns(uint128) {
+        return tradableSupplies[_tokenId] + minimumSupply;
+    }
+
+    /// @notice Returns the total supply of a token
+    /// @param _tokenId The id of the token
+    function totalSupply(address _tokenId) external view returns(uint128) {
+        return _totalSupply(_tokenId);
+    }
+
+    function _tradableSupply(address _tokenId) internal view returns(uint128) {
+        return tradableSupplies[_tokenId];
+    }
+
+    /// @notice Returns the tradable supply of a token, i.e. the amount of tokens that can be burned
+    /// @param _tokenId The id of the token
+    function tradableSupply(address _tokenId) external view returns(uint128) {
+        return _tradableSupply(_tokenId);
+    }
+
+    /// @notice Returns the current price of a token
+    /// @param _tokenId The id of the token
+    function currentPrice(address _tokenId) external view returns(uint128) {
+        return _tradableSupply(_tokenId) * coefficient;
+    }
+
+    function _ownerHasCollectedSupply(address _tokenId) internal view returns(bool) {
+        return ownerCollectedSupply[_tokenId];
+    }
+
+    /// @notice Returns true if the owner of a token has already collected the minimum supply
+    /// @param _tokenId The id of the token
+    function ownerHasCollectedSupply(address _tokenId) external view returns(bool) {
+        return _ownerHasCollectedSupply(_tokenId);
+    }
+
+    // ===Non-Sale Methods===
+
+    /// @notice Mints the minimum supply to the owner
+    function _initialize(address _tokenId) internal {
+        uint128 currentBalance = balances[_tokenId].get(_tokenId);
+        balances[_tokenId].set(_tokenId, currentBalance + minimumSupply);
+        ownerCollectedSupply[_tokenId] = true;
+    }
+
+    /// @notice Mints the minimum supply to the owner if the token has not been ownerCollectedSupply
+    function _maybeInitialize(address _tokenId) internal {
+        if (!_ownerHasCollectedSupply(_tokenId) && msg.sender == _tokenId) {
+            _initialize(_tokenId);
+        }
+    }
+
+    /// @notice Transfers a certain amount of tokens to an address
+    ///
+    /// @param _tokenId The id of the token
+    /// @param _to The address to transfer to
+    /// @param _amount The amount of tokens to transfer
+    function transfer(address _tokenId, address _to, uint128 _amount) external {
+        require(_to != address(this), "CreatorToken: cannot transfer to self");
+        require(_amount > 0);
+        require(_balanceOf(_tokenId, msg.sender) >= _amount);
+
+        _maybeInitialize(_tokenId);
+
+        uint128 currentFromBalance = balances[_tokenId].get(msg.sender);
+        balances[_tokenId].set(msg.sender, currentFromBalance - _amount);
+
+        uint128 currentToBalance = balances[_tokenId].get(_to);
+        balances[_tokenId].set(_to, currentToBalance + _amount);
+
+        emit TokenTransferred(_tokenId, msg.sender, _to,_amount);
+    }
+
+    // ===Sale Methods===
+
+    /// @notice Returns the integral of the bonding curve
+    ///
+    /// @param _oldTradableSupply The old tradable supply of the token
+    /// @param _newTradableSupply The new tradable supply of the token
+    ///
+    /// @dev A positive returns value corresponds to a cost, a negative value corresponds to a revenue
+    function _computeIntegral(uint128 _oldTradableSupply, uint128 _newTradableSupply) internal view returns(int256) {
+        int256 oldTradableSupply = int256(uint256(_oldTradableSupply));
+        int256 newTradableSupply = int256(uint256(_newTradableSupply));
+
+        // Integral of coefficient * tradableSupply is
+        //  coefficient * x^2 / 2
+        // Therefore \int_old^new (coefficient * x) dx =
+        //   coefficient * (new^2 - old^2) / 2
+        // Note: the division does not require rounding because the coefficient
+        // is always even
+        return int256(uint256(coefficient)) * (
+            newTradableSupply * newTradableSupply - oldTradableSupply * oldTradableSupply
+        ) / 2;
+    }
+
+    function _mintCost(address _tokenId, uint128 _amount) internal view returns(uint256) {
+        uint128 oldTradableSupply = _tradableSupply(_tokenId);
+
+        return uint256(_computeIntegral(oldTradableSupply, oldTradableSupply + _amount));
+    }
+
+    /// @notice Returns the cost of minting a certain amount of tokens
+    /// @param _tokenId The id of the token
+    /// @param _amount The amount of tokens to mint
+    function mintCost(address _tokenId, uint128 _amount) external view returns(uint256) {
+        return _mintCost(_tokenId, _amount);
+    }
+
+    function _mint(address _tokenId, uint128 _amount) internal {
+        tradableSupplies[_tokenId] += _amount;
+
+        uint128 currentBalance = balances[_tokenId].get(msg.sender);
+        balances[_tokenId].set(msg.sender, currentBalance + _amount);
+
+        emit TokenMinted(_tokenId, msg.sender, _amount);
+    }
+
+    /// @notice Mints a certain amount of tokens
+    ///
+    /// @param _tokenId The id of the token
+    /// @param _amount The amount of tokens to mint
+    function mint(address _tokenId, uint128 _amount) external payable {
+        require(_amount > 0, "CreatorToken: _amount must be greater than zero");
+
+        _maybeInitialize(_tokenId);
+
+        // Important: the revenue/cost should always be computed before executing the operation
+        uint256 computedMintCost = _mintCost(_tokenId, _amount);
+
+        require(msg.token == VITE, "CreatorToken: only VITE tokens can be used to mint");
+        require(msg.value >= computedMintCost, "CreatorToken: not enough Vite to mint");
+
+        _mint(_tokenId, _amount);
+
+        if (msg.value > computedMintCost) {
+            // Minter overpaid (e.g. to handle slippage), send back the difference
+            uint256 refund = msg.value - computedMintCost;
+            payable(msg.sender).transfer(VITE, refund);
+        }
+    }
+
+    function _burnRevenue(address _tokenId, uint128 _amount) internal view returns(uint256) {
+        uint128 oldTradableSupply = _tradableSupply(_tokenId);
+
+        return uint256(-_computeIntegral(oldTradableSupply, oldTradableSupply - _amount));
+    }
+
+    /// @notice Returns the revenue of burning a certain amount of tokens
+    ///
+    /// @param _tokenId The id of the token
+    /// @param _amount The amount of tokens to burn
+    function burnRevenue(address _tokenId, uint128 _amount) external view returns(uint256) {
+        require(_amount <= _tradableSupply(_tokenId), "CreatorToken: _amount must be less than or equal to tradable supply");
+        // require(_balanceOf(_tokenId, msg.sender) >= _amount, "CreatorToken: not enough tokens to burn");
+        return _burnRevenue(_tokenId, _amount);
+    }
+
+    function _burn(address _tokenId, uint128 _amount) internal {
+        tradableSupplies[_tokenId] -= _amount;
+        uint128 currentBalance = balances[_tokenId].get(msg.sender);
+        balances[_tokenId].set(msg.sender, currentBalance - _amount);
+
+        emit TokenBurned(_tokenId, msg.sender, _amount);
+    }
+
+    /// @notice Burns a certain amount of tokens
+    ///
+    /// @param _tokenId The id of the token
+    /// @param _amount The amount of tokens to burn
+    function burn(address _tokenId, uint128 _amount) external {
+        require(_amount > 0, "CreatorToken: _amount must be greater than zero");
+        require(_amount <= _tradableSupply(_tokenId), "CreatorToken: _amount must be less than or equal to tradable supply");
+
+        _maybeInitialize(_tokenId);
+
+        require(_balanceOf(_tokenId, msg.sender) >= _amount, "CreatorToken: not enough tokens to burn");
+
+        // Important: the revenue/cost should always be computed before executing the operation
+        uint256 computedBurnRevenue = _burnRevenue(_tokenId, _amount);
+        _burn(_tokenId, _amount);
+
+        payable(msg.sender).transfer(VITE, computedBurnRevenue);
+    }
+
+    // ===Inverse Methods===
+
+    /// @notice Solves \int_old^t (coefficient * x) dx = difference for t
+    ///
+    /// @param _oldTradableSupply The old tradable supply of the token
+    /// @param _difference The difference (i.e. cost or revenue)
+    /// @dev Rounds down.
+    function _inverseIntegral(uint128 _oldTradableSupply, int256 _difference) internal view returns(uint128) {    
+        uint256 oldTradableSupply = uint256(_oldTradableSupply);
+        // Integral of coefficient * tradableSupply is
+        //  coefficient * (tradableSupply^2) / 2
+        // Therefore
+        //  difference = coefficient/2 * new^2 - coefficient/2 * old^2
+        // Rearranging, we get 
+        //  2/coefficient * difference = new^2 - old^2
+        // which is equivalent to
+        //  new = sqrt(2/coefficient * difference - old^2)
+        uint256 newTradableSupply = _sqrt(
+            uint256((2 * _difference / int256(uint256(coefficient))) + int256(oldTradableSupply * oldTradableSupply))
+        );
+        return uint128(newTradableSupply);
+    }
+
+    function _burnAmount(address _tokenId, uint256 _revenue) internal view returns(uint128) {
+        uint128 oldTradableSupply = _tradableSupply(_tokenId);
+
+        uint128 newTradableSupply = _inverseIntegral(oldTradableSupply, -int256(_revenue));
+
+        return oldTradableSupply - newTradableSupply;
+    }
+
+    /// @notice Returns the amount of tokens that would be burned if the given revenue was burned
+    ///
+    /// @param _tokenId The id of the token
+    /// @param _revenue The revenue that burning would bring
+    /// @dev Reverts if burning such an amount would bring the supply below the minimum
+    /// @dev Depending on the parameters, might either round up or down
+    function burnAmount(address _tokenId, uint256 _revenue) external view returns(uint128) {
+        // Note: does not check if _revenue is greater than 0
+
+        uint128 computedBurnAmount = _burnAmount(_tokenId, _revenue);
+
+        require(computedBurnAmount <= _tradableSupply(_tokenId), "CreatorToken: burning would bring supply below minimum");
+
+        return computedBurnAmount;
+    }
+
+    function _mintAmount(address _tokenId, uint256 _cost) internal view returns(uint128) {
+        uint128 oldTradableSupply = _tradableSupply(_tokenId);
+
+        uint128 newTradableSupply = _inverseIntegral(oldTradableSupply, int256(_cost));
+        return newTradableSupply - oldTradableSupply;
+    }
+
+    /// @notice Returns the amount of tokens that would be minted if the given cost was paid
+    ///
+    /// @param _tokenId The id of the token
+    /// @param _cost The cost that minting would involve
+    function mintAmount(address _tokenId, uint256 _cost) external view returns(uint128) {
+        // Note: does not check if _cost is greater than 0
+        return _mintAmount(_tokenId, _cost);
+    }
+
+    // ===Swap Methods===
+
+    /// @notice Calculates the square root of x, rounding down.
+    /// @dev Uses the Babylonian method https://en.wikipedia.org/wiki/Methods_of_computing_square_roots#Babylonian_method.
+    ///
+    /// Caveats:
+    /// - This function does not work with fixed-point numbers.
+    ///
+    /// @param x The uint256 number for which to calculate the square root.
+    /// @return result The result as an uint256.
+    ///
+    /// @notice Source: https://github.com/paulrberg/prb-math/blob/v1.0.3/contracts/PRBMathCommon.sol
+    function _sqrt(uint256 x) internal pure returns (uint256 result) {
+        if (x == 0) {
+            return 0;
+        }
+
+        // Calculate the square root of the perfect square of a power of two that is the closest to x.
+        uint256 xAux = uint256(x);
+        result = 1;
+        if (xAux >= 0x100000000000000000000000000000000) {
+            xAux >>= 128;
+            result <<= 64;
+        }
+        if (xAux >= 0x10000000000000000) {
+            xAux >>= 64;
+            result <<= 32;
+        }
+        if (xAux >= 0x100000000) {
+            xAux >>= 32;
+            result <<= 16;
+        }
+        if (xAux >= 0x10000) {
+            xAux >>= 16;
+            result <<= 8;
+        }
+        if (xAux >= 0x100) {
+            xAux >>= 8;
+            result <<= 4;
+        }
+        if (xAux >= 0x10) {
+            xAux >>= 4;
+            result <<= 2;
+        }
+        if (xAux >= 0x8) {
+            result <<= 1;
+        }
+
+        // The operations can never overflow because the result is max 2^127 when it enters this block.
+        unchecked {
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1; // Seven iterations should be enough
+            uint256 roundedDownResult = x / result;
+            return result >= roundedDownResult ? roundedDownResult : result;
+        }
+    }
+
+    function _computeSwap(address _currentToken, address _newToken, uint128 _amount) internal view returns(uint128, uint256) {
+        uint256 computedBurnRevenue = _burnRevenue(_currentToken, _amount);
+
+        // Note: _mintAmount rounds down
+        uint128 newTokenAmount = _mintAmount(_newToken, computedBurnRevenue);
+
+        uint256 computedMintCost = _mintCost(_newToken, newTokenAmount);
+        // Sanity check
+        require(computedMintCost <= computedBurnRevenue, "CreatorToken: mint cost is greater than burn revenue");
+
+        // _mintAmount rounds down, so we might have bought less than we sold. In that case, transfer the difference
+        uint256 refund = computedBurnRevenue - computedMintCost;
+
+        return (newTokenAmount, refund);
+    }
+
+    /// @notice Simulates a swap of the given amount of tokens from the current token to the new token
+    ///
+    /// @param _currentToken The id of the token to swap from
+    /// @param _newToken The id of the token to swap to
+    /// @param _amount The amount of tokens to swap
+    /// @return The amount of tokens that would be swapped
+    /// @return The eventual refund
+    function simulateSwap(address _currentToken, address _newToken, uint128 _amount) external view returns(uint128, uint256) {
+        require(_amount <= _tradableSupply(_currentToken), "CreatorToken: _amount must be less than or equal to tradable supply");
+
+        return _computeSwap(_currentToken, _newToken, _amount);
+    }
+
+    /// @notice Swaps the given amount of tokens from the current token to the new token
+    ///
+    /// @param _currentToken The id of the token to swap from
+    /// @param _newToken The id of the token to swap to
+    /// @param _amount The amount of tokens to swap
+    function swap(address _currentToken, address _newToken, uint128 _amount) external {
+        require(_amount > 0, "CreatorToken: _amount must be greater than zero");
+        require(_amount <= _tradableSupply(_currentToken), "CreatorToken: _amount must be less than or equal to tradable supply");
+
+        _maybeInitialize(_currentToken);
+
+        require(_balanceOf(_currentToken, msg.sender) >= _amount, "CreatorToken: not enough current tokens to swap");
+
+        uint128 newTokenAmount;
+        uint256 refund;
+
+        (newTokenAmount, refund) = _computeSwap(_currentToken, _newToken, _amount);
+
+        _burn(_currentToken, _amount);
+        _mint(_newToken, newTokenAmount);
+
+        if (refund > 0) {
+            payable(msg.sender).transfer(VITE, refund);
+        }
+    }
+
+    // ===Holder Methods===
+
+    /// @notice Returns the top N holders of a token
+    ///
+    /// @param _tokenId The id of the token
+    /// @param _n The number of holders to return
+    function topHolders(address _tokenId, uint256 _n) external view returns(address[] memory) {
+        return balances[_tokenId].topKs(_n);
+    }
+
+    /// @notice Returns the number of holders of a token
+    ///
+    /// @param _tokenId The id of the token
+    function numHolders(address _tokenId) external view returns(uint256) {
+        return balances[_tokenId].countNonZero();
+    }
+}

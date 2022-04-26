@@ -1,0 +1,8 @@
+- Some parts of the UI look good, other parts (particularly the hero image) look weird.
+	- The UI for the components used for creating joint accounts and motions is a lesser quality than the rest of the design
+- The UX is not very focused
+	- These seem out of place
+		- "Learn About Cryptocurrency"
+		- A section contains a price graph and portfolio value
+		- messages (beyond the scope of what a dapp should do)
+- 

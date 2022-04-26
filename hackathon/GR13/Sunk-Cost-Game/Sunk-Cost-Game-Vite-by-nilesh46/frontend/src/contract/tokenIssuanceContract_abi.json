@@ -1,0 +1,9 @@
+[
+    {
+        "inputs": [],
+        "name": "Burn",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    }
+]

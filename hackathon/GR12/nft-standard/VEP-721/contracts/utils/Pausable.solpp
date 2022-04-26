@@ -1,0 +1,67 @@
+pragma soliditypp ^0.4.3;
+
+import "./Context.solpp";
+import "./PauserRole.solpp";
+
+/**
+ * @dev Contract module which allows children to implement an emergency stop
+ * mechanism that can be triggered by an authorized account.
+ */
+contract Pausable is Context, PauserRole {
+    /**
+     * @dev Emitted when the pause is triggered by a pauser (`account`).
+     */
+    event Paused(address account);
+
+    /**
+     * @dev Emitted when the pause is lifted by a pauser (`account`).
+     */
+    event Unpaused(address account);
+
+    bool private _paused;
+
+    /**
+     * @dev Initializes the contract in unpaused state. Assigns the Pauser role
+     * to the deployer.
+     */
+    constructor () internal {
+        _paused = false;
+    }
+
+    /**
+     * @dev Returns true if the contract is paused, and false otherwise.
+     */
+    function paused() public view returns (bool) {
+        return _paused;
+    }
+
+    /**
+     * @dev Called by a pauser to pause, triggers stopped state.
+     */
+    onMessage pause() {
+        _mustNotPaused();
+        _mustBePauser();
+        _paused = true;
+
+        emit Paused(_msgSender());
+    }
+
+    /**
+     * @dev Called by a pauser to unpause, returns to normal state.
+     */
+    onMessage unpause() {
+        _mustPaused();
+        _mustBePauser();
+        _paused = false;
+
+        emit Unpaused(_msgSender());
+    }
+
+    function _mustNotPaused() internal {
+        require(!_paused, "Pausable: paused");
+    }
+
+    function _mustPaused() internal {
+        require(_paused, "Pausable: not paused");
+    }
+}

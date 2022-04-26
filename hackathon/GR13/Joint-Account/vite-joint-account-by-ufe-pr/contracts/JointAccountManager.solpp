@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: MIT
+pragma soliditypp ^0.8.0;
+
+contract JointAccountManager {
+    event AccountRegistered(address indexed account);
+
+    address[] public accounts;
+
+    function registerJointAccount(address _account) external {
+        accounts.push(_account);
+        emit AccountRegistered(_account);
+    }
+
+    function getAccounts() external view returns (address[] memory) {
+        return accounts;
+    }
+}

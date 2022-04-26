@@ -1,0 +1,126 @@
+// SPDX-License-Identifier: MIT
+// Vite Standard Assets v0.1.0 (VSA-1155 multi-token standard)
+
+pragma soliditypp >=0.7.0 <0.9.0;
+
+import "./IVSA1155.solpp";
+import "./VSA.solpp";
+
+contract VSA1155 is IVSA1155 {
+    VSA internal _vsa;
+
+    constructor(address vsa_) {
+        if (vsa_ == address(0)) {
+            _vsa = new VSA();
+        } else {
+            _vsa = VSA(vsa_);
+        }
+    }
+
+    function name(uint256 id) offchain view virtual override returns (string memory) {
+        return await _vsa.nameAsync(id);
+    }
+
+    function symbol(uint256 id) offchain view virtual override returns (string memory) {
+        return await _vsa.symbolAsync(id);
+    }
+
+    function decimals(uint256 id) offchain view virtual override returns (uint256) {
+        return await _vsa.decimalsAsync(id);
+    }
+
+    function totalSupply(uint256 id) offchain view virtual override returns (uint256) {
+        return await _vsa.totalSupplyAsync(id);
+    }
+
+    function balanceOf(
+        address account, uint256 id
+    ) offchain view virtual override returns (uint256) {
+        return await _vsa.balanceOfAsync(account, id);
+    }
+
+    function balanceOfBatch(
+        address[] calldata accounts,
+        uint256[] calldata ids
+    ) offchain view virtual override returns (uint256[] memory) {
+        return await _vsa.balanceOfBatchAsync(accounts, ids);
+    }
+
+    function allowance(
+        address account, address operator, uint256 id
+    ) offchain view virtual override returns (uint256) {
+        return await _vsa.allowanceAsync(account, operator, id);
+    }
+
+    function approve(address operator, uint256 id, uint256 amount) public virtual override async {
+        await _vsa.approve(operator, id, amount);
+
+        emit Approval(msg.sender, operator, id, amount);
+    }
+
+    function isApprovedForAll(
+        address account, address operator
+    ) offchain view virtual override returns (bool) {
+        return await _vsa.isApprovedForAllAsync(account, operator);
+    }
+
+    function approveForAll(address operator, bool approved) public virtual override async {
+        await _vsa.approveForAll(operator, approved);
+
+        emit ApprovalForAll(msg.sender, operator, approved);
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 id,
+        uint256 amount
+    ) public virtual override async {
+        await _vsa.safeTransferFrom(from, to, id, amount);
+
+        emit TransferSingle(from, to, id, amount);
+    }
+
+    function transferFromBatch(
+        address from,
+        address to,
+        uint256[] calldata ids,
+        uint256[] calldata amounts
+    ) public virtual override async {
+        await _vsa.safeTransferFromBatch(from, to, ids, amounts);
+
+        emit TransferBatch(from, to, ids, amounts);
+    }
+
+    function mint(address to, uint256 id, uint256 amount) public virtual override async {
+        await _vsa.safeMint(to, id, amount);
+
+        emit TransferSingle(address(0), to, id, amount);
+    }
+
+    function mintBatch(
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) public virtual override async {
+        await _vsa.safeMintBatch(to, ids, amounts);
+
+        emit TransferBatch(address(0), to, ids, amounts);
+    }
+
+    function burn(address from, uint256 id, uint256 amount) public virtual override async {
+        await _vsa.burn(from, id, amount);
+
+        emit TransferSingle(from, address(0), id, amount);
+    }
+
+    function burnBatch(
+        address from,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) public virtual override async {
+        await _vsa.burnBatch(from, ids, amounts);
+
+        emit TransferBatch(from, address(0), ids, amounts);
+    }
+}

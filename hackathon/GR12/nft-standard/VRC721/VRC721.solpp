@@ -1,0 +1,213 @@
+pragma soliditypp ^0.4.3;
+
+contract VRC721 {
+    event Transfer (address indexed from_, address indexed to_, uint indexed tokenId_);
+    event Approval (address indexed _owner, address indexed _approved, uint indexed tokenId_);
+    event ApprovalForAll (address indexed _owner, address indexed _operator, bool _approved);
+
+    string private _name;
+    string private _symbol;
+
+    mapping (uint => address) private _owners;
+    mapping (address => uint) private _balances;
+    mapping (uint => address) private _tokenApprovals;
+
+    mapping (address => mapping(address => bool)) private _operatorApprovals;
+
+    constructor (string memory name, string memory symbol) public {
+        _name = name;
+        _symbol = symbol;
+    }
+
+    /* Minting */
+    function _safeMint(
+        address to_,
+        uint256 tokenId_,
+        bytes memory data_
+    ) internal {
+        _mint(to_, tokenId_);
+        data_;
+        // require(_checkOnVRC721Received(address(0), to_, tokenId_, data_), "VRC721: transfer to non VRC721Receiver implementer");
+    }
+
+    function _safeMint(address to_, uint256 tokenId_) internal {
+        _safeMint(to_, tokenId_, "");
+    }
+
+    function _mint(address to_, uint256 tokenId_) internal {
+        require(to_ != address(0), "VRC721: mint to the zero address");
+        require(!_exists(tokenId_), "VRC721: token already minted");
+
+        _beforeTokenTransfer(address(0), to_, tokenId_);
+
+        _balances[to_] += 1;
+        _owners[tokenId_] = to_;
+
+        emit Transfer(address(0), to_, tokenId_);
+    }
+
+    /* Burning */
+    function _burn(uint256 tokenId_) internal {
+        address owner = ownerOf(tokenId_);
+
+        _beforeTokenTransfer(owner, address(0), tokenId_);
+
+        // Clear approvals
+        _approve(address(0), tokenId_);
+
+        _balances[owner] -= 1;
+        delete _owners[tokenId_];
+
+        emit Transfer(owner, address(0), tokenId_);
+    }
+
+    /* Transfers */
+    function _safeTransfer( address from_, address to_, uint256 tokenId_, bytes memory data_ ) internal {
+        _transfer(from_, to_, tokenId_);
+        // require(_checkOnVRC721Received(from_, to_, tokenId_, data_), "VRC721: transfer to non VRC721Receiver implementer");
+    }
+
+    function _safeTransferFrom (address from_, address to_, uint tokenId_, bytes memory data_) internal {
+        require(_isApprovedOrOwner(msg.sender, tokenId_), "VRC721: transfer caller is not owner nor approved");
+        _safeTransfer(from_, to_, tokenId_, data_);
+    }
+
+    function _transfer(address from_, address to_, uint tokenId_) internal {
+        require(ownerOf(tokenId_) == from_, "VRC721: transfer of token that is not own");
+        require(to_ != address(0), "VRC721: transfer to the zero address");
+
+        _beforeTokenTransfer(from_, to_, tokenId_);
+
+        _approve(address(0), tokenId_);
+
+        _balances[from_] -= 1;
+        _balances[to_] += 1;
+        _owners[tokenId_] = to_;
+
+        emit Transfer(from_, to_, tokenId_);
+    }
+
+    onMessage safeTransferFrom (address from_, address to_, uint256 tokenId_, bytes calldata data_) {
+        _safeTransferFrom(from_, to_, tokenId_, data_);
+    }
+
+    onMessage safeTransferFrom (address from_, address to_, uint tokenId_) {
+        _safeTransferFrom(from_, to_, tokenId_, "");
+    }
+
+    onMessage transferFrom (address from_, address to_, uint tokenId_) {
+        require(_isApprovedOrOwner(msg.sender, tokenId_), "VRC721: transfer caller is not owner nor approved");
+
+        _transfer(from_, to_, tokenId_);
+    }
+
+    /* Approvals */
+    function getApproved(uint256 tokenId_) public view returns (address) {
+        require(_exists(tokenId_), "VRC721: approved query for nonexistent token");
+
+        return _tokenApprovals[tokenId_];
+    }
+
+    function approve(address to_, uint tokenId_) public {
+        address owner = ownerOf(tokenId_);
+        require(to_ != owner, "VRC721: approval to current owner");
+
+        require(
+            msg.sender == owner || isApprovedForAll(owner, msg.sender),
+            "VRC721: approve caller is not owner nor approved for all"
+        );
+
+        _approve(to_, tokenId_);
+    }
+
+    function _setApprovalForAll( address owner_, address operator_, bool approved_ ) internal {
+        require(owner_ != operator_, "VRC721: approve to caller");
+        _operatorApprovals[owner_][operator_] = approved_;
+        emit ApprovalForAll(owner_, operator_, approved_);
+    }
+
+    function setApprovalForAll ( address operator_, bool approved_ ) public {
+        _setApprovalForAll(msg.sender, operator_, approved_);
+    }
+
+    function isApprovedForAll(address owner, address operator) public view returns (bool) {
+        return _operatorApprovals[owner][operator];
+    }
+
+    function _isApprovedOrOwner(address spender_, uint256 tokenId_) internal view returns (bool) {
+        require(_exists(tokenId_), "VRC721: operator query for nonexistent token");
+
+        address owner = ownerOf(tokenId_);
+        return (spender_ == owner || getApproved(tokenId_) == spender_ || isApprovedForAll(owner, spender_));
+    }
+
+    function _approve (address to_, uint tokenId_) internal {
+        _tokenApprovals[tokenId_] = to_;
+
+        emit Approval(ownerOf(tokenId_), to_, tokenId_);
+    }
+
+    /* Helper functions */
+    function _exists (uint tokenId_) view private returns (bool) {
+        return _owners[tokenId_] != address(0);
+    }
+
+    function ownerOf (uint tokenId_) view public returns (address) {
+        address owner = _owners[tokenId_];
+        require(owner != address(0), "VRC721: owner query for nonexistent token");
+        return owner;
+    }
+
+    /* Placeholders */
+    function _baseURI () internal view returns (string memory) {
+        return "";
+    }
+
+    /* Hooks */    
+    function _beforeTokenTransfer (address from_, address to_, uint256 tokenId_) internal {
+        //
+    }
+
+    /* Getters */
+    function toString(uint256 value) internal pure returns (string memory) {
+        // Inspired by OraclizeAPI's implementation - MIT licence
+        // https://github.com/oraclize/ethereum-api/blob/b42146b063c7d6ee1358846c198246239e9360e8/oraclizeAPI_0.4.25.sol
+
+        if (value == 0) {
+            return "0";
+        }
+        uint256 temp = value;
+        uint256 digits;
+        while (temp != 0) {
+            digits++;
+            temp /= 10;
+        }
+        bytes memory buffer = new bytes(digits);
+        while (value != 0) {
+            digits -= 1;
+            buffer[digits] = bytes1(uint8(48 + uint256(value % 10)));
+            value /= 10;
+        }
+        return string(buffer);
+    }
+
+    function tokenURI(uint tokenId_) public view returns (string memory) {
+        require(_exists(tokenId_), "VRC721: URI query for nonexistent token");
+
+        string memory baseURI = _baseURI();
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, toString(tokenId_))) : "";
+    }
+
+    getter name () returns (string memory) {
+        return _name;
+    }
+
+    getter symbol () returns (string memory) {
+        return _symbol;
+    }
+
+    getter balanceOf (address owner_) returns (uint) {
+        // require(owner_ != address(0), "VRC721: balance query for the zero address"); 
+        return _balances[owner_];
+    }
+}

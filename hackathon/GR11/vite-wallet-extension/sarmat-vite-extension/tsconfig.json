@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "sourceMap": true,
+    "module": "CommonJS",
+    "target": "ES5",
+    "baseUrl": ".",
+    "rootDir": ".",
+    "allowJs": true,
+    "experimentalDecorators": true,
+    "types": ["webpack-env", "jest", "ts-node"],
+    "paths": {
+      "@/*": ["src/popup/*"]
+    },
+    "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
+    "src/content/index.js"
+  ],
+  "exclude": ["node_modules", "dist"]
+}

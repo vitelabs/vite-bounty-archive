@@ -1,0 +1,9 @@
+.myInput {
+    width: 100%;
+    padding: 15px 15px;
+    margin: 5px 0;
+    border: 2px solid blueviolet;
+    border-radius: 8px;
+    background-color: white;
+    font-family: 'Comfortaa', medium;
+}

@@ -1,0 +1,5 @@
+- getters could've been combined into one instead you get
+	- `getPotExpiry`, `getPotPrice`, `getPotTotalValue`, `getPotOwner`, `getPotTTI`, `getPotBurnAmount`, `getPotPriceIncrement`, `getPotTimerExtension`, `getPotMaxTimerLimit`, `uint256`, 
+- Contract has a lot of `require` statements which make sense but are unnecessary when adhering to the principle of garbage in garbage out
+	- e.g. `createPot` has A LOT of requires
+- Looks influenced by gr13-vite-sunk-cost-by-samuelemarro

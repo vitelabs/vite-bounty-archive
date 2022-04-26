@@ -1,0 +1,45 @@
+.custom-select {
+    position: relative;
+    font-family: Arial;
+  }
+  
+
+  
+  .MySlct {
+    display: inline-block;
+  width: 160px;
+  height: 34px;
+  line-height: 30px;
+  position: relative;
+    
+  }
+
+  .MySlct:before
+{
+  content: ">";
+  display: inline-block;
+  background: white;
+  position: absolute;
+  right: -5px;
+  top: 2px;
+  z-index: 2;
+  width: 30px;
+  height: 26px;
+  text-align: center;
+  line-height: 26px;
+  border: 2px solid #ddd;
+  transform: rotate(90deg);
+  cursor: pointer;
+}
+  
+  /* Style the arrow inside the select element: */
+  .select-selected:after {
+    position: absolute;
+    content: "";
+    top: 14px;
+    right: 10px;
+    width: 0;
+    height: 0;
+    border: 6px solid transparent;
+    border-color: #fff transparent transparent transparent;
+  }

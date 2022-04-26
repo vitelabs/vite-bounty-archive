@@ -1,0 +1,76 @@
+// SPDX-License-Identifier: MIT
+// Vite Standard Assets v0.1.0 (IVSA1155 multi-token interface)
+
+pragma soliditypp >=0.7.0 <0.9.0;
+
+interface IVSA1155 {
+    event Approval(
+        address indexed account,
+        address indexed operator,
+        uint256 id,
+        uint256 value
+    );
+
+    event ApprovalForAll(address indexed account, address indexed operator, bool approved);
+
+    event TransferSingle(
+    	address indexed from,
+    	address indexed to,
+    	uint256 id,
+    	uint256 value
+    );
+
+    event TransferBatch(
+        address indexed from,
+        address indexed to,
+        uint256[] ids,
+        uint256[] values
+    );
+
+    function name(uint256 id) offchain view returns (string memory);
+
+    function symbol(uint256 id) offchain view returns (string memory);
+
+    function decimals(uint256 id) offchain view returns (uint256);
+
+    function totalSupply(uint256 id) offchain view returns (uint256);
+
+    function balanceOf(address account, uint256 id) offchain view returns (uint256);
+
+    function balanceOfBatch(
+    	address[] calldata accounts,
+    	uint256[] calldata ids
+    ) offchain view returns (uint256[] memory);
+
+    function allowance(
+        address account, address operator, uint256 id
+    ) offchain view returns (uint256);
+
+    function approve(address operator, uint256 id, uint256 amount) external async;
+
+    function isApprovedForAll(address account, address operator) offchain view returns (bool);
+
+    function approveForAll(address operator, bool approved) external async;
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 id,
+        uint256 amount
+    ) external async;
+
+	function transferFromBatch(
+        address from,
+        address to,
+        uint256[] calldata ids,
+        uint256[] calldata amounts
+    ) external async;
+
+    function mint(address to, uint256 id, uint256 amount) external async;
+
+    function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts) external async;
+
+    function burn(address from, uint256 id, uint256 amount) external async;
+
+    function burnBatch(address from, uint256[] memory ids, uint256[] memory amounts) external async;
+}

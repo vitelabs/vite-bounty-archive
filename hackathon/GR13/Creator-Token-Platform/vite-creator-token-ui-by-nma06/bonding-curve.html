@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="./css/vite-creator-token.css" rel="stylesheet" id="light-css">
+    <link href="./css/vite-creator-token-dark.css" rel="stylesheet" media="none" id="dark-css">
+    <link href="./lib/fontawesome/css/all.css" rel="stylesheet">
+    
+    <script type="text/javascript" src="./js/vite-creator-token.js"></script>
+    
+    <title>VITE Creator Token Platform</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="index.html"><img src="./img/vite-logo.svg" width="120" alt="VITE"></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav ms-auto fs-5">
+            <li class="nav-item">
+              <a class="nav-link" href="#"><i class="fas fa-user pe-2"></i> vite_233ae...d290a </a></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    
+    <div class="container">
+      
+      <nav aria-label="breadcrumb" class="mt-3 mb-4">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="index.html">VITE Creator Token</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Token info for address : <a href="#" class="text-reset">vite_985..810a</a></li>
+        </ol>
+      </nav>
+      
+      <h5 class="mb-4"><strong>Current Token Price</strong> : 41020 VITE <small class="text-muted">($2629.81)</small></h5>
+      
+      <div class="row gy-3 mb-4">
+        <div class="col-sm-6">
+            <div class="card">
+              <img src="img/bonding-curve.png" class="card-img-top" alt="">
+              <div class="card-body">
+                <!--<h5 class="card-title">Card title</h5>-->
+                <p class="card-text text-center">Token price over time</p>
+              </div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="card">
+              <img src="img/bonding-curve2.png" class="card-img-top" alt="">
+              <div class="card-body">
+                <!--<h5 class="card-title">Card title</h5>-->
+                <p class="card-text text-center">Token price by supply</p>
+              </div>
+            </div>
+        </div>
+      </div>
+      
+
+      
+      <!-- Modal -->
+      <div class="modal fade" id="select-token-modal" tabindex="-1" aria-labelledby="select-token-label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="select-token-label">Select token</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+              <label for="address-tok-input" class="form-label">Token's address</label>
+              <input type="email" class="form-control" id="address-tok-input" placeholder="">
+            </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary">Select</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb-5">
+        <div class="card-header">
+          <ul class="nav nav-tabs card-header-tabs" id="token-tab"  role="tablist">
+            <li class="nav-item" role="presentation">
+              <button id="buy-tab" class="nav-link fs-5 active" data-bs-toggle="tab" data-bs-target="#buy" type="button" role="tab" aria-controls="buy" aria-selected="true">Buy</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button id="sell-tab" class="nav-link fs-5" data-bs-toggle="tab" data-bs-target="#sell" type="button" role="tab" aria-controls="sell" aria-selected="false">Sell</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button id="swap-tab" class="nav-link fs-5" data-bs-toggle="tab" data-bs-target="#swap" type="button" role="tab" aria-controls="swap" aria-selected="false">Swap</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button id="holders-tab" class="nav-link fs-5" data-bs-toggle="tab" data-bs-target="#holders" type="button" role="tab" aria-controls="holders" aria-selected="false">View holders</button>
+            </li>
+          </ul>
+        </div>
+        <div class="card-body">
+          
+          <div class="tab-content" id="token-tab-content">
+            <div class="tab-pane fade show active" id="buy" role="tabpanel" aria-labelledby="buy-tab">
+                <h5 class="card-title mb-4">Buy this token</h5>
+                <div class="mb-4">
+                  <label for="buy-input" class="form-label">Amount</label>
+                  <input type="text" class="form-control" id="buy-input" aria-describedby="buy-input" placeholder="00.0">
+                  <div id="buy-info" class="form-text">Pay : -- VITE</div>
+                </div>
+                <a href="#" class="btn btn-primary">Buy</a>
+            </div>
+            <div class="tab-pane fade" id="sell" role="tabpanel" aria-labelledby="sell-tab">
+              <h5 class="card-title mb-4">Sell this token</h5>
+                <div class="mb-4">
+                  <label for="sell-input" class="form-label">Amount</label>
+                  <div class="input-group">
+                      <input id="sell-input" type="text" class="form-control" placeholder="00.0" aria-label="sell" aria-describedby="sell-input">
+                      <button class="btn btn-outline-secondary" type="button" id="button-max-sell">Max</button>
+                  </div>
+                  <div id="sell-info" class="form-text">Receive : -- VITE</div>
+                </div>
+                <a href="#" class="btn btn-primary">Sell</a>
+            </div>
+            <div class="tab-pane fade" id="swap" role="tabpanel" aria-labelledby="swap-tab">
+              
+              <label for="pay-token" class="form-label">Pay</label>
+              <div class="input-group">
+                <input id="pay-token" type="text" class="form-control" placeholder="00.0" aria-label="Pay Token" aria-describedby="button-addon">
+                <button class="btn btn-outline-secondary" type="button" id="button-addon" style="width: 10rem;" disabled>Token <small>(vite_985..810a)</small></button>
+              </div>
+
+              <div class="text-center text-primary pt-4"><i class="fas fa-arrow-circle-down fa-2x"></i></div>
+              
+               <label for="receive-token" class="form-label">Receive</label>
+              <div class="input-group">
+                <input id="receive-token" type="text" class="form-control" placeholder="00.0" aria-label="receive Token" aria-describedby="button-addon2">
+                <button class="btn btn-outline-secondary" type="button" id="button-addon2" style="width: 10rem;" data-bs-toggle="modal" data-bs-target="#exampleModal">Select token <i class="ps-2 fas fa-caret-down"></i></button>
+              </div>
+              <a href="#" class="btn btn-primary mt-4">Swap</a>
+
+            </div><!-- #swap -->
+            <div class="tab-pane fade" id="holders" role="tabpanel" aria-labelledby="holders-tab">
+              <p>Total : <span class="text-muted">24 holders</span></p>
+              <div class="table-responsive">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th scope="col">Holder Address</th>
+                      <th scope="col"><a href="#" class="text-decoration-none text-reset"><i class="fas fa-sort-amount-down pe-1"></i> Amount</a></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><a href="#">vite_233aec78adac201d87e061b3dfe9dd1a4cc590f33fa5ad290a</a></td>
+                      <td>45685</td>
+                    </tr>
+                    <tr>
+                      <td><a href="#">vite_654edc78adac201d87e061b3dfe9dd1a4cc590f33fa5ad541</a></td>
+                      <td>25445</td>
+                    </tr>
+                    <tr>
+                      <td><a href="#">vite_5444578adac201d87e061b3dfe9dd1a4cc590f33fa5a3455a</a></td>
+                      <td>12025</td>
+                    </tr>
+                    <tr>
+                      <td><a href="#">vite_54651ae8adac201d87e61b3dfe9dd1a4cc590f33fa5ad650a</a></td>
+                      <td>10003</td>
+                    </tr>
+                    <tr>
+                      <td><a href="#">vite_2aedde5e578adac201d87e0613dfe9dd1a4cc590f33fa5a5550a</a></td>
+                      <td>8251</td>
+                    </tr>
+                    <tr>
+                      <td><a href="#">vite_845zddec78adac201d87e061b3dfe9dd1a4cc590f33fa5ad251a</a></td>
+                      <td>8012</td>
+                    </tr>
+                    <tr>
+                      <td><a href="#">vite_5234szc78adac201d87e061b3dfe9dd1a4cc590f33fa5ad290a</a></td>
+                      <td>6854</td>
+                    </tr>
+                    <tr>
+                      <td><a href="#">vite_64275578adac201d87e061b3dfe9dd1a4cc590f33fa5ad000a</a></td>
+                      <td>2541</td>
+                    </tr>
+                    <tr>
+                      <td><a href="#">vite_778aec78adac201d87e061b3dfe9dd1a4cc590f33fa5ad988a</a></td>
+                      <td>985</td>
+                    </tr>
+                    
+                  </tbody>
+                </table>
+            </div><!-- table-responsive -->
+            <nav aria-label="Page navigation example">
+              <ul class="pagination">
+                <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+                <li class="page-item"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item">
+                  <a class="page-link" href="#" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+            </div><!-- #holders -->
+            
+          </div>
+          
+        </div>
+      </div><!-- .card -->
+      
+
+
+    </div><!-- /.container -->
+
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="./lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+  </body>
+</html>

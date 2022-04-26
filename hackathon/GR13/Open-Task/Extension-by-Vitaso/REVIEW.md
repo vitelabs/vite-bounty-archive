@@ -1,0 +1,10 @@
+- Very basic wallet
+- UI doesn't specify the network type - no way to change it
+	- uses wss://node-vite.thomiz.dev/ws as the endpoint
+- Uses script tags instead of modules which makes reading code harder
+- wallet can send and receive blocks on testnet (after changing the provider URL), so it could potentially work on mainnet as well
+- Wallet can send different tokenIds
+- The code is very ugly
+	- `document.getElementById("walletScreen_balances").innerHTML += `\`
+	- Isn't modular (will be very hard to organize as it gets more complex)
+- The extension can only do basic wallet functionality and the code is ugly

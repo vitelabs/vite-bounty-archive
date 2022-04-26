@@ -1,0 +1,44 @@
+pragma soliditypp ^0.4.3;
+
+import "./Context.solpp";
+import "./Roles.solpp";
+
+contract PauserRole is Context {
+    using Roles for Roles.Role;
+
+    event PauserAdded(address indexed account);
+    event PauserRemoved(address indexed account);
+
+    Roles.Role private _pausers;
+
+    constructor () internal {
+        _addPauser(_msgSender());
+    }
+
+    onMessage addPauser(address account) {
+        _mustBePauser();
+        _addPauser(account);
+    }
+
+    onMessage renouncePauser() {
+        _removePauser(_msgSender());
+    }
+
+    function _mustBePauser() internal {
+        require(_isPauser(_msgSender()), "PauserRole: caller does not have the Pauser role");
+    }
+
+    function _isPauser(address account) internal view returns (bool) {
+        return _pausers.has(account);
+    }
+
+    function _addPauser(address account) internal {
+        _pausers.add(account);
+        emit PauserAdded(account);
+    }
+
+    function _removePauser(address account) internal {
+        _pausers.remove(account);
+        emit PauserRemoved(account);
+    }
+}

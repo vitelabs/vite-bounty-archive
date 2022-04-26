@@ -1,0 +1,13 @@
+.circular {
+  border-radius: 100%;
+  margin-top: 2rem;
+}
+
+.title {
+  text-align: center;
+}
+
+.contributors {
+  display: flex;
+  justify-content: center;
+}

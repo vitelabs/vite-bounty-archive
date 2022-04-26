@@ -1,0 +1,52 @@
+/* You may need to install this extension https://marketplace.visualstudio.com/items?itemName=csstools.postcss */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-100 text-gray-900;
+  /* @apply text-gray-900; */
+}
+
+.b {
+  border: 1px solid red;
+}
+
+.o {
+  outline: 1px solid red;
+}
+
+button,
+input,
+textarea {
+  @apply outline-none;
+}
+
+button[disabled] {
+  @apply cursor-default;
+}
+
+.xy {
+  @apply flex flex-col justify-center items-center;
+}
+
+ul {
+  @apply space-y-2;
+}
+
+li {
+  @apply ml-8 pl-1;
+}
+
+.page-row {
+  @apply max-w-5xl mx-auto px-4 md:px-8;
+}
+
+.cell {
+  @apply p-4 md:p-6 md:p-8 bg-white rounded-2xl shadow-md;
+}
+
+.cell > p:first-child {
+  @apply text-3xl md:text-4xl font-bold mb-2;
+}

@@ -1,0 +1,2 @@
+- Looks ok
+- dark mode is still mostly bright white

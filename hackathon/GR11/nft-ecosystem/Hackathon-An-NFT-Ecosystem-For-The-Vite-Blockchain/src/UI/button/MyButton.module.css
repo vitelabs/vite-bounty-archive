@@ -1,0 +1,39 @@
+.myBtn {
+    background-color: white; 
+    color: #4B0082;  
+    border: 2px solid #E6E6FA;
+  padding: 10px 20px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  transition-duration: 0.4s;
+  cursor: pointer;
+    border-radius: 8px;
+    font-family: 'Comfortaa', medium;
+}
+
+.myBtn:hover {
+    background-color: #4B0082;
+    color: white;
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+  }
+
+.myBtn__disabled {
+    padding: 5px 15px;
+    color:rgb(209, 197, 221);
+    font-size: 14px;
+    background: transparent;
+    border: 1px solid rgb(209, 197, 221);
+    cursor: not-allowed;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    transition-duration: 0.4s;
+    border-radius: 8px;
+    font-family: 'Comfortaa', medium;
+}

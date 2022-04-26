@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="./css/vite-joint-account.css" rel="stylesheet" media="none" id="light-css">
+    <link href="./css/vite-joint-account-dark.css" rel="stylesheet" id="dark-css">
+    <link href="./lib/fontawesome/css/all.css" rel="stylesheet">
+    
+    <script type="text/javascript" src="./js/vite-joint-account.js"></script>
+    
+    <title>VITE Joint Account</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="index.html"><img src="./img/vite-logo.svg" width="120" alt="VITE"></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav ms-auto fs-5">
+            <li class="nav-item">
+              <a class="nav-link" href="#"><i class="fas fa-user pe-2"></i> vite_233ae...d290a </a></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    
+    <div class="container">
+      
+      <div class="row gy-5 gy-lg-3 mt-1 mt-lg-3">
+          
+          <div class="col-lg-8">
+                <div class="shadow border p-3">
+                    <h1 class="py-3">VITE Joint Account</h1>
+                    <p class="lead">A Joint Account allows to hold funds between multiple addresses. This will:</p>
+                    <ul class="lead">
+                      <li>Protect funds of compromised accounts</li>
+                      <li>Allow funds to only move by majority vote</li>
+                      <li>Enable escrow services</li>
+                    </ul>
+                      <div class="row row-cols-1 row-cols-lg-2 gy-2 py-3">
+                        <div class="col"><a href="joint-account-create.html" class="btn btn-primary btn-lg w-100">Create joint account</a></div>
+                        <div class="col"><a href="joint-account-list.html" class="btn btn-primary btn-lg w-100">Manage your accounts</a></div>
+                      </div>
+                </div>
+                
+          </div><!-- .col-lg-8 -->
+          
+          <div class="col-lg-4">
+              <div class="card border-primary mb-4">
+                <h5 class="card-header bg-primary text-white">VITE Links</h5>
+                <div class="list-group list-group-flush fs-5">
+                    <a href="https://www.vite.org/" class="list-group-item list-group-item-action">Website</a>
+                    <a href="https://github.com/vitelabs" class="list-group-item list-group-item-action">GitHub </a>
+                    <a href="https://twitter.com/vitelabs" class="list-group-item list-group-item-action">Twitter</a>
+                    <a href="https://discord.com/invite/CsVY76q" class="list-group-item list-group-item-action">Discord</a>
+                    <a href="https://www.instagram.com/vite.labs/" class="list-group-item list-group-item-action">Instagram</a>
+                </div>
+              </div>
+              
+              <div class="form-check form-switch mb-4">
+                <input class="form-check-input" type="checkbox" role="switch" id="switch-theme" onclick="changeTheme();">
+                <label class="form-check-label" for="switch-theme">Dark / light mode</label>
+              </div>
+          </div><!-- .col-lg-4 -->
+          
+      </div><!-- .row -->
+        
+    </div><!-- /.container -->
+
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="./lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+  </body>
+</html>

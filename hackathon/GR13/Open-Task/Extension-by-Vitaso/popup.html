@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Vitaso</title>
+    <script src="dist/vite/vite.js"></script>
+    <script src="dist/vite/vite-ws.js"></script>
+    <script src="dist/dom/utils.js"></script>
+    <script src="dist/polyfill/buffer.js"></script>
+    <script src="dist/bulma/toast.js"></script>
+    <script src="popup.js"></script>
+
+    <link rel="preload" href="/dist/montserrat.ttf" as="font" crossorigin="anonymous" />
+
+    <style>
+      @font-face {
+        font-family: Montserrat;
+        src: url(./dist/montserrat.ttf);
+      }
+
+      body {
+        height: 415px;
+        width: 300px;
+        background-color: #121212;
+        overflow: hidden;
+      }
+
+      ::-webkit-scrollbar {
+        width: 0px;
+      }
+
+      ::-moz-selection { background: #4C0070; }
+      ::selection { background: #4C0070; }
+
+      .margin-10 {
+        margin-top: 10px;
+      }
+
+      .margin-50 {
+        margin-top: 50px;
+      }
+
+      .panel.is-primary .panel-heading {
+        background-color: #4C0070 !important;
+      }
+
+      .is-black {
+        background-color: #121212 !important;
+      }
+    </style>
+
+    <link rel="stylesheet" href="dist/bulma/bulma.css">
+    <link rel="stylesheet" href="dist/bulma/pageloader.css">
+    <link rel="stylesheet" href="dist/animate.css">
+  </head>
+  <body>
+    <div id="loader" class="pageloader is-active"><span class="title">Vitaso</span></div>
+
+    <div id="setupWizard">
+      <center>
+        <div class="margin-10"></div>
+        <nav class="panel is-primary">
+          <p class="panel-heading is-unselectable"><span style="color: rgb(255, 255, 255)" class="title">Vitaso</span></p>
+        </nav>
+        <div class="margin-50"></div>
+        <button id="setupWizard_createNew" class="button is-primary">Create new wallet</button>
+        <div class="margin-10"></div>
+        - or -
+        <div class="margin-10"></div>
+        <div class="field has-addons">
+          <p class="control is-expanded">
+            <input id="setupWizard_import_mnemonics" class="input" type="text" placeholder="Mnemonics">
+          </p>
+          <p class="control">
+            <a id="setupWizard_import_import" class="button is-info">Import</a>
+          </p>
+        </div>
+        <div class="margin-50"></div>
+        <h2 style="color: rgb(255, 255, 255)">Made by KaffinPX, use at your own risk.</h2>
+      </center>
+    </div>
+
+    <div id="walletScreen" style="display:none;">
+      <nav class="panel is-primary">
+        <p class="panel-heading is-unselectable is-clickable" id="walletScreen_walletAddr"></p>
+        <center>
+          <h2 class="subtitle"><p id="walletScreen_walletBal" class="is-clickable is-unselectable has-text-white">0 VITE</p></h2>
+          <div class="margin-10"></div>
+        </center>
+      </nav>
+
+      <div id="walletScreen_sendMenu" style="display:none;">
+        <div class="margin-10"></div>
+        <input id="walletScreen_sendMenu_address" class="input" type="text" placeholder="Address or ViteNS Name">
+        <div class="field has-addons">
+          <p class="control">
+            <span class="select">
+              <select id="walletScreen_sendMenu_tokens"></select>
+            </span>
+          </p>
+          <p class="control is-expanded">
+            <input id="walletScreen_sendMenu_amount" class="input" type="text" placeholder="Amount">
+          </p>
+          <p class="control">
+            <a id="walletScreen_sendMenu_send" class="button is-dark">Send</a>
+          </p>
+        </div>
+      </div>
+
+      <div id="walletScreen_options" style="display:none;">
+        <div class="margin-10"></div>
+        <center><div class="block">
+          <button id="walletScreen_options_deleteWallet" class="button is-danger">Delete wallet</button>
+        </div></center>
+      </div>
+
+      <div style="border-bottom: 1px solid rgb(33, 33, 33); overflow: hidden; overflow-y: scroll; height: 265px;">
+        <center>
+          <ul id="walletScreen_balances" style="width: 88%; font-family: Montserrat;" class="block-list has-radius is-dark is-small is-left"></ul>
+        </center>
+      </div>
+
+      <div style="position: fixed; left: 0; bottom: 0; width: 100%; text-align: center;">
+          <button class="button is-black" id="walletScreen_controlTab_balances">Balances</button>
+          <button class="button is-black" id="walletScreen_controlTab_send">Send</button>
+          <button class="button is-black" id="walletScreen_controlTab_options">Options</button>
+      </div>
+    </div>
+  </body>
+</html>
+

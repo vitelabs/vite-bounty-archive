@@ -1,0 +1,21 @@
+pragma soliditypp ^0.4.3;
+
+contract Example {
+  address vitelinkContract = address("vite_0dcc1a88e041a537baefb77639a472aaa130b5b3689c055933");
+
+  message request(string requestAddr);
+  string callbackedData;
+
+  onMessage requestData(string calldata requestAddr) {
+    send(vitelinkContract, request(requestAddr)); // Example: https://api.coingecko.com/api/v3/simple/price?ids=nano&vs_currencies=usd
+  }
+
+  onMessage _vitelinkCallback(string calldata requestAddr, string calldata resultData) {
+    require(msg.sender == vitelinkContract);
+    callbackedData = resultData;
+  }
+
+  getter getResultData() returns(string memory) {
+    return callbackedData;
+  }
+}

@@ -1,0 +1,376 @@
+// SPDX-License-Identifier: MIT
+pragma soliditypp ^0.8.0;
+import "./IterableMapping.solpp";
+
+contract CreatorToken {
+    using IterableMapping for IterableMapping.Map;
+
+    event Mint(address indexed _token, address indexed _to, uint256 _amount);
+    event Burn(address indexed _token, address indexed _from, uint256 _amount);
+    event Swap(
+        address indexed _fromToken,
+        address indexed _toToken,
+        address indexed _addr,
+        uint256 _amount
+    );
+    event Transfer(
+        address indexed _token,
+        address indexed _from,
+        address indexed _to,
+        uint256 _amount
+    );
+
+    mapping(address => IterableMapping.Map) private holderBalances;
+    IterableMapping.Map private _tokenSupply;
+
+    uint16 public constant base_supply = 10000;
+    uint256 public constant curveGradient = 2;
+    vitetoken private constant VITE = "tti_5649544520544f4b454e6e40";
+
+    function min(uint256 a, uint256 b) internal pure returns (uint256 c) {
+        c = a < b ? a : b;
+        return c;
+    }
+
+    function sqrt(uint256 x) internal pure returns (uint256 result) {
+        if (x == 0) {
+            return 0;
+        }
+
+        // Set the initial guess to the least power of two that is greater than or equal to sqrt(x).
+        uint256 xAux = uint256(x);
+        result = 1;
+        if (xAux >= 0x100000000000000000000000000000000) {
+            xAux >>= 128;
+            result <<= 64;
+        }
+        if (xAux >= 0x10000000000000000) {
+            xAux >>= 64;
+            result <<= 32;
+        }
+        if (xAux >= 0x100000000) {
+            xAux >>= 32;
+            result <<= 16;
+        }
+        if (xAux >= 0x10000) {
+            xAux >>= 16;
+            result <<= 8;
+        }
+        if (xAux >= 0x100) {
+            xAux >>= 8;
+            result <<= 4;
+        }
+        if (xAux >= 0x10) {
+            xAux >>= 4;
+            result <<= 2;
+        }
+        if (xAux >= 0x8) {
+            result <<= 1;
+        }
+
+        // The operations can never overflow because the result is max 2^127 when it enters this block.
+        unchecked {
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1;
+            result = (result + x / result) >> 1; // Seven iterations should be enough
+            uint256 roundedDownResult = x / result;
+            return result >= roundedDownResult ? roundedDownResult : result;
+        }
+    }
+
+    modifier onlyVite() {
+        require(msg.token == VITE);
+        _;
+    }
+
+    function _validateHasAmount(address _token, uint256 _amount) internal view {
+        require(
+            holderBalance(_token, msg.sender) >= _amount,
+            "CreatorToken: Insufficient balance"
+        );
+    }
+
+    function _validateHasAmount(
+        address _sender,
+        address _token,
+        uint256 _amount
+    ) internal view {
+        require(
+            holderBalance(_token, _sender) >= _amount,
+            "CreatorToken: Insufficient balance"
+        );
+    }
+
+    function _validateWithinTreshold(address _token, uint256 _amount)
+        internal
+        view
+    {
+        require(
+            _amount < _floatingSupply(_token),
+            "CreatorToken: Amount exceeds treshold"
+        );
+    }
+
+    function _validateMoreThanZero(uint256 _amount) internal pure {
+        require(_amount > 0, "CreatorToken: invalid amount");
+    }
+
+    function tokenSupply(address _token) public view returns (uint256) {
+        return IterableMapping.get(_tokenSupply, _token) + base_supply;
+    }
+
+    function _floatingSupply(address _token) internal view returns (uint256) {
+        return IterableMapping.get(_tokenSupply, _token);
+    }
+
+    function getTokens(uint256 _start, uint256 _maxSize)
+        public
+        view
+        returns (address[] memory)
+    {
+        IterableMapping.Map storage _tokens = _tokenSupply;
+        if (_tokens.size() < _start + 1) return new address[](0);
+        uint256 size = _tokens.size();
+        uint256 end = min(_start + _maxSize, size);
+        address[] memory result = new address[](end - _start);
+        for (uint256 i = _start; i < end; i++) {
+            result[i - _start] = _tokens.getKeyAtIndex(i);
+        }
+        return result;
+    }
+
+    function tokenHolders(
+        address _token,
+        uint256 _start,
+        uint256 _maxSize
+    ) public view returns (address[] memory) {
+        IterableMapping.Map storage holders = holderBalances[_token];
+        if (holders.size() < _start + 1) return new address[](0);
+        uint256 size = holders.size();
+        uint256 end = min(_start + _maxSize, size);
+        address[] memory result = new address[](end - _start);
+        for (uint256 i = _start; i < end; i++) {
+            result[i - _start] = holders.getKeyAtIndex(i);
+        }
+        return result;
+    }
+
+    function holderBalance(address _token, address _holder)
+        public
+        view
+        returns (uint256 _balance)
+    {
+        IterableMapping.Map storage balances = holderBalances[_token];
+        return balances.get(_holder);
+    }
+
+    function _calculatePrice(
+        uint256 _supply,
+        uint256 _amount,
+        bool _reversed
+    ) internal pure returns (uint256 _totalPrice) {
+        // Simplified integral of the slope function:
+        // (curveGradient * _supply - base_supply)
+        // between the limits of (_supply) and (_supply + _amount)
+        // or the reverse
+        int8 multiplier = _reversed ? -1 : int8(1);
+        _totalPrice =
+            _amount *
+            uint256(
+                (multiplier * int256(curveGradient) * int256(_amount)) /
+                    2 +
+                    int256(curveGradient * _supply) -
+                    int256(uint256(base_supply))
+            );
+        return _totalPrice;
+    }
+
+    function calculateMintPrice(address _token, uint256 _amount)
+        public
+        view
+        returns (uint256 _price)
+    {
+        return _calculatePrice(tokenSupply(_token), _amount, false);
+    }
+
+    function calculateBurnRevenue(address _token, uint256 _amount)
+        public
+        view
+        returns (uint256 _revenue)
+    {
+        return _calculatePrice(tokenSupply(_token), _amount, true);
+    }
+
+    function _calculateInversePrice(
+        address _token,
+        uint256 _price,
+        bool _reversed
+    ) public view returns (uint256 _amount, uint256 _excess) {
+        // Simplified integral of the slope function:
+        // (curveGradient * _supply - base_supply)
+        // between the limits of (_supply) and (_supply + _amount)
+        // or the reverse
+        int8 multiplier = _reversed ? -1 : int8(1);
+        int256 quad_a = multiplier * int256(curveGradient / 2);
+        int256 quad_b = int256(
+            curveGradient * tokenSupply(_token) - base_supply
+        );
+        int256 quad_c = -int256(_price);
+        int256 _sqrt = int256(
+            sqrt(uint256(quad_b * quad_b - 4 * quad_a * quad_c))
+        );
+
+        int256 _amount1 = int256((-quad_b + _sqrt) / (2 * quad_a));
+        int256 _amount2 = int256((-quad_b - _sqrt) / (2 * quad_a));
+        if (_amount1 >= 0) {
+            _amount = uint256(_amount1);
+        } else if (_amount2 >= 0) {
+            _amount = uint256(_amount2);
+        } else {
+            revert("No amount found");
+        }
+        _excess =
+            _price -
+            _calculatePrice(tokenSupply(_token), _amount, _reversed);
+    }
+
+    function calculateAmountFromBurnRevenue(address _token, uint256 _revenue)
+        public
+        view
+        returns (uint256 _amount, uint256 _excess)
+    {
+        return _calculateInversePrice(_token, _revenue, true);
+    }
+
+    function calculateAmountFromMintPrice(address _token, uint256 _revenue)
+        public
+        view
+        returns (uint256 _amount, uint256 _excess)
+    {
+        return _calculateInversePrice(_token, _revenue, false);
+    }
+
+    function _initializeToken(address _token) internal {
+        holderBalances[_token].set(_token, base_supply);
+        _tokenSupply.set(_token, 0);
+    }
+
+    function _tryInitialize(address _token) internal {
+        if (holderBalance(_token, _token) == 0) {
+            _initializeToken(_token);
+        }
+    }
+
+    function _mint(address _token, uint128 _amount) internal {
+        uint256 price = calculateMintPrice(_token, _amount);
+        require(msg.value >= price, "CreatorToken: Not enough value");
+
+        _tokenSupply.set(_token, _floatingSupply(_token) + _amount);
+        uint256 _balance = holderBalances[_token].get(msg.sender);
+        holderBalances[_token].set(msg.sender, _balance + _amount);
+
+        emit Mint(_token, msg.sender, _amount);
+        // return excess value
+        payable(msg.sender).transfer(VITE, msg.value - price);
+    }
+
+    function mint(address _token, uint128 _amount) public payable onlyVite {
+        _tryInitialize(_token);
+        _mint(_token, _amount);
+    }
+
+    function _burn(address _token, uint128 _amount) internal {
+        _validateMoreThanZero(_amount);
+        _validateWithinTreshold(_token, _amount);
+        _validateHasAmount(_token, _amount);
+
+        uint256 viteAmount = calculateBurnRevenue(_token, _amount);
+        _tokenSupply.set(_token, _floatingSupply(_token) - _amount);
+        uint256 _balance = holderBalances[_token].get(msg.sender);
+        holderBalances[_token].set(msg.sender, _balance - _amount);
+
+        emit Burn(_token, msg.sender, _amount);
+
+        payable(msg.sender).transfer(VITE, viteAmount);
+    }
+
+    function burn(address _token, uint128 _amount) public {
+        _tryInitialize(_token);
+        _burn(_token, _amount);
+    }
+
+    function _swap(
+        address _sourceToken,
+        address _targetToken,
+        uint256 _amount
+    ) internal {
+        _validateMoreThanZero(_amount);
+        _validateWithinTreshold(_sourceToken, _amount);
+        _validateHasAmount(_sourceToken, _amount);
+
+        uint256 _sourceBalance = holderBalances[_sourceToken].get(msg.sender);
+        uint256 _targetBalance = holderBalances[_targetToken].get(msg.sender);
+
+        uint256 viteAmount = calculateBurnRevenue(_sourceToken, _amount);
+        (
+            uint256 _targetAmount,
+            uint256 _excessViteAmount
+        ) = calculateAmountFromMintPrice(_targetToken, viteAmount);
+
+        _tokenSupply.set(_sourceToken, _floatingSupply(_sourceToken) - _amount);
+        _tokenSupply.set(
+            _targetToken,
+            _floatingSupply(_targetToken) + _targetAmount
+        );
+        holderBalances[_sourceToken].set(msg.sender, _sourceBalance - _amount);
+        holderBalances[_targetToken].set(
+            msg.sender,
+            _targetBalance + _targetAmount
+        );
+
+        emit Swap(_sourceToken, _targetToken, msg.sender, _amount);
+
+        payable(msg.sender).transfer(VITE, _excessViteAmount);
+    }
+
+    function swap(
+        address _sourceToken,
+        address _targetToken,
+        uint256 _amount
+    ) public {
+        _tryInitialize(_sourceToken);
+        _tryInitialize(_targetToken);
+        _swap(_sourceToken, _targetToken, _amount);
+    }
+
+    function _transferFrom(
+        address _from,
+        address _to,
+        address _token,
+        uint256 _amount
+    ) internal {
+        _validateMoreThanZero(_amount);
+        _validateHasAmount(_from, _token, _amount);
+
+        uint256 _fromBalance = holderBalance(_from, _token);
+        uint256 _toBalance = holderBalance(_to, _token);
+
+        holderBalances[_token].set(_from, _fromBalance - _amount);
+        holderBalances[_token].set(_to, _toBalance + _amount);
+
+        emit Transfer(_from, _to, _token, _amount);
+    }
+
+    function transfer(
+        address _to,
+        address _token,
+        uint256 _amount
+    ) public {
+        _tryInitialize(_token);
+        _transferFrom(msg.sender, _to, _token, _amount);
+    }
+}

@@ -1,0 +1,414 @@
+// SPDX-License-Identifier: MIT
+/// @title Token Auction implementation for GR13 Hackathon
+/// @author Samuele Marro
+
+pragma soliditypp ^0.8.0;
+
+import "./IndexedTree.solpp";
+import "./RedBlackTree.solpp";
+
+contract TokenAuction {
+    using IndexedTree for IndexedTree.Tree;
+    using RedBlackTree for RedBlackTree.BidInfo;
+
+    vitetoken public constant VITE = "tti_5649544520544f4b454e6e40";
+
+    event AuctionCreated (
+        uint256 indexed auctionId,
+        vitetoken indexed tokenId,
+        address indexed seller,
+        uint256 amount,
+        uint256 endTimestamp,
+        uint256 minPrice
+    );
+
+    event Bid (
+        uint256 indexed auctionId,
+        address indexed bidder,
+        uint256 amount,
+        uint256 price
+    );
+
+    event BidCancelled (
+        uint256 indexed auctionId,
+        address indexed bidder
+    );
+
+    event BidderCollected (
+        uint256 indexed auctionId,
+        address indexed bidder,
+        uint256 amount,
+        uint256 price,
+        uint256 refund
+    );
+
+    event SellerCollected (
+        uint256 indexed auctionId,
+        address indexed seller,
+        uint256 payment,
+        uint256 tokenRefund
+    );
+
+    struct Auction {
+        vitetoken tokenId;
+        uint256 endTimestamp;
+        uint256 amount;
+        IndexedTree.Tree bids;
+        address seller;
+        uint256 minPrice;
+        bool sellerCollected;
+    }
+
+    mapping(uint256 => Auction) private auctions;
+    uint256 public numAuctions;
+
+    // Comment these lines to disable the time hack
+    //=====
+    uint256 internal _currentTime = 0;
+
+    function setTime(uint256 _time) external {
+        _currentTime = _time;
+    }
+
+    function _getTime() internal view returns (uint256) {
+        return _currentTime;
+    }
+    //=====
+
+    // Uncomment these lines to disable the time hack
+    //=====
+    //function _getTime() internal view returns (uint256) {
+    //    return block.timestamp;
+    //}
+    //=====
+
+    /// @notice Creates a new auction
+    ///
+    /// @param _tokenId The token id to be auctioned
+    /// @param _amount The amount to be auctioned
+    /// @param _endTimestamp The Unix timestamp of when the auction ends
+    /// @param _minPrice The minimum price per token
+    function createAuction(vitetoken _tokenId, uint256 _amount, uint256 _endTimestamp, uint256 _minPrice) external payable returns(uint256) {
+        require(_endTimestamp > _getTime(), "TokenAuction: end timestamp must be in the future");
+        require(msg.token == _tokenId, "TokenAuction: token ID mismatch");
+        require(msg.value == _amount, "TokenAuction: _amount must be equal to msg.value");
+
+        uint256 auctionId = numAuctions++;
+        auctions[auctionId].tokenId = _tokenId;
+        auctions[auctionId].seller = msg.sender;
+        auctions[auctionId].amount = _amount;
+        auctions[auctionId].endTimestamp = _endTimestamp;
+        auctions[auctionId].minPrice = _minPrice;
+
+        emit AuctionCreated(auctionId, _tokenId, msg.sender, _amount, _endTimestamp, _minPrice);
+
+        return auctionId;
+    }
+
+    /// @notice Returns the token id of an auction
+    ///
+    /// @param _auctionId The auction id
+    ///
+    /// @dev Existence check has been removed to fit the contract into the standard size
+    function auctionTokenId(uint256 _auctionId) external view returns(vitetoken) {
+        return auctions[_auctionId].tokenId;
+    }
+
+    /// @notice Returns the minimum price of an auction
+    ///
+    /// @param _auctionId The auction id
+    ///
+    /// @dev Existence check has been removed to fit the contract into the standard size
+    function auctionMinPrice(uint256 _auctionId) external view returns(uint256) {
+        return auctions[_auctionId].minPrice;
+    }
+
+    /// @notice Returns the end Unix timestamp of an auction
+    ///
+    /// @param _auctionId The auction id
+    ///
+    /// @dev Existence check has been removed to fit the contract into the standard size
+    function auctionEndTimestamp(uint256 _auctionId) external view returns(uint256) {
+        return auctions[_auctionId].endTimestamp;
+    }
+
+    /// @notice Returns the auctioned amount of an auction
+    ///
+    /// @param _auctionId The auction id
+    ///
+    /// @dev Existence check has been removed to fit the contract into the standard size
+    function auctionAmount(uint256 _auctionId) external view returns(uint256) {
+        return auctions[_auctionId].amount;
+    }
+
+    /// @notice Returns true if an auction has ended
+    ///
+    /// @param _auctionId The auction id
+    ///
+    /// @dev Existence check has been removed to fit the contract into the standard size
+    function auctionExpired(uint256 _auctionId) public view returns(bool) {
+        return _getTime() >= auctions[_auctionId].endTimestamp;
+    }
+
+    function _bidInfo(uint256 _auctionId, address _bidder) internal view returns (uint256, uint256) {
+        return auctions[_auctionId].bids.get(_bidder);
+    }
+
+    /// @notice Returns the amount and price of a bid
+    ///
+    /// @param _auctionId The auction id
+    /// @param _bidder The bidder address
+    function bidInfo(uint256 _auctionId, address _bidder) external view returns (uint256, uint256) {
+        require(_auctionId < numAuctions, "TokenAuction: auction ID out of range");
+        require(bidExists(_auctionId, _bidder), "TokenAuction: bid does not exist");
+        return _bidInfo(_auctionId, _bidder);
+    }
+
+    /// @notice Returns true if a bid exists
+    ///
+    /// @param _auctionId The auction id
+    /// @param _bidder The bidder address
+    function bidExists(uint256 _auctionId, address _bidder) public view returns (bool) {
+        return auctions[_auctionId].bids.exists(_bidder);
+    }
+
+    /// @notice Bids on an auction
+    ///
+    /// @param _auctionId The auction id
+    /// @param _amount The amount to bid
+    /// @param _price The price of the bid
+    function bid(uint256 _auctionId, uint256 _amount, uint256 _price) external payable {
+        require(_auctionId < numAuctions, "TokenAuction: auction does not exist");
+        require(_price > 0, "TokenAuction: price must be positive");
+        require(_amount > 0, "TokenAuction: amount must be positive");
+        require(_amount <= auctions[_auctionId].amount, "TokenAuction: bid amount exceeds auction amount");
+        require(!auctionExpired(_auctionId), "TokenAuction: auction has already ended");
+        require(msg.sender != auctions[_auctionId].seller, "TokenAuction: seller cannot bid");
+        require(_price >= auctions[_auctionId].minPrice, "TokenAuction: bid price must be greater than or equal to the minimum price");
+
+        if (bidExists(_auctionId, msg.sender)) {
+            uint256 newBidTotal = _amount * _price;
+
+            uint256 currentAmount;
+            uint256 currentPrice;
+            (currentAmount, currentPrice) = _bidInfo(_auctionId, msg.sender);
+            uint256 currentBidTotal = currentAmount * currentPrice;
+
+            if (newBidTotal > currentBidTotal) {
+                // Bid is higher than current bid
+                require(msg.token == VITE, "TokenAuction: bid must be placed in VITE");
+                require(msg.value == newBidTotal - currentBidTotal, "TokenAuction: msg.value must be equal to new bid total - current bid total");
+            }
+            
+            auctions[_auctionId].bids.update(msg.sender, _amount, _price);
+
+            if (newBidTotal < currentBidTotal) {
+                // Bid is higher than current bid
+                // Executed later to avoid re-entrancy attacks
+                payable(msg.sender).transfer(VITE, currentBidTotal - newBidTotal);
+            }
+        } else {
+            require(msg.token == VITE, "TokenAuction: bid must be placed in VITE");
+            require(msg.value == _amount * _price, "TokenAuction: msg.value must be equal to _amount * _price");
+            auctions[_auctionId].bids.insert(msg.sender, _amount, _price);
+        }
+
+        emit Bid(_auctionId, msg.sender, _amount, _price);
+    }
+
+    /// @notice Cancels a bid
+    ///
+    /// @param _auctionId The auction id
+    function cancelBid(uint256 _auctionId) external {
+        require(_auctionId < numAuctions, "TokenAuction: auction does not exist");
+        require(!auctionExpired(_auctionId), "TokenAuction: auction has already ended");
+
+        uint256 amount;
+        uint256 price;
+        (amount, price) = auctions[_auctionId].bids.remove(msg.sender);
+
+        // Transfer the tokens back to the bidder
+        payable(msg.sender).transfer(VITE, amount * price);
+
+        emit BidCancelled(_auctionId, msg.sender);
+    }
+
+    /// @notice Returns the bidders of an auction
+    ///
+    /// @param _auctionId The auction id
+    ///
+    /// @dev Bidders are sorted by price and, if equal, by bid time
+    function auctionBidders(uint256 _auctionId) external view returns (address[] memory) {
+        require(_auctionId < numAuctions, "TokenAuction: auction does not exist");
+        
+        RedBlackTree.BidInfo[] memory bids = auctions[_auctionId].bids.getAll();
+        address[] memory bidders = new address[](bids.length);
+
+        for (uint256 i = 0; i < bids.length; i++) {
+            bidders[i] = bids[i].bidder;
+        }
+
+        return bidders;
+    }
+
+    /// @notice Returns the bid amounts of an auction
+    ///
+    /// @param _auctionId The auction id
+    ///
+    /// @dev Bids are sorted by price and, if equal, by bid time
+    function auctionAmounts(uint256 _auctionId) external view returns (uint256[] memory) {
+        require(_auctionId < numAuctions, "TokenAuction: auction does not exist");
+
+        RedBlackTree.BidInfo[] memory bids = auctions[_auctionId].bids.getAll();
+        uint256[] memory amounts = new uint256[](bids.length);
+
+        for (uint256 i = 0; i < bids.length; i++) {
+            amounts[i] = bids[i].amount;
+        }
+
+        return amounts;
+    }
+
+    /// @notice Returns the bid prices of an auction
+    ///
+    /// @param _auctionId The auction id
+    ///
+    /// @dev Bids are sorted by price and, if equal, by bid time
+    function auctionPrices(uint256 _auctionId) external view returns (uint256[] memory) {
+        require(_auctionId < numAuctions, "TokenAuction: auction does not exist");
+        
+        RedBlackTree.BidInfo[] memory bids = auctions[_auctionId].bids.getAll();
+        uint256[] memory prices = new uint256[](bids.length);
+
+        for (uint256 i = 0; i < bids.length; i++) {
+            prices[i] = auctions[_auctionId].bids.getPrice(bids[i].bidder);
+        }
+
+        return prices;
+    }
+
+    /// @notice Returns the number of bids of an auction
+    ///
+    /// @param _auctionId The auction id
+    function auctionNumBids(uint256 _auctionId) external view returns (uint256) {
+        require(_auctionId < numAuctions, "TokenAuction: auction does not exist");
+        return auctions[_auctionId].bids.numBids();
+    }
+
+    /// @notice Collects the results of a bid
+    ///
+    /// @param _auctionId The auction id
+    ///
+    /// @dev If the bidder didn't win all the bid tokens, the difference is refunded
+    function collect(uint256 _auctionId) external {
+        require(_auctionId < numAuctions, "TokenAuction: auction does not exist");
+        require(auctionExpired(_auctionId), "TokenAuction: auction is still in progress");
+
+        uint256 amount;
+        uint256 actualAmount;
+        uint256 price;
+
+        (amount, actualAmount, price) = auctions[_auctionId].bids.collect(msg.sender, auctions[_auctionId].amount);
+
+        uint256 refund;
+
+        if (actualAmount < amount) {
+            // Bidder did not bid high enough
+            refund = (amount - actualAmount) * price;
+        } else {
+            // Bidder bid high enough
+            refund = 0;
+        }
+
+        if (refund > 0) {
+            // Refunds the bidder
+            payable(msg.sender).transfer(VITE, refund);
+        }
+
+        if (actualAmount > 0) {
+            // Transfers the tokens to the winner
+            payable(msg.sender).transfer(auctions[_auctionId].tokenId, actualAmount);
+        }
+
+        emit BidderCollected(_auctionId, msg.sender, actualAmount, price, refund);
+    }
+
+    /// @notice Simulates a call to "collect"
+    ///
+    /// @param _auctionId The auction id
+    /// @param _bidder The address of the bidder
+    ///
+    /// @return A tuple containing the actual received amount and the eventual refund
+    function simulateCollect(uint256 _auctionId, address _bidder) external returns (uint256, uint256) {
+        require(_auctionId < numAuctions, "TokenAuction: auction does not exist");
+
+        uint256 amount;
+        uint256 actualAmount;
+        uint256 price;
+
+        (amount, actualAmount, price) = auctions[_auctionId].bids.collect(_bidder, auctions[_auctionId].amount);
+
+        uint256 refund;
+
+        if (actualAmount < amount) {
+            // Bidder did not bid high enough
+            refund = (amount - actualAmount) * price;
+        } else {
+            // Bidder bid high enough
+            refund = 0;
+        }
+
+        return (actualAmount, refund);
+    }
+
+    /// @notice Collects the seller's earnings
+    ///
+    /// @param _auctionId The auction id
+    ///
+    /// @dev If some tokens weren't sold, they are refunded
+    function collectSeller(uint256 _auctionId) external {
+        require(_auctionId < numAuctions, "TokenAuction: auction does not exist");
+        require(auctionExpired(_auctionId), "TokenAuction: auction is still in progress");
+        require(msg.sender == auctions[_auctionId].seller, "TokenAuction: only the seller can collect");
+        require(!auctions[_auctionId].sellerCollected, "TokenAuction: seller already collected");
+
+        uint256 soldAmount;
+        uint256 totalPayment;
+
+        (soldAmount, totalPayment) = auctions[_auctionId].bids.getSellerRevenue(auctions[_auctionId].amount);
+
+        auctions[_auctionId].sellerCollected = true;
+
+        uint256 tokenRefund = auctions[_auctionId].amount - soldAmount;
+        if (tokenRefund > 0) {
+            // Some tokens were not sold
+            
+            payable(msg.sender).transfer(auctions[_auctionId].tokenId, tokenRefund);
+        }
+
+        if (totalPayment > 0) {
+            // Transfers VITE to the seller
+            payable(msg.sender).transfer(VITE, totalPayment);
+        }
+
+        emit SellerCollected(_auctionId, msg.sender, totalPayment, tokenRefund);
+    }
+
+    /// @notice Simulates a call to "collectSeller"
+    ///
+    /// @param _auctionId The auction id
+    ///
+    /// @return A tuple containing the earnings and the eventual token refund
+    function simulateCollectSeller(uint256 _auctionId) external view returns (uint256, uint256) {
+        require(_auctionId < numAuctions, "TokenAuction: auction does not exist");
+
+        uint256 soldAmount;
+        uint256 totalPayment;
+
+        (soldAmount, totalPayment) = auctions[_auctionId].bids.getSellerRevenue(auctions[_auctionId].amount);
+
+        uint256 tokenRefund = auctions[_auctionId].amount - soldAmount;
+
+        return (totalPayment, tokenRefund);
+    }
+}

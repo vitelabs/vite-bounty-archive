@@ -1,0 +1,182 @@
+//SPDX-License-Identifier: Unlicense
+@author : Sonika Agarwal
+pragma solidity ^0.8.0;
+
+contract AccountManager {
+    address [] public accounts;
+    function getAccounts () public view returns (address [] memory){
+        return accounts;
+    }
+    function joinAccount (address _account) public {
+        bool check = false;
+        for (uint i =0; i< accounts.length ; i++){
+            if (accounts[i]==_account){
+                check =true;
+            }
+        }
+        require(check == false, "cannot join account twice");
+        accounts.push(_account);
+    }
+}
+
+contract JointAccount {
+    event Deposited (
+        address from,
+        uint amount,
+        vitetoken token,
+        uint time
+    );
+    event ProposalCreated (
+        uint id,
+        uint amount,
+        address from,
+        address payable to,
+        vitetoken tokenAddress,
+        uint approvals,
+        bool sent
+    );
+    event MotionRemoved (
+        uint id,
+        address from,
+        uint time
+    );
+    event MotionReplaced (
+        uint id,
+        address from,
+        uint time
+    );
+    event TransferApproved(
+        uint id,
+        uint time
+    );
+    event VoteReceived (
+        address member,
+        uint256 proposalId
+    );
+    address[] public approvers;
+    uint public threshold;
+    struct Transfer {
+        uint id;
+        uint amount;
+        address from;
+        address payable to;
+        vitetoken tokenAddress;
+        uint approvals;
+        bool sent;
+    }
+    //Stores a history of transfers from each account
+    mapping (uint => Transfer) public transfers;
+    uint public transferId;
+    //Stores history of proposals that user has voted on and helps to stop double-voting;
+    mapping(address => mapping(uint => bool)) public approvals;
+
+    constructor(address[] memory _approvers, address _manager, uint _threshold) payable {
+        require (_approvers.length >= _threshold, "threshold cannot be more than approvers");
+        approvers = _approvers;
+        threshold = _threshold;
+        AccountManager jManager = AccountManager(_manager);
+        jManager.joinAccount(address(this));
+    }
+    //getter for approvers
+    function getApprovers() external view returns(address[] memory) {
+        return approvers;
+    }
+    function getBalance (vitetoken _token) view public returns (uint tokenBalance) {
+        return (balance(_token));
+    }
+    //getter function for history of transfers
+    function getOpenTransfersIds() external view returns(uint[] memory) {
+        uint totalIds;
+        for(uint i=1;i<=transferId;i++){
+            if (transfers[i].sent == false && transfers[i].amount>0){
+                totalIds++;
+            }
+        }
+        uint[] memory openIds = new uint [](totalIds);
+        for (uint j =1; j<=totalIds; j++){
+            if (transfers[j].sent == false && transfers[j].amount>0){
+                openIds[j-1]=(transfers[j].id);
+            }
+        }
+        return openIds;
+    }
+
+    function createTransfer(uint _amount, address payable _to, vitetoken _token) external onlyApprover() {
+        require (balance (_token) >= _amount, "balance not enough");
+        require (_to != payable(address(0)), "address not specefied");
+        transferId++;
+        transfers[transferId] = Transfer(
+            transferId,
+            _amount,
+            msg.sender,
+            _to,
+            _token,
+            0,
+            false
+        );
+        emit ProposalCreated (
+            transferId,
+            _amount,
+            msg.sender,
+            _to,
+            _token,
+            0,
+            false
+        );
+    }
+    function removeMotion(uint _id) public onlyApprover() {
+        Transfer memory transfer = transfers[_id];
+        transfer.id=0;
+        transfer.amount=0;
+        transfer.from= payable(address(0));
+        transfer.to= payable(address(0));
+        transfer.approvals=0;
+        transfer.sent=false;
+        emit MotionRemoved (_id, msg.sender, block.timestamp);
+    }
+    function replaceMotion(uint _id, uint _amount, address payable _to, vitetoken _token) public onlyApprover()
+    {
+        require(transfers[_id].sent==false, "Transfer Already Sent");
+        Transfer memory transfer = transfers[_id];
+        transfer.amount=_amount;
+        transfer.from= msg.sender;
+        transfer.to= _to;
+        transfer.tokenAddress=_token;
+        transfer.approvals=0;
+        emit MotionReplaced (_id, msg.sender, block.timestamp);
+    }
+    function approveTransfer(uint id) external onlyApprover() {
+        require(transfers[id].sent == false, 'transfer has already been sent');
+        require(approvals[msg.sender][id] == false, 'cannot approve transfer twice');
+        emit VoteReceived (msg.sender, id);
+        approvals[msg.sender][id] = true;
+        transfers[id].approvals++;
+        if(transfers[id].approvals >= threshold) {
+            address payable to = transfers[id].to;
+            uint amount = transfers[id].amount;
+            vitetoken token = transfers[id].tokenAddress;
+            to.transfer(token, amount);
+            transfers[id].sent = true;
+            emit TransferApproved (id, block.timestamp);
+            removeMotion(id);
+        }
+    }
+
+    receive() external payable {
+        address from = msg.sender;
+        uint amount = msg.value;
+        vitetoken token = msg.token;
+        emit Deposited (from, amount, token, block.timestamp);
+    }
+
+    modifier onlyApprover() {
+        bool allowed = false;
+        for(uint i; i < approvers.length; i++) {
+            if(approvers[i] == msg.sender) {
+                allowed = true;
+            }
+        }
+        require(allowed == true, 'only approver allowed');
+        _;
+    }
+}

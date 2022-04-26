@@ -1,0 +1,301 @@
+// SPDX-License-Identifier: MIT
+pragma soliditypp ^0.8.0;
+
+interface TokenIssuanceContract {
+    function Burn() external payable;
+}
+
+contract SunkCostGame {
+    event PotCreated(
+        uint256 indexed _id,
+        vitetoken indexed _tti,
+        address indexed _initiator,
+        uint64 _timestamp,
+        uint256 _amount
+    );
+    event PotBoughtIn(
+        uint256 indexed _id,
+        vitetoken indexed _tti,
+        address indexed _buyer,
+        uint64 _timestamp,
+        uint256 _amount
+    );
+    event PotClaimed(
+        uint256 indexed _id,
+        vitetoken indexed _tti,
+        address indexed _winner,
+        uint64 _timestamp,
+        uint256 _amount
+    );
+
+    uint256 initial_buy_in_amount = 1;
+
+    constructor(uint initialBuyAmount) {
+        initial_buy_in_amount = initialBuyAmount;
+    }
+
+    struct Pot {
+        uint64 maxTimerLimit;
+        uint64 endTime;
+        uint64 timerExtension;
+        uint256 priceIncrement;
+        uint256 burnAmount;
+        uint256 lastPrice;
+        uint256 totalValue;
+        vitetoken tti;
+        address currentOwner;
+    }
+
+    mapping(uint256 => bool) claimed;
+    Pot[] private pots;
+
+    TokenIssuanceContract TokenIssuance =
+        TokenIssuanceContract(
+            "vite_000000000000000000000000000000000000000595292d996d"
+        );
+
+    function Burn(vitetoken token, uint256 amount) internal {
+        TokenIssuance.Burn{value: amount, token: token}();
+    }
+
+    function min(uint256 a, uint256 b) internal pure returns (uint256 c) {
+        if (a < b) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+
+    // function _timestamp() internal view returns (uint64 _time) {
+    //     return uint64(block.timestamp);
+    // }
+
+    uint64 public mockTime;
+    function _timestamp() internal view returns (uint64 _time) {
+        return mockTime;
+    }
+
+    function advanceTime(uint64 _time) external {
+        mockTime += _time;
+    }
+
+    function setMockTime(uint64 _time) external {
+        mockTime = _time;
+    }
+
+    function _potExists(uint256 _potId) internal view returns (bool) {
+        return _potId < potsCount();
+    }
+
+    function _potExpired(uint256 _potId) internal view returns (bool) {
+        require(_potExists(_potId));
+        return pots[_potId].endTime < _timestamp();
+    }
+
+    function _incrementPotTimer(uint256 _potId) internal returns (uint64) {
+        require(_potExists(_potId));
+        Pot storage pot = pots[_potId];
+        uint64 endTime = pot.endTime + pot.timerExtension;
+        if (endTime - _timestamp() > pot.maxTimerLimit) {
+            endTime = _timestamp() + pot.maxTimerLimit;
+        }
+        pot.endTime = endTime;
+
+        return endTime;
+    }
+
+    modifier requirePotExpired(uint256 _potId) {
+        require(_potExpired(_potId));
+        _;
+    }
+
+    modifier requirePotNotExpired(uint256 _potId) {
+        require(!_potExpired(_potId));
+        _;
+    }
+
+    modifier requirePotToken(uint256 _potId) {
+        require(_potExists(_potId));
+        require(pots[_potId].tti == msg.token);
+        _;
+    }
+
+    modifier requireNotClaimed(uint256 _potId) {
+        require(!claimed[_potId]);
+        _;
+    }
+
+    function potsCount() public view returns (uint256) {
+        return pots.length;
+    }
+
+    function nextPrice(uint256 _potId) public view returns (uint256 _price) {
+        require(_potExists(_potId));
+        Pot memory pot = pots[_potId];
+        uint256 price = pot.lastPrice + pot.priceIncrement;
+
+        return price;
+    }
+
+    function getPotExpiry(uint256 _potId) external view returns (uint64) {
+        require(_potExists(_potId));
+        return pots[_potId].endTime;
+    }
+
+    function getPotPrice(uint256 _potId) external view returns (uint256) {
+        require(_potExists(_potId));
+        return pots[_potId].lastPrice;
+    }
+
+    function getPotTotalValue(uint256 _potId) external view returns (uint256) {
+        require(_potExists(_potId));
+        return pots[_potId].totalValue;
+    }
+
+    function getPotOwner(uint256 _potId) external view returns (address) {
+        require(_potExists(_potId));
+        return pots[_potId].currentOwner;
+    }
+
+    function getPotTTI(uint256 _potId) external view returns (vitetoken) {
+        require(_potExists(_potId));
+        return pots[_potId].tti;
+    }
+
+    function getPotBurnAmount(uint256 _potId) external view returns (uint256) {
+        require(_potExists(_potId));
+        return pots[_potId].burnAmount;
+    }
+
+    function getPotPriceIncrement(uint256 _potId)
+        external
+        view
+        returns (uint256)
+    {
+        require(_potExists(_potId));
+        return pots[_potId].priceIncrement;
+    }
+
+    function getPotTimerExtension(uint256 _potId) external view returns (uint64) {
+        require(_potExists(_potId));
+        return pots[_potId].timerExtension;
+    }
+
+    function getPotMaxTimerLimit(uint256 _potId) external view returns (uint64) {
+        require(_potExists(_potId));
+        return pots[_potId].maxTimerLimit;
+    }
+
+    function getPot(uint256 _potId)
+        external
+        view
+        returns (
+            vitetoken _tti,
+            address _currentOwner,
+            uint256 _currentPrice,
+            uint256 _value,
+            uint64 _expiry
+        )
+    {
+        require(_potExists(_potId));
+        Pot memory pot = pots[_potId];
+        return (
+            pot.tti,
+            pot.currentOwner,
+            pot.lastPrice,
+            pot.totalValue,
+            pot.endTime
+        );
+    }
+
+    function createPot(
+        uint64 _initialTimer,
+        uint64 _maxTimerLimit,
+        uint256 _increment,
+        uint64 _timerExtension,
+        uint256 _burnAmount
+    ) external payable returns (uint256 _potId) {
+        require(_initialTimer > 0);
+        require(_maxTimerLimit > 0);
+        require(_maxTimerLimit > _initialTimer);
+        require(_increment > 0);
+        require(_timerExtension > 0);
+        require(_timerExtension < _maxTimerLimit);
+        require(_burnAmount < initial_buy_in_amount + _increment);
+        require(msg.value >= initial_buy_in_amount);
+
+        Pot memory pot = Pot({
+            maxTimerLimit: _maxTimerLimit,
+            priceIncrement: _increment,
+            burnAmount: _burnAmount,
+            timerExtension: _timerExtension,
+            endTime: _initialTimer + _timestamp(),
+            tti: msg.token,
+            lastPrice: initial_buy_in_amount,
+            totalValue: initial_buy_in_amount,
+            currentOwner: msg.sender
+        });
+        _potId = pots.length;
+        pots.push(pot);
+
+        emit PotCreated(
+            _potId,
+            msg.token,
+            msg.sender,
+            _timestamp(),
+            initial_buy_in_amount
+        );
+
+        // refund excess
+        payable(msg.sender).transfer(
+            msg.token,
+            msg.value - initial_buy_in_amount
+        );
+    }
+
+    function buyIn(uint256 _potId)
+        external
+        payable
+        requirePotNotExpired(_potId)
+        requirePotToken(_potId)
+    {
+        require(_potExists(_potId));
+        uint256 price = nextPrice(_potId);
+        require(msg.value >= price);
+
+        Pot storage pot = pots[_potId];
+        pot.lastPrice = price;
+
+        uint256 value = price - pot.burnAmount;
+        pot.totalValue += value;
+        pot.currentOwner = msg.sender;
+        _incrementPotTimer(_potId);
+
+        if (pot.burnAmount > 0) {
+            Burn(pot.tti, pot.burnAmount);
+        }
+
+        emit PotBoughtIn(_potId, pot.tti, msg.sender, _timestamp(), price);
+
+        // refund excess
+        payable(msg.sender).transfer(msg.token, msg.value - price);
+    }
+
+    function claim(uint256 _potId)
+        external
+        requirePotExpired(_potId)
+        requirePotToken(_potId)
+        requireNotClaimed(_potId)
+    {
+        Pot memory pot = pots[_potId];
+        require(pot.currentOwner == msg.sender);
+
+        uint256 value = pot.totalValue;
+
+        claimed[_potId] = true;
+        emit PotClaimed(_potId, pot.tti, msg.sender, _timestamp(), value);
+
+        // payout winner
+        payable(msg.sender).transfer(pot.tti, value);
+    }
+}

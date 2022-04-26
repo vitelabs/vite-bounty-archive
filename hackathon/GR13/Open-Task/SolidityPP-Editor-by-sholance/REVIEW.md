@@ -1,0 +1,9 @@
+- To run, you need to remove `--ssl` from the start script
+- If you look at the diff: https://github.com/smartcontract-codes/play-ed/compare/main...sholance:main
+	- It's mostly renaming and formatting
+- Connecting to the editor uses MetaMask instead of ViteConnect
+- At best, this is a very watered down version of Remix
+- Overall this is a lazy fork a bad Remix alternative
+	- The Remix alt landing page: https://playproject.io/
+		- The link to the app is broken
+- 

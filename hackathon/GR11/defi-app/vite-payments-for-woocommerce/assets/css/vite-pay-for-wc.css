@@ -1,0 +1,42 @@
+
+.vitepayDropdown {
+    height: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    font-size: 16px;
+    margin: 0;
+    padding: 8px;
+    width: 100%;
+    background-color: #e8eeef;
+    color: #8a97a0;
+    margin-top: 20px;
+    border-radius: 10px;
+}
+
+
+.vitepayDiv {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.vitepayForm {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding-bottom: 20px;
+    border-radius: 8px;
+    z-index: inherit;
+}
+
+.vitepayQRCode {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.allowMultipleTokensForm {
+    margin-top: 20px;
+    margin-bottom: 5px;
+}

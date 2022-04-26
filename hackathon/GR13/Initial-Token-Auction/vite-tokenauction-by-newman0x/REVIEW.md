@@ -1,0 +1,4 @@
+- This contract has an `administrator` for some reason - easy to remove
+- `_sortBids` uses bubble sort - one of the most inefficient sorting algorithms
+	- tbf I think the other submissions used a similar sorting method
+- `placeBid` allows addresses to add to their current bid but doesn't allow for multiple bids. This is kinda weird.

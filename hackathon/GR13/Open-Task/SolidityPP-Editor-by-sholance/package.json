@@ -1,0 +1,41 @@
+{
+  "private": true,
+  "name": "solidity-plus-plus-editor",
+  "version": "0.0.10",
+  "description": "solidity ++ editor",
+  "main": "src/editor-solidity.js",
+  "scripts": {
+    "start": "budo demo/demo.js:bundle.js --title $npm_package_name --force-default-index --open --live --ssl",
+    "build": "browserify --full-paths demo/demo.js > bundle.js",
+    "analyse": "discify bundle.js > disc.html",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preinstall": "npx patch-package"
+  },
+  "keywords": [
+    "embed",
+    "embeddable",
+    "editor",
+    "codemirror",
+    "play",
+    "ethereum"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "budo": "^11.6.1",
+    "disc": "^1.3.3"
+  },
+  "dependencies": {
+    "@vite/connector": "^0.0.2",
+    "@vite/solppc": "^0.8.0-alpha.3",
+    "bel": "6.0.0",
+    "coding-editor": "0.0.5",
+    "csjs-inject": "1.0.1",
+    "patch-package": "^6.4.7",
+    "play-logo": "4.0.2",
+    "smartcontract-app": "^4.9.0",
+    "solc-js": "git+https://github.com/playproject-io-archive/solc-js.git",
+    "solc-version": "^0.2.2",
+    "twm": "0.0.3"
+  }
+}

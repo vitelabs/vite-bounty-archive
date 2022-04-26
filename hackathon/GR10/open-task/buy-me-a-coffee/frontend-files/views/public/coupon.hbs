@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Coupon</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css?family=Roboto:400,700,900");
+        * {
+            box-sizing: border-box;
+        }
+        *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-image: url("https://images.unsplash.com/photo-1483304528321-0674f0040030?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=a658ae60843537b1b88478c56f783669&dpr=1&auto=format&fit=crop&w=1600&q=80&cs=tinysrgb");
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+
+        img {
+            height: auto;
+            width: 100%;
+        }
+
+        .ticket {
+            background: #ffffff;
+            border-radius: 4px;
+            color: #0b1521;
+            font-family: "Roboto", sans-serif;
+            font-size: 14px;
+            font-weight: normal;
+            line-height: 20px;
+            padding: 30px;
+            margin: 80px auto;
+            max-width: 400px;
+        }
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0 50px 0;
+            position: relative;
+        }
+        .ticket-header > svg.separator {
+            -webkit-animation: flight 2s infinite;
+            animation: flight 2s infinite;
+            display: block;
+            color: #d3e6f4;
+            height: 30px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+        }
+        .ticket-departure {
+            text-align: left;
+        }
+        .ticket-destination {
+            text-align: right;
+        }
+        .ticket .city-abbr {
+            color: #3b8acf;
+            font-size: 45px;
+            font-weight: 900;
+            letter-spacing: -2px;
+            line-height: 50px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .ticket .city-name {
+            color: #aaaaac;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+        .ticket .item:not(:last-child) {
+            margin-bottom: 20px;
+        }
+        .ticket .name {
+            color: #aaaaac;
+            font-size: 12px;
+            font-weight: normal;
+            line-height: 20px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .ticket .value {
+            color: #000000;
+            font-size: 16px;
+            line-height: 20px;
+        }
+
+        .row {
+            display: flex;
+            flex-direction: row;
+        }
+        .row-vertical {
+            display: flex;
+            height: 100%;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .row-vertical > .col {
+            flex: 0;
+        }
+        .row > .col {
+            flex: 1;
+        }
+        .row > .col.half {
+            flex-basis: 50%;
+        }
+    </style>
+</head>
+<body>
+<h1 style="text-align: center; color: dodgerblue">Share your URL</h1>
+<div class="ticket">
+    <div class="ticket-header">
+        <div class="ticket-departure">
+            <h1 class="city-abbr">Donate a Coffee</h1>
+        </div>
+        <div class="ticket-destination">
+            <h1 class="city-abbr">☕</h1>
+        </div>
+    </div>
+    <div class="ticket-body">
+        <div class="row">
+            <div class="col half">
+                <div class="row-vertical">
+                    <div class="col">
+                        <div class="item">
+                            <h2 class="name">Creator Name</h2><span class="value">John Doe</span>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="col" style="margin-top: 10px; margin-bottom: 10px;">
+                        <div class="item">
+                            <h2 class="name">Description</h2><span class="value">Developer of open source library reactify</span>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="col">
+                        <div class="item">
+                            <h2 class="name">Goodie</h2><span class="value">A Uniquely minted coffee cup</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col half"><img class="ticket-qrcode" src="data:image/gif;base64, {{img}}" alt="Ticket Code" /></div>
+        </div>
+    </div><br>
+    <a href="/quiz" style="font-size: 0.4rem;">Next</a>
+</div>
+</body>
+</html>

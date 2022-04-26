@@ -1,0 +1,275 @@
+// SPDX-License-Identifier: MIT
+/// @title Sunk Cost Game implementation for GR13 Hackathon
+/// @author Samuele Marro
+
+pragma soliditypp ^0.8.0;
+
+struct Game {
+    address creator;
+
+    vitetoken tokenId;
+    uint256 expiration;
+    uint256 maxExpiration;
+    uint256 initialBuyIn;
+    uint256 currentBuyIn;
+    uint256 currentPot;
+    uint256 buyInIncrement;
+    uint256 burnAmount;
+    uint256 extension;
+
+    address currentWinner;
+
+    bool claimed;
+}
+
+contract SunkCost {
+    event GameCreated(uint256 indexed gameId, address indexed creator);
+    event BuyIn(uint256 indexed gameId, address indexed player, uint256 amount);
+    event RewardCollected(uint256 indexed gameId, address indexed player, uint256 amount);
+
+    mapping(uint256 => Game) public games;
+    uint256 private nGames = 0;
+
+    address public constant BURN_ADDRESS = "vite_0000000000000000000000000000000000000000a4f3a0cb58";
+    
+    // Comment these lines to disable the time hack
+    //=====
+    uint256 internal _currentTime = 0;
+
+    function setTime(uint256 _time) external {
+        _currentTime = _time;
+    }
+
+    function _getTime() internal view returns (uint256) {
+        return _currentTime;
+    }
+    //=====
+
+    // Uncomment these lines to disable the time hack
+    //=====
+    //function _getTime() internal view returns (uint256) {
+    //    return block.timestamp;
+    //}
+    //=====
+
+    // ==Getters==
+
+    /// @notice Returns the number of games
+    function numGames() public view returns (uint256) {
+        return nGames;
+    }
+
+    /// @notice Returns true if the game with the given id exists
+    ///
+    /// @param _gameId The id of the game to check
+    function exists(uint256 _gameId) public view returns (bool) {
+        return _gameId < nGames;
+    }
+
+    /// @notice Returns the creator of the game with the given id
+    ///
+    /// @param _gameId The id of the game
+    function creator(uint256 _gameId) external view returns (address) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].creator;
+    }
+
+    /// @notice Returns the token id of the game with the given id
+    ///
+    /// @param _gameId The id of the game
+    function tokenId(uint256 _gameId) external view returns (vitetoken) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].tokenId;
+    }
+
+    /// @notice Returns the expiration timestamp of the game with the given id 
+    ///
+    /// @param _gameId The id of the game
+    function expiration(uint256 _gameId) external view returns (uint256) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].expiration;
+    }
+
+    /// @notice Returns the maximum expiration timestamp of the game with the given id
+    ///
+    /// @param _gameId The id of the game
+    function maxExpiration(uint256 _gameId) external view returns (uint256) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].maxExpiration;
+    }
+
+    /// @notice Returns true if the game with the given id has expired
+    ///
+    /// @param _gameId The id of the game to check
+    function expired(uint256 _gameId) external view returns (bool) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].expiration < _getTime();
+    }
+
+    /// @notice Returns the initial buy-in amount of the game with the given id
+    ///
+    /// @param _gameId The id of the game
+    function initialBuyIn(uint256 _gameId) external view returns (uint256) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].initialBuyIn;
+    }
+
+    /// @notice Returns the current buy-in amount of the game with the given id
+    ///
+    /// @param _gameId The id of the game
+    function currentBuyIn(uint256 _gameId) external view returns (uint256) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].currentBuyIn;
+    }
+
+    /// @notice Returns the current pot of the game with the given id
+    ///
+    /// @param _gameId The id of the game
+    function currentPot(uint256 _gameId) external view returns (uint256) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].currentPot;
+    }
+
+    /// @notice Returns the buy-in increment of the game with the given id
+    ///
+    /// @param _gameId The id of the game
+    function buyInIncrement(uint256 _gameId) external view returns (uint256) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].buyInIncrement;
+    }
+
+    /// @notice Returns the amount burned with each buy-in of the game with the given id
+    ///
+    /// @param _gameId The id of the game
+    function burnAmount(uint256 _gameId) external view returns (uint256) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].burnAmount;
+    }
+
+    /// @notice Returns the added time with each buy-in of the game with the given id
+    ///
+    /// @param _gameId The id of the game
+    function extension(uint256 _gameId) external view returns (uint256) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].extension;
+    }
+
+    /// @notice Returns the current winner of the game with the given id
+    ///
+    /// @param _gameId The id of the game
+    function currentWinner(uint256 _gameId) external view returns (address) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].currentWinner;
+    }
+
+    /// @notice Returns true if the reward of the game with the given id has been collected
+    ///
+    /// @param _gameId The id of the game
+    function claimed(uint256 _gameId) external view returns (bool) {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        return games[_gameId].claimed;
+    }
+
+    function _burn(vitetoken _tokenId, uint256 _amount) internal {
+        payable(BURN_ADDRESS).transfer(_tokenId, _amount);
+    }
+
+    // ==Game Management==
+
+    /// @notice Creates a new game
+    ///
+    /// @param _tokenId The token id of the game
+    /// @param _expiration The expiration timestamp of the game
+    /// @param _maxExpiration The maximum expiration timestamp of the game
+    /// @param _initialBuyIn The initial buy-in amount of the game
+    /// @param _buyInIncrement The buy-in increment of the game
+    /// @param _burnAmount The amount burned with each buy-in of the game
+    /// @param _extension The added time with each buy-in of the game
+    function createGame(vitetoken _tokenId, uint256 _expiration, uint256 _maxExpiration, uint256 _initialBuyIn, uint256 _buyInIncrement, uint256 _burnAmount, uint256 _extension) external payable {
+        require(_expiration > _getTime(), "SunkCost: game cannot end in the past");
+        require(msg.token == _tokenId, "SunkCost: token ID mismatch");
+        require(msg.value == _initialBuyIn, "SunkCost: transaction value should cover initial buy-in");
+        require(_maxExpiration >= _expiration, "SunkCost: max expiration must be greater than or equal to expiration");
+
+        uint256 gameId = nGames;
+
+        games[gameId].creator = msg.sender;
+        games[gameId].tokenId = _tokenId;
+        games[gameId].expiration = _expiration;
+        games[gameId].maxExpiration = _maxExpiration;
+        games[gameId].initialBuyIn = _initialBuyIn;
+        games[gameId].currentBuyIn = _initialBuyIn + _buyInIncrement;
+        games[gameId].currentPot = _initialBuyIn - _burnAmount;
+        games[gameId].buyInIncrement = _buyInIncrement;
+        games[gameId].burnAmount = _burnAmount;
+        games[gameId].extension = _extension;
+        games[gameId].currentWinner = msg.sender;
+        // games[gameId].claimed = false;
+        nGames++;
+
+        if (_burnAmount > 0) {
+            _burn(_tokenId, _burnAmount);
+        }
+
+        emit GameCreated(gameId, msg.sender);
+        emit BuyIn(gameId, msg.sender, _initialBuyIn);
+    }
+
+    /// @notice Executes a buy-in of the game with the given id
+    ///
+    /// @param _gameId The id of the game
+    function buyIn(uint256 _gameId) external payable {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        require(games[_gameId].expiration > _getTime(), "SunkCost: game is expired");
+        require(msg.token == games[_gameId].tokenId, "SunkCost: token ID mismatch");
+
+        uint256 gameBuyIn = games[_gameId].currentBuyIn;
+
+        // Note: can be greater than gameBuyIn
+        require(msg.value >= gameBuyIn, "SunkCost: transaction value should cover current buy-in");
+
+        uint256 gameBurnAmount = games[_gameId].burnAmount;
+        uint256 refund = msg.value - gameBuyIn;
+
+        games[_gameId].currentPot += gameBuyIn - gameBurnAmount;
+        games[_gameId].currentBuyIn += games[_gameId].buyInIncrement;
+
+        if (gameBurnAmount > 0) {
+            _burn(games[_gameId].tokenId, gameBurnAmount);
+        }
+
+        uint256 newExpiration = games[_gameId].expiration + games[_gameId].extension;
+
+        if (newExpiration > games[_gameId].maxExpiration) {
+            newExpiration = games[_gameId].maxExpiration;
+        }
+
+        games[_gameId].expiration = newExpiration;
+
+        games[_gameId].currentWinner = msg.sender;
+
+        if (refund > 0) {
+            // Buyer overpaid (e.g. to handle frontrunning), refund the difference
+            payable(msg.sender).transfer(games[_gameId].tokenId, refund);
+        }
+
+        emit BuyIn(_gameId, msg.sender, gameBuyIn);
+    }
+
+    /// @notice Claims the reward of the game with the given id
+    ///
+    /// @param _gameId The id of the game
+    function claimReward(uint256 _gameId) external {
+        require(exists(_gameId), "SunkCost: game does not exist");
+        require(games[_gameId].expiration < _getTime(), "SunkCost: game is not over yet");
+        require(msg.sender == games[_gameId].currentWinner, "SunkCost: sender must be winner");
+        require(!games[_gameId].claimed, "SunkCost: reward has already been claimed");
+
+        games[_gameId].claimed = true;
+
+        // Tokens are sent last to prevent re-entrancy attacks
+        payable(msg.sender).transfer(games[_gameId].tokenId, games[_gameId].currentPot);
+
+        emit RewardCollected(_gameId, msg.sender, games[_gameId].currentPot);
+    }
+}

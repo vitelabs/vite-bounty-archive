@@ -1,0 +1,28 @@
+pragma soliditypp ^0.4.3;
+
+import "./VEP721.solpp";
+import "./VEP721Metadata.solpp";
+import "./utils/MinterRole.solpp";
+
+/**
+ * @title VEP721MetadataMintable
+ * @dev VEP721 minting logic with metadata.
+ */
+contract VEP721MetadataMintable is VEP721, VEP721Metadata, MinterRole {
+    message sendMintWithTokenURISuccess();
+
+    /**
+     * @dev Function to mint tokens.
+     * @param to The address that will receive the minted tokens.
+     * @param token The token id to mint.
+     * @param tokenURI The token URI of the minted token.
+     * It sends sendMintWithTokenURISuccess after minting is success.
+     */
+    onMessage mintWithTokenURI(address to, uint256 token, string calldata tokenURI) {
+        _mustBeMinter();
+        _mint(to, token);
+        _setTokenURI(token, tokenURI);
+
+        send(msg.sender, sendMintWithTokenURISuccess());
+    }
+}

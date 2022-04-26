@@ -1,0 +1,36 @@
+{
+  "name": "final_deploy",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@anvilco/anvil": "^2.6.0",
+    "@sendgrid/mail": "^6.4.0",
+    "@vite/connector": "^0.0.2",
+    "@vite/vitejs": "^2.3.14",
+    "@vite/vitejs-ws": "^2.3.14",
+    "body-parser": "^1.19.0",
+    "compression": "^1.7.4",
+    "express": "^4.17.0",
+    "express-handlebars": "^3.1.0",
+    "express-session": "^1.16.1",
+    "got": "^11.8.2",
+    "hbs": "^4.0.4",
+    "helmet": "^3.18.0",
+    "morgan": "^1.9.1",
+    "path": "^0.12.7",
+    "serve-favicon": "^2.5.0",
+    "stripe": "^8.137.0",
+    "svg-captcha": "^1.4.0",
+    "typingdnaclient": "^1.1.1"
+  },
+  "engines": {
+    "node": "10.3.0"
+  }
+}

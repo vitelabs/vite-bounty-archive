@@ -1,0 +1,39 @@
+pragma soliditypp ^0.4.2;
+
+interface ERC721 {
+    // This emits when ownership of any NFT changed by any mechanism.
+    // This event emits when NFTs are created ('from' == -) and destroyed
+    // to == 0. 
+    event Transfer(address indexed _from, address indexed _to, uint256 indexed _tokenid);
+    //this emits awhen the approved address for an NFT changed
+    //or reaffirmed. The zero address indicates there is no approved address.
+    // when a Transfer event emits, this also indicates that the approved
+    // address for that NFT (if any) is reset tonone.Exception: during contract creation, any number of NFTs
+    ///  may be created and assigned without emitting Transfer. At the time of
+    ///  any transfer, the approved address for that NFT (if any) is reset to none.
+
+    event Approval(address indexed _owner, address indexed _operator, uint256 indexed _tokenId);
+    // nfts are assigned to the zero adderss are considered invalid,and this function 
+    //throws for queries about the zero address
+    //@param_wner an Address for whom to query the balance
+    // return the number of NFTs owner by '_owner/, posisbly zerp
+    event ApprovalForAll(address indexed _owner, address indexed _operator, bool _approved);
+
+    getter balanceOf(address _owner) returns(uint256);
+    //returns the balance of the given address
+    getter ownerOf(uint256 _tokenId) returns(address);
+    //returns the owner of the _tokenId 
+
+    onMessage safeTransferFrom(address _from, address _to, uint256 _tokenId)  payable;
+    onMessage transferFrom(address _from, address _to, uint256 _tokenId)  payable;
+    onMessage approve(address _approved, uint256 _tokenId)  payable;
+    //approves another address to transfer the given tokenId
+    onMessage setApprovalForAll(address _operator, bool _approved);
+    //sets the approval status depending on the given bool, the operator is allowed to transfer
+    //the tokens 
+    getter getApproved(uint256 _tokenId) returns (address);
+    //returns approved address
+    getter isApprovedForAll(address _owner, address _operator)  returns (bool);
+    //returns if the operator is approved by the owner or not
+
+}

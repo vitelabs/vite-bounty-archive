@@ -1,0 +1,54 @@
+pragma soliditypp ^0.4.3;
+
+import "./VEP721.solpp";
+import "./utils/MinterRole.solpp";
+
+/**
+ * @title VEP721Mintable
+ * @dev VEP721 minting logic.
+ */
+contract VEP721Mintable is VEP721, MinterRole {
+    message sendMintSuccess();
+
+    message sendSafeMintSuccess();
+
+    /**
+     * @dev Function to mint tokens.
+     * @param to The address that will receive the minted token.
+     * @param token The token id to mint.
+     * It sends sendMintSuccess() after minting is success.
+     */
+    onMessage mint(address to, uint256 token) {
+        _mustBeMinter();
+        _mint(to, token);
+
+        send(msg.sender, sendMintSuccess());
+    }
+
+    /**
+     * @dev Function to safely mint tokens.
+     * @param to The address that will receive the minted token.
+     * @param token The token id to mint.
+     * It sends sendSafeMintSuccess() after safely minting is success.
+     */
+    onMessage safeMint(address to, uint256 token) {
+        _mustBeMinter();
+        _safeMint(to, token);
+
+        send(msg.sender, sendSafeMintSuccess());
+    }
+
+    /**
+     * @dev Function to safely mint tokens.
+     * @param to The address that will receive the minted token.
+     * @param token The token id to mint.
+     * @param _data bytes data to send along with a safe transfer check.
+     * It sends sendSafeMintSuccess() after safely minting is success.
+     */
+    onMessage safeMint(address to, uint256 token, bytes calldata _data) {
+        _mustBeMinter();
+        _safeMint(to, token, _data);
+
+        send(msg.sender, sendSafeMintSuccess());
+    }
+}

@@ -1,0 +1,7 @@
+- Most of the contracts are copy/pasted from OpenZeppelin
+	- The `NFTMarketplace` contract looks functional with bid/offer/etc functionality, but this only applies to itself. It doesn't act as a marketplace for any 7erc-21 contract.
+- This is a marketplace for a single NFT collection
+	- This isn't like OpenSea where any collection can be traded
+- The frontend mixes material-ui and tailwind
+	- This is a bad idea, just pick one styling library
+- Frontend is simple (hard to mess up) but it's not really responsive (horizontal scrolling)

@@ -1,0 +1,9 @@
+pragma soliditypp ^0.4.3;
+
+import "./contracts/VEP721MetadataMintable.solpp";
+import "./contracts/VEP721Metadata.solpp";
+import "./contracts/VEP721Burnable.solpp";
+
+contract NFT is VEP721MetadataMintable, VEP721Burnable {
+   constructor() public VEP721Metadata("DemoNFT", "DNFT") {}
+}

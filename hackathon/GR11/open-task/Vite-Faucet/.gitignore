@@ -1,0 +1,13 @@
+*.sw?
+*pycache*
+*.log
+logs/*
+*~
+.env
+*.csv
+transactions/*
+*.ref
+*.db
+config.json
+node_modules
+*.bak

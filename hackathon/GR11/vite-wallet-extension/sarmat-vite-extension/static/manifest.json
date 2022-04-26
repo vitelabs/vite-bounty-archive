@@ -1,0 +1,37 @@
+{
+  "name": "Vite Wallet",
+  "description": "Vite Browser Extension Wallet",
+  "author": "CryptoGboors",
+  "version": "0.1.0",
+  "icons": {
+    "16": "icons/16.png",
+    "32": "icons/32.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "activeTab",
+    "notifications",
+    "contextMenus"
+  ],
+  "browser_action": {
+    "default_title": "Vite Wallet",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["file://*/*", "http://*/*", "https://*/*"],
+      "js": ["content-script.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "manifest_version": 2,
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'",
+  "web_accessible_resources": ["popup.html", "inject-script.js"]
+}

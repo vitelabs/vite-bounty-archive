@@ -1,0 +1,10 @@
+body {
+  font-family: 'Titillium Web', sans-serif;
+  background-color: linear-gradient(115.03deg, #DDEEFD 0%, #FFFFFF 63.03%);
+}
+.heading {
+  font-weight: 700;
+}
+.subheading {
+  font-weight: 300;
+}

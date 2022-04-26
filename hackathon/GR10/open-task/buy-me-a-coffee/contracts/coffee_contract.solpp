@@ -1,0 +1,57 @@
+pragma soliditypp ^0.4.3;
+
+contract Cofeecontract {
+    string public constant name = "BuyCoffee";
+    string public constant symbol = "CO";
+
+    event CupCreated(address owner, uint256 cupConfiguration, uint256 newCupId, uint256 amount);
+
+    struct CoffeeCup{
+        address owner;
+        uint256 configuration;
+        uint32 amount;
+        address recipient;
+    }
+
+    CoffeeCup[] cups;
+
+    mapping(uint256 => address) public CupIndexToOwner;
+    mapping(address => uint256) ownershipTokenCount;
+
+    mapping(uint256 => address) public CupIndexToApproved;
+    mapping(address => mapping(address => bool)) private _operatorApprovals;
+
+
+    onMessage _createCup(
+        address recipient_,
+        uint32 amount_,
+        uint256 configuration_
+    ){
+        uint256 newCupId = cups.push(CoffeeCup({
+        owner: msg.sender,
+        configuration: configuration_,
+        amount: amount_,
+        recipient: recipient_
+        })) - 1;
+        ownershipTokenCount[msg.sender]++;
+        CupIndexToOwner[newCupId] = msg.sender;
+        emit CupCreated(msg.sender, configuration_, newCupId, amount_);
+    }
+
+
+    getter getCup(uint256 _id) returns(
+        uint256 configuration,
+        address owner,
+        address recipient,
+        // uint256 mintTime,
+        uint32 amount
+    ){
+        CoffeeCup storage cup = cups[_id];
+        configuration = uint256(cup.configuration);
+        amount = uint32(cup.amount);
+        owner = cup.owner;
+        recipient = cup.recipient;
+
+        // mintTime = uint256(cup.mintTime);
+    }
+}

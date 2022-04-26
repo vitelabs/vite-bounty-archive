@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@vite/connector": "^0.0.2",
+    "@vite/vitejs": "^2.3.14",
+    "@vite/vitejs-ws": "^2.3.14"
+  }
+}

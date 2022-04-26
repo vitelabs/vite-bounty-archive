@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Claim</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    	<link rel="stylesheet" href="../css/bootstrap.rtl.min.css">
+	<link rel="stylesheet" href="../css/animate.min.css">
+	<link rel="stylesheet" href="../css/bootstrap-grid.min.css">
+	<link rel="stylesheet" href="../css/bootstrap-grid.rtl.min.css">
+	<link rel="stylesheet" href="../css/bootstrap-reboot.min.css">
+	<link rel="stylesheet" href="../css/bootstrap-reboot.rtl.min.css">
+	<link rel="stylesheet" href="../css/bootstrap-utilities.min.css">
+	<link rel="stylesheet" href="../css/bootstrap-utilities.rtl.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<link rel="stylesheet" href="../css/style.css">
+	<script src="https://hcaptcha.com/1/api.js" async defer></script>
+	
+</head>
+
+
+<script src="../js/bananocoin-bananojs.js"></script>
+<script type = "module">
+</script>
+<body onload=getBal()>
+
+	
+	<nav class="navbar navbar-expand-lg navbar-light navbar-custom" style="z-index:10;position:relative;">
+  <a class="navbar-brand" href="index.html" style="margin-top: -12px">iMalFect's faucet</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+    <ul class="nav navbar-nav">
+		<li><a class="nav-link" href="pool.html">Pool</a></li>
+
+		<li><a class="nav-link" href="donators.html">Donors</a></li>
+		<li><a class="nav-link" href="donate.html">Become a Donor</a></li>
+
+	  </ul>
+	  
+	  
+	  
+	  
+	  
+	  <ul class="nav navbar-nav ml-auto" style="padding:15px 0 0 0;margin:0">
+		  <li style="margin:0"><p style="margin:0;line-height:34px;"><span style="margin-top:5px;padding-right:5px">Dark Mode</span> <label class="form-inline switch">
+  <input type="checkbox" class="btn-toggle">
+  <span class="slider round"></span>
+		  </label></p></li></ul>
+  </div>
+</nav>
+	
+<div class="body-wrapper">	
+	
+	
+    
+    
+<div class="bg-jungle"><br>
+    <br>
+    <br>
+    <div>Banano Faucet</div>
+    <div class="subtext">Enter your address and solve monkey-only captcha to receive some BANANO</div>
+
+    <br>
+    
+    <input type="text" name="search" id="address" placeholder="ban_">
+    <br>
+    <div class="h-captcha" data-sitekey="53b417af-da16-43cf-bd11-33226dfc81a2" id="hcaptchawidget"></div>
+    <br>
+    <button class="button button1" onclick=claim() id="claimbtn"><div class="subtextblack">Get Banano</div></button>
+    <div class="subtext" id="sponsor" style="visibility: hidden;">Claim Sponsored by: nil Sponsor </div>
+
+</div>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+<div class="col-md-12 animate__animated animate__fadeIn">
+	<h1>Donors</h1>
+		<ol>
+			<div class="row">
+			<div class="col-md-4">
+			<li>
+				<h6>421 BANANO</h6>
+				<p>👑Hippyman</p>
+			</li>
+			<li>
+				<h6>420 BANANO</h6>
+				<p>SoggyApplePie</p>
+			</li>
+			<li>
+				<h6>74.27 BANANO</h6>
+				<p>Saidi</p>
+			</li>
+			<li>
+				<h6>69.420 BANANO</h6>
+				<p>First Donator!) Darth Lukius - Mr Ban 2021</p>
+			</li>
+			<li>
+				<h6>66.6 BANANO</h6>
+				<p>Supreme Chancellor Palpatine</p>
+			</li>
+			</div>
+			<div class="col-md-4">
+			<li>
+				<h6>50 BANANO</h6>
+				<p>kript</p>
+			</li>
+			<li>
+				<h6>26.9 BANANO</h6>
+				<p>MaccasAU</p>
+			</li>
+			<li>
+				<h6>25 BANANO</h6>
+				<p>LiberatedHat</p>
+			</li>
+			<li>
+				<h6>19.19 BANANO</h6>
+				<p>shuttlecock</p>
+			</li>
+			<li>
+				<h6>19 BANANO</h6>
+				<p>Warmachine1081</p>
+			</li>
+			</div>
+			<div class="col-md-4">
+			<li>
+				<h6>16 BANANO</h6>
+				<p>Airtune</p>
+			</li>
+			<li>
+				<h6>4.20 BANANO</h6>
+				<p>UncleBananaMan</p>
+			</li>
+			
+				
+
+			</div>
+			</div>
+		</ol>
+	
+	<h3>Contributors</h3>
+		<ul>
+			<li>
+				iMalFect - founder, creator, core functionality
+			</li>
+			<li>
+				sqid - unbricked VPS, general bug fixes
+			</li>
+			<li>
+				NorthLake - solved return issue in functions
+			</li>
+			<li>
+				TylerJordan1994 - web code/design
+			</li>
+		</ul>
+
+
+	
+<div class="box">
+  <div class="head"></div>
+  <div class="head-copy">
+    <div class="face-left"></div>
+    <div class="face-right"></div>
+    <div class="face">
+      <div class="eyes">
+        <div class="pupil"></div>
+      </div>
+      <div class="eyes left">
+        <div class="pupil"></div>
+      </div>
+      <div class="blush"></div>
+      <div class="blush-right"></div>
+      <div class="nose">
+        <div class="line"></div>
+      </div>
+      <div class="mouth"></div>
+      <div class="mouth2"></div>
+    </div>
+    <div class="face-left"></div>
+    <div class="face-right"></div>
+    <div class="ears-left">
+      <div class="inner-ear"></div>
+    </div>
+    <div class="ears-right">
+      <div class="inner-ear right"></div>
+    </div>
+  </div>
+</div>
+	</div></div>
+	</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="../js/bananocoin-bananojs.js"></script>
+	<script src="../js/bootstrap.bundle.min.js"></script>
+	<script src="../js/bootstrap.esm.min.js"></script>
+	
+	<script src="../js/utils.js"></script>
+</html>
+
+
+
+

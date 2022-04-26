@@ -1,0 +1,499 @@
+// SPDX-License-Identifier: MIT
+pragma soliditypp ^0.8.0;
+
+contract TokenAuction {
+    constructor() {}
+
+    using BidLibrary for BidLibrary.BidList;
+
+    vitetoken public constant VITE_TOKEN =
+        vitetoken("tti_5649544520544f4b454e6e40");
+
+    enum AuctionState {
+        active,
+        completed
+    }
+
+    struct Auction {
+        string name;
+        address seller;
+        uint256 reservePrice;
+        uint256 endTime;
+        uint256 numTokens;
+        vitetoken tokenIdentifier;
+        AuctionState state;
+        uint256 tokenDecimals;
+    }
+
+    mapping(bytes32 => Auction) private auctions;
+    bytes32[] public auctionKeys;
+
+    mapping(address => bytes32[]) private userToBids;
+    mapping(bytes32 => BidLibrary.BidList) private auctionToBids;
+    mapping(address => bytes32[]) private userToAuctions;
+
+    event AuctionCreated(
+        bytes32 indexed _id,
+        vitetoken indexed _tti,
+        address indexed _seller,
+        string _name,
+        uint256 _reservePrice,
+        uint256 _endTime,
+        uint256 _numTokens
+    );
+
+    event BidPlaced(
+        bytes32 indexed _id,
+        bytes32 indexed _auctionId,
+        address indexed _bidder,
+        uint256 _unitPrice,
+        uint256 _viteAmount,
+        uint256 _timestamp
+    );
+    event BidWithdrawn(
+        bytes32 indexed _id,
+        bytes32 indexed _auctionId,
+        uint256 _timestamp
+    );
+
+    event AuctionCompleted(
+        bytes32 _auctionId,
+        uint256 _totalTokenAmount,
+        uint256 _totalViteAmount,
+        uint256 _timestamp
+    );
+
+    modifier beforeTime(uint256 _time, string memory _error) {
+        require(block.timestamp < _time, _error);
+        _;
+    }
+
+    modifier onlyWhileOpen(bytes32 _auctionId) {
+        require(
+            auctions[_auctionId].endTime > block.timestamp,
+            "TokenAuction: Auction closed"
+        );
+        _;
+    }
+
+    modifier onlyWhileClosed(bytes32 _auctionId) {
+        require(
+            auctions[_auctionId].endTime <= block.timestamp,
+            "TokenAuction: Auction open"
+        );
+        _;
+    }
+
+    function createAuction(
+        uint256 _reservePrice,
+        uint256 _endTime,
+        string calldata _name,
+        uint256 _tokenDecimals
+    )
+        public
+        payable
+        beforeTime(_endTime, "invalid end date")
+        returns (bytes32)
+    {
+        require(msg.token != VITE_TOKEN, "token must not be vite token");
+        require(msg.value > 0, "msg.value must be greater than 0");
+
+        bytes32 id = prevhash();
+        auctions[id] = Auction({
+            name: _name,
+            seller: msg.sender,
+            reservePrice: _reservePrice,
+            endTime: _endTime,
+            numTokens: msg.value,
+            tokenIdentifier: msg.token,
+            state: AuctionState.active,
+            tokenDecimals: _tokenDecimals
+        });
+        auctionKeys.push(id);
+        userToAuctions[msg.sender].push(id);
+
+        emit AuctionCreated(
+            id,
+            msg.token,
+            msg.sender,
+            _name,
+            _reservePrice,
+            _endTime,
+            msg.value
+        );
+
+        return id;
+    }
+
+    function getUserAuctions(address _user)
+        external
+        view
+        returns (bytes32[] memory)
+    {
+        uint256 length = userToAuctions[_user].length;
+        bytes32[] memory _auctions = new bytes32[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            _auctions[i] = userToAuctions[_user][i];
+        }
+
+        return _auctions;
+    }
+
+    function getAuction(bytes32 _auctionId)
+        external
+        view
+        returns (
+            string memory _name,
+            address _seller,
+            uint256 _reservePrice,
+            uint256 _endTime,
+            uint256 _numTokens,
+            vitetoken _tokenId,
+            AuctionState _state
+        )
+    {
+        Auction memory auction = auctions[_auctionId];
+        _name = auction.name;
+        _seller = auction.seller;
+        _reservePrice = auction.reservePrice;
+        _endTime = auction.endTime;
+        _numTokens = auction.numTokens;
+        _tokenId = auction.tokenIdentifier;
+        _state = auction.state;
+    }
+
+    function getAllAuctions() external view returns (bytes32[] memory) {
+        uint256 length = auctionKeys.length;
+        bytes32[] memory results = new bytes32[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            results[i] = auctionKeys[i];
+        }
+
+        return results;
+    }
+
+    function getAuctionsCount() external view returns (uint256 _count) {
+        _count = auctionKeys.length;
+    }
+
+    function getOngoingAuctions() external view returns (bytes32[] memory) {
+        return getAuctionsByState(AuctionState.active);
+    }
+
+    function getCompletedAuctions() external view returns (bytes32[] memory) {
+        return getAuctionsByState(AuctionState.completed);
+    }
+
+    function getAuctionsByState(AuctionState state)
+        internal
+        view
+        returns (bytes32[] memory)
+    {
+        uint256 length = auctionKeys.length;
+        bytes32[] memory intermediate = new bytes32[](length);
+        uint256 count;
+        for (uint256 i = 0; i < length; i++) {
+            Auction storage auction = auctions[auctionKeys[i]];
+            if (auction.state == state) {
+                intermediate[count++] = auctionKeys[i];
+            }
+        }
+
+        bytes32[] memory result = new bytes32[](count);
+
+        for (uint256 i = 0; i < count; i++) {
+            result[i] = intermediate[i];
+        }
+
+        return result;
+    }
+
+    function placeBid(bytes32 _auctionId, uint256 _unitPrice)
+        external
+        payable
+        onlyWhileOpen(_auctionId)
+    {
+        require(msg.token == VITE_TOKEN, "token must be vite token");
+        require(_unitPrice > 0, "msg.value must be greater than 0");
+        require(msg.value >= _unitPrice, "msg.value must be greater than or equal to _unitPrice");
+        BidLibrary.BidList storage bidList = auctionToBids[_auctionId];
+        bytes32 id = bidList.addBid(
+            BidLibrary.Bid({
+                bidder: msg.sender,
+                totalAmount: msg.value,
+                unitPrice: _unitPrice,
+                timestamp: block.timestamp,
+                tokensPaid: 0,
+                auctionId: _auctionId
+            })
+        );
+        emit BidPlaced(
+            id,
+            _auctionId,
+            msg.sender,
+            _unitPrice,
+            msg.value,
+            block.timestamp
+        );
+    }
+
+    function withdrawBid(bytes32 _auctionId, bytes32 _bidId)
+        external
+        onlyWhileOpen(_auctionId)
+    {
+        BidLibrary.Bid memory bid = auctionToBids[_auctionId].getBid(_bidId);
+        require(bid.bidder == msg.sender, "msg.sender must be bidder");
+
+        uint256 amount = bid.totalAmount;
+        address bidder = bid.bidder;
+
+        payable(bidder).transfer(VITE_TOKEN, amount);
+
+        auctionToBids[_auctionId].removeBid(_bidId);
+        emit BidWithdrawn(_bidId, _auctionId, bid.timestamp);
+    }
+
+    function getBids(bytes32 _auctionId)
+        external
+        view
+        returns (bytes32[] memory)
+    {
+        BidLibrary.BidList storage bidList = auctionToBids[_auctionId];
+        return bidList.getBids();
+    }
+
+    function getBid(bytes32 _auctionId, bytes32 _bidId)
+        external
+        view
+        returns (
+            address _bidder,
+            uint256 _totalAmount,
+            uint256 _unitPrice,
+            uint256 _timestamp,
+            uint256 _tokensPaid
+        )
+    {
+        BidLibrary.Bid memory bid = auctionToBids[_auctionId].getBid(_bidId);
+        _bidder = bid.bidder;
+        _totalAmount = bid.totalAmount;
+        _unitPrice = bid.unitPrice;
+        _timestamp = bid.timestamp;
+        _tokensPaid = bid.tokensPaid;
+    }
+
+    function min(uint256 _a, uint256 _b) internal pure returns (uint256) {
+        if (_a < _b) {
+            return _a;
+        } else {
+            return _b;
+        }
+    }
+
+    function completeAuction(bytes32 _auctionId)
+        external
+    onlyWhileClosed(_auctionId)
+    {
+        Auction memory auction = auctions[_auctionId];
+        require(auction.state == AuctionState.active, "auction must be active");
+
+        uint256 amountRemaining = auction.numTokens;
+        address seller = auction.seller;
+        uint256 totalViteAmountForSeller = 0;
+
+        BidLibrary.BidList storage bidList = auctionToBids[_auctionId];
+        bytes32[] memory bids = bidList.getBids();
+
+        for (uint256 i = 0; i < bids.length; i++) {
+            BidLibrary.Bid storage bid = bidList.getBid(bids[i]);
+            if (amountRemaining > 0) {
+                // Convert the unit price to the lowest unit
+                uint256 decimaledUnitPrice = bid.unitPrice * 10**18;
+                // also, a multiplier for the auctioned token 
+                // to convert it to its lowest unit
+                uint256 unitMultiplier = 10**auction.tokenDecimals;
+
+                // The amount of tokens this bid is eligible for
+                // the tokens paid is subtracted for a case where 
+                // a part had been paid out before, it's probably never used though
+                uint256 tokenAmount = (bid.totalAmount / decimaledUnitPrice) -
+                    bid.tokensPaid;
+
+                // the actual number of tokens to disburse, 
+                // since the amount remaining could be smaller 
+                // than the qualified amount
+                uint256 tokensPaid = min(amountRemaining / unitMultiplier, tokenAmount);
+                // the left over balance for the bidder that wasn't used on tokens
+                uint256 remainder = tokenAmount - tokensPaid;
+
+                amountRemaining -= (tokensPaid * unitMultiplier);
+                totalViteAmountForSeller += tokensPaid * decimaledUnitPrice;
+
+                if (tokensPaid > 0) payable(bid.bidder).transfer(
+                    auction.tokenIdentifier,
+                    tokensPaid * unitMultiplier
+                );
+                if (remainder > 0) payable(bid.bidder).transfer(
+                    VITE_TOKEN,
+                    remainder * decimaledUnitPrice
+                );
+                bid.tokensPaid += tokensPaid * unitMultiplier;
+            } else {
+                payable(bid.bidder).transfer(VITE_TOKEN, bid.totalAmount);
+            }
+        }
+
+        if (totalViteAmountForSeller > 0) payable(seller).transfer(VITE_TOKEN, totalViteAmountForSeller);
+        if (amountRemaining > 0) payable(seller).transfer(auction.tokenIdentifier, amountRemaining);
+
+        auction.state = AuctionState.completed;
+        emit AuctionCompleted(
+            _auctionId,
+            auction.numTokens - amountRemaining,
+            totalViteAmountForSeller,
+            block.timestamp
+        );
+    }
+}
+
+library BidLibrary {
+    struct Bid {
+        address bidder;
+        uint256 totalAmount;
+        uint256 unitPrice;
+        uint256 timestamp;
+        uint256 tokensPaid;
+        bytes32 auctionId;
+    }
+    struct BidList {
+        mapping(bytes32 => Bid) bids;
+        mapping(bytes32 => bytes32) _nextBidIDs;
+        uint256 size;
+    }
+
+    bytes32 constant GUARD = bytes32(0);
+
+    function _verifyIndex(
+        BidList storage self,
+        bytes32 _prevBidId,
+        uint256 _newUnitPrice,
+        bytes32 _nextBidId
+    ) internal view returns (bool) {
+        return
+            (_prevBidId == GUARD ||
+                self.bids[_prevBidId].unitPrice >= _newUnitPrice) &&
+            (_nextBidId == GUARD ||
+                _newUnitPrice > self.bids[_nextBidId].unitPrice);
+    }
+
+    function _findIndex(BidList storage self, uint256 _newUnitPrice)
+        internal
+        view
+        returns (bytes32 _index)
+    {
+        bytes32 bidId = GUARD;
+        while (true) {
+            if (
+                _verifyIndex(
+                    self,
+                    bidId,
+                    _newUnitPrice,
+                    self._nextBidIDs[bidId]
+                )
+            ) {
+                return bidId;
+            }
+            bidId = self._nextBidIDs[bidId];
+        }
+    }
+
+    function addBid(BidList storage self, Bid memory _bid)
+        internal
+        returns (bytes32)
+    {
+        bytes32 _id = blake2b(
+            abi.encodePacked(
+                _bid.bidder,
+                _bid.totalAmount,
+                _bid.unitPrice,
+                _bid.timestamp,
+                _bid.tokensPaid,
+                _bid.auctionId
+            )
+        );
+        require(self._nextBidIDs[_id] == bytes32(0));
+        bytes32 index = _findIndex(self, _bid.unitPrice);
+        self.bids[_id] = _bid;
+        self._nextBidIDs[_id] = self._nextBidIDs[index];
+        self._nextBidIDs[index] = _id;
+        self.size++;
+
+        return _id;
+    }
+
+    function _isPrevBid(
+        BidList storage self,
+        bytes32 _bidId,
+        bytes32 _prevBidId
+    ) internal view returns (bool) {
+        return self._nextBidIDs[_prevBidId] == _bidId;
+    }
+
+    function _findPrevBid(BidList storage self, bytes32 _bidId)
+        internal
+        view
+        returns (bytes32)
+    {
+        bytes32 currentBidId = GUARD;
+        while (self._nextBidIDs[currentBidId] != GUARD) {
+            if (_isPrevBid(self, _bidId, currentBidId)) {
+                return currentBidId;
+            }
+            currentBidId = self._nextBidIDs[currentBidId];
+        }
+        return bytes32(0);
+    }
+
+    function removeBid(BidList storage self, bytes32 _bidId) internal {
+        require(_bidId != GUARD);
+        require(_bidId != bytes32(0));
+        bytes32 _prevId = _findPrevBid(self, _bidId);
+        self._nextBidIDs[_prevId] = self._nextBidIDs[_bidId];
+        self._nextBidIDs[_bidId] = bytes32(0);
+        self.bids[_bidId] = Bid({
+            bidder: address(0),
+            totalAmount: uint256(0),
+            unitPrice: uint256(0),
+            timestamp: uint256(0),
+            tokensPaid: uint256(0),
+            auctionId: bytes32(0)
+        });
+        self.size--;
+    }
+
+    function getBids(BidList storage self)
+        internal
+        view
+        returns (bytes32[] memory _result)
+    {
+        bytes32[] memory result = new bytes32[](self.size);
+        uint256 i = 0;
+        bytes32 bidId = GUARD;
+        while (true) {
+            bidId = self._nextBidIDs[bidId];
+            if (bidId == GUARD) {
+                return result;
+            }
+            result[i++] = bidId;
+        }
+    }
+
+    function getBid(BidList storage self, bytes32 _bidId)
+        internal
+        view
+        returns (Bid storage)
+    {
+        return self.bids[_bidId];
+    }
+}

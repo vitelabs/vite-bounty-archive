@@ -1,0 +1,31 @@
+Development problems waiting to solve:
+
+I could not test create contract and call contract (transfer funds / tip) functions, because i didn't received my vites sent from my vite account on Binance exchange.
+
+I'm still waiting for Vite arrive on pool account to test create and tip functions.
+
+Subscribe and check for subscribe logs functions are working correctilly. All others features are working well.
+
+According my transaction history on Binance:
+
+withdraw was completed 2021-09-26 13:11
+To Account: vite_a8c92ce8c7762570b2a2d4713cab66c92aff14bd80b8620654
+Amount: 19 VITE
+Fee: 1 Vite
+Status: Completed
+
+
+Binance transaction history:
+
+Destination:
+
+https://explorer.vite.net/zh/account/vite_a8c92ce8c7762570b2a2d4713cab66c92aff14bd80b8620654
+
+TxID:
+
+https://explorer.vite.net/zh/transaction/c20bea85d0bca456b6c716387e7faa5ad8b240cb3c1ed7e278c0114b4ddad338
+
+
+Day 2021-27-09 i was able to see some info on  on destination and TxID links above. 
+However til now i wasn't able to see any info. 
+While using check balance function on my node thru ws connection , it returns 0 balance. :(  

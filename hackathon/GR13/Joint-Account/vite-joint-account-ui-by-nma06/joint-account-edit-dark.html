@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="./css/vite-joint-account.css" rel="stylesheet" media="none" id="light-css">
+    <link href="./css/vite-joint-account-dark.css" rel="stylesheet" id="dark-css">
+    <link href="./lib/fontawesome/css/all.css" rel="stylesheet">
+    
+    <title>VITE Joint Account</title>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="index.html"><img src="./img/vite-logo.svg" width="120" alt="VITE"></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav ms-auto fs-5">
+            <li class="nav-item">
+              <a class="nav-link" href="#"><i class="fas fa-user pe-2"></i> vite_233ae...d290a </a></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    
+    <div class="container">
+      
+          <nav aria-label="breadcrumb" class="mt-3 mb-5">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="index.html">VITE Joint Account</a></li>
+              <li class="breadcrumb-item active" aria-current="page">Manage account</li>
+            </ol>
+          </nav>
+      
+          <h1 class="mb-4">Manage Joint Account</h1>
+          
+          <div class="table-responsive shadow mb-5">
+            <table class="table table-bordered mb-0">
+              <tbody>
+                <tr>
+                  <th scope="row" class="table-light">Account Name</th>
+                  <td>Team ABC Joint Account</td>
+                </tr>
+                <tr>
+                  <th scope="row" class="table-light">Members</th>
+                  <td>
+                      <ul class="small mb-2">
+                        <li><a href="#">vite_233aec78adac201d87e061b3dfe9dd1a4cc590f33fa5ad290a</a></li>
+                        <li><a href="#">vite_654edc78adac201d87e061b3dfe9dd1a4cc590f33fa5ad541</a></li>
+                        <li><a href="#">vite_5444578adac201d87e061b3dfe9dd1a4cc590f33fa5a3455a</a></li>
+                      </ul>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <ul class="nav nav-tabs" id="joint-accounts-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active fs-3" id="motion-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">Motions</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link fs-3" id="history-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">History</button>
+            </li>
+          </ul>
+          <div class="tab-content border-start border-end shadow px-3" id="my-tab-content">
+            <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="motion-tab">
+              <p class="lead pt-3 pb-3 m-0">Propose/approve/reject motions to move funds.</p>
+              
+              <div id="new-motion" class="mb-5">
+                <h4 class="pb-2">New motion</h3>
+                <div class="mb-3">
+                  <label for="token-type-input" class="form-label">Token type</label>
+                  <select class="form-select" id="token-type-input">
+                      <option value="1">VITE</option>
+                      <option value="2">WBTC</option>
+                      <option value="3">WETH</option>
+                      <option value="4">USDC</option>
+                      <option value="5">BNB</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="amount-input" class="form-label">Amount</label>
+                  <input type="text" class="form-control" id="amount-input" placeholder="0.0">
+                </div>
+                <div class="mb-3">
+                  <label for="receiver-input" class="form-label">Receiver</label>
+                  <input type="text" class="form-control" id="receiver-input" placeholder="Receiver's address">
+                </div>
+                <div class="mb-3">
+                  <label for="threshold-input" class="form-label">Approval threshold</label>
+                  <select class="form-select" id="threshold-input">
+                      <option value="1">50%</option>
+                      <option value="2">60%</option>
+                      <option value="3">70%</option>
+                      <option value="4">80%</option>
+                      <option value="5">90%</option>
+                      <option value="5">100%</option>
+                  </select>
+                </div>
+                <div class="pt-2">
+                  <button type="button" class="btn btn-primary">Submit</button>
+                  <button type="button" class="btn btn-secondary">Reset</button>
+                </div>
+              </div>
+              
+              <div id="pending-motions" class="mb-5">
+                <h4 class="pb-3">Pending motions</h3>
+                <div class="table-responsive">
+                  <table class="table">
+                  <thead>
+                    <tr class="table-light">
+                      <th scope="col">Token type</th>
+                      <th scope="col">Amount</th>
+                      <th scope="col">Receiver</th>
+                      <th scope="col">Nb of Approvals</th>
+                      <th scope="col">Threshold</th>
+                      <th scope="col"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>VITE</td>
+                      <td>1000</td>
+                      <td><small><a href="#">vite_5234szc78adac201d87e061b3dfe9dd1a4cc590f33fa5ad290a</a></small></td>
+                      <td>1/3</3</td>
+                      <td>50%</td>
+                      <td>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Motion action">
+                          <button type="button" class="btn btn-success">Approve</button>
+                          <button type="button" class="btn btn-danger">Reject</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>BNB</td>
+                      <td>10</td>
+                      <td><small><a href="#">vite_64275578adac201d87e061b3dfe9dd1a4cc590f33fa5ad000a</a></small></td>
+                      <td>2/4</td>
+                      <td>100%</td>
+                      <td>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Motion action">
+                          <button type="button" class="btn btn-success">Approve</button>
+                          <button type="button" class="btn btn-danger">Reject</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>USDC</td>
+                      <td>50</td>
+                      <td><small><a href="#">vite_778aec78adac201d87e061b3dfe9dd1a4cc590f33fa5ad988a</a></small></td>
+                      <td>2/6</td>
+                      <td>75%</td>
+                      <td>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Motion action">
+                          <button type="button" class="btn btn-success">Approve</button>
+                          <button type="button" class="btn btn-danger">Reject</button>
+                        </div>
+                      </td>
+                    </tr>            
+                  </tbody>
+                </table>
+              </div>
+              
+            </div>
+            
+            </div><!-- end motion-tab -->
+            
+            <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="history-tab">
+              <p class="lead pt-3 pb-3 m-0">All account history.</p>
+              <div class="table-responsive mb-5">
+                <table class="table table-striped">
+                  <tbody>
+                    <tr>
+                      <td>Receive funds</td>
+                      <td class="text-muted">1000 VITE</td>
+                    </tr>
+                    <tr>
+                      <td>Reject motion #2</td>
+                      <td class="text-muted">Rejected by <a href="#" class="text-reset">vite_64275578adac201d87e061b3dfe9dd1a4cc590f33fa5ad000a</a> </td>
+                    </tr>
+                    <tr>
+                      <td>Create motion #2</td>
+                      <td class="text-muted">Send 50 USDC to <a href="#" class="text-reset">vite_654edc78adac201d87e061b3dfe9dd1a4cc590f33fa5ad541</a></td>
+                    </tr>
+                    <tr>
+                      <td>Send funds</td>
+                      <td class="text-muted">100 VITE to <a href="#" class="text-reset">vite_5444578adac201d87e061b3dfe9dd1a4cc590f33fa5a3455a</a></td>
+                    </tr>
+                    <tr>
+                      <td>Pass motion #1</td>
+                      <td class="text-muted">Approved by 3/5 (Threshold : 50%)</td>
+                    </tr>
+                    <tr>
+                      <td>Receive funds</td>
+                      <td class="text-muted">200 BNB</td>
+                    </tr>
+                    <tr>
+                      <td>Create motion #1</td>
+                      <td class="text-muted">Send 100 VITE to <a href="#" class="text-reset">vite_5444578adac201d87e061b3dfe9dd1a4cc590f33fa5a3455a</a></td>
+                    </tr>
+                    <tr>
+                      <td>Receive funds</td>
+                      <td class="text-muted">500 USDC</td>
+                    </tr>
+                    <tr>
+                      <td>Receive funds</td>
+                      <td class="text-muted">300 VITE</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              
+            </div>
+        </div>
+          
+    </div><!-- /.container -->
+
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="./lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+  </body>
+</html>

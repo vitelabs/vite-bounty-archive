@@ -1,0 +1,13 @@
+.DS_Store
+.vscode
+.idea
+*.log
+*.ini
+.env*
+
+.vagrant/
+node_modules/
+logs/
+wallet/
+.npm-debug.log
+.yarn-error.log

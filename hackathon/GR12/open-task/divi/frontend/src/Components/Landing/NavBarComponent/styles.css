@@ -1,0 +1,34 @@
+.App {
+    margin-bottom: 2rem;
+    background-color: linear-gradient(115.03deg, #DDEEFD 0%, #FFFFFF 63.03%);
+}
+
+.link {
+    text-decoration: none;
+    color: rgba(0,0,0,.7);
+}
+
+.Brand {
+    display: flex;
+    align-items: center;
+}
+
+.Brand-Link {
+    text-decoration: none;
+    color: rgba(0,0,0,.7);
+    margin-left: 0.4rem;
+}
+
+.photo {
+    height: 40px;
+    width:  40px;
+    
+}
+
+#Landing-Button {
+    border-radius: 30px;
+}
+
+a:hover {
+    color: blue;
+}

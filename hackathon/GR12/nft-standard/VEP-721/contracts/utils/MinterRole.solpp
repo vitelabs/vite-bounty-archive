@@ -1,0 +1,44 @@
+pragma soliditypp ^0.4.3;
+
+import "./Context.solpp";
+import "./Roles.solpp";
+
+contract MinterRole is Context {
+    using Roles for Roles.Role;
+
+    event MinterAdded(address indexed account);
+    event MinterRemoved(address indexed account);
+
+    Roles.Role private _minters;
+
+    constructor () internal {
+        _addMinter(_msgSender());
+    }
+
+    onMessage addMinter(address account) {
+        _mustBeMinter();
+        _addMinter(account);
+    }
+
+    onMessage renounceMinter() {
+        _removeMinter(_msgSender());
+    }
+
+    function _mustBeMinter() internal {
+        require(_isMinter(_msgSender()), "MinterRole: caller does not have the Minter role");
+    }
+
+    function _isMinter(address account) internal returns (bool) {
+        return _minters.has(account);
+    }
+
+    function _addMinter(address account) internal {
+        _minters.add(account);
+        emit MinterAdded(account);
+    }
+
+    function _removeMinter(address account) internal {
+        _minters.remove(account);
+        emit MinterRemoved(account);
+    }
+}

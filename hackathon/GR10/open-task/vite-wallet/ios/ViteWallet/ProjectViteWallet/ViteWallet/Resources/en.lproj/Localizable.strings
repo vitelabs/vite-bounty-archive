@@ -1,0 +1,65 @@
+
+// LimitatableTextView
+"limit" = "limit";
+"character" = "character";
+"characterLess5" = "characters";
+"characters" = "characters";
+
+// Network
+"cannotParceData" = "Cannot parce data";
+"wrongCode" = "Wrong code";
+"wrongEmail" = "Wrong email";
+"unknownError" = "Unknown error";
+"errorSendPhoto" = "Failed to send photo";
+"badToken" = "Can not get access to your account";
+"badRoute" = "Route not found";
+"badRequestDataFormat" = "Internal server error or bad request data format";
+
+// Alerts
+"error" = "Error!";
+"ok" = "OK";
+"cancel" = "Cancel";
+"continue" = "Continue";
+"select" = "Select";
+"choose color" = "Choose color";
+
+// Other
+"announcementText" = "Will be added in the next version";
+
+// Common UI
+"choose" = "Choose";
+
+// Authentication
+"authenticationSignInButtonText" = "Sign in";
+"authenticationEmailInputTitle" = "Enter your email to sign in";
+"authenticationEmailInputPlaceholder" = "Email";
+"authenticationPasswordInputTitle" = "Enter your password";
+"authenticationPasswordInputPlaceholder" = "Password";
+
+// Onboarding
+"onboardingPage1Title" = "Try the simple wallet";
+"onboardingPage1Text" = "Vite wallet understandable even for a beginner";
+"onboardingPage2Title" = "Integrate assets";
+"onboardingPage2Text" = "from different platforms and store them securely";
+"onboardingPage3Title" = "Convert assets";
+"onboardingPage3Text" = "from one your network to another";
+
+// SalesHistory
+"historyTitle" = "Transaction History";
+
+// Wallet
+"walletTitle" = "Wallet";
+
+// Settings
+"settingsTitle" = "Settings";
+"settingsSupport" = "Support";
+"settingsRateApp" = "Rate the app";
+"settingsAboutUs" = "About us";
+"settingsUserAgreement" = "User Agreement";
+"settingsPrivacyPolicy" = "Privacy Policy";
+"settingsLogOutFromWallet" = "Log out from wallet";
+"settingsVersion" = "Version";
+
+// About us
+"aboutUsTitle" = "About us";
+

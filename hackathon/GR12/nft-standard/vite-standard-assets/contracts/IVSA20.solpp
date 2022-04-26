@@ -1,0 +1,36 @@
+// SPDX-License-Identifier: MIT
+// Vite Standard Assets v0.1.0 (IVSA20 fungible token interface)
+
+pragma soliditypp >=0.7.0 <0.9.0;
+
+interface IVSA20 {
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    function name() offchain view returns (string memory);
+
+    function symbol() offchain view returns (string memory);
+
+    function decimals() offchain view returns (uint256);
+
+    function totalSupply() offchain view returns (uint256);
+
+    function balanceOf(address account) offchain view returns (uint256);
+
+    function allowance(address owner, address spender) offchain view returns (uint256);
+
+    function approve(address spender, uint256 amount) external async;
+
+    function transfer(address recipient, uint256 amount) external async;
+
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) external async;
+
+    function mint(address recipient, uint256 amount) external async;
+
+    function burn(address sender, uint256 amount) external async;
+}

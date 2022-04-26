@@ -1,0 +1,93 @@
+pragma soliditypp ^0.4.3;
+
+/**
+ * @dev Required interface of an VEP721 compliant contract.
+ */
+contract IVEP721 {
+    event Transfer(address indexed from, address indexed to, uint256 indexed token);
+    event Approval(address indexed owner, address indexed approved, uint256 indexed token);
+    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
+
+    /**
+     * @dev Returns the number of NFTs in `owner`'s account.
+     */
+    getter balanceOf(address owner) returns (uint256 ownerBalance);
+
+    /**
+     * @dev Returns the owner of the NFT specified by `token`.
+     */
+    getter ownerOf(uint256 token) returns (address owner);
+
+    /**
+     * @dev Returns the operator.
+     */
+    getter getApproved(uint256 token) returns (address operator);
+
+    /**
+     * @dev Returns true if an address is an authorized operator for another address.
+     */
+    getter isApprovedForAll(address owner, address operator) returns (bool);
+
+    /* Messages */
+    message sendBalanceOf(uint256 balance);
+
+    message sendOwnerOf(address owner);
+
+    message sendGetApproved(address operator);
+
+    message sendIsApprovedForAll(bool);
+
+    /**
+     * @dev This is a callback message which is called after the token is transferred.
+     */
+    message onVEP721Received(address from, address to, uint256 token, bytes data);
+
+    /**
+     * @dev Sends sendBalanceOf(uint256 balance) with the number of NFTs in `owner`'s account.
+     */
+    onMessage requestBalanceOf(address owner);
+
+    /**
+     * @dev Sends sendOwnerOf(uint256 token) with the owner of the NFT specified by `token`.
+     */
+    onMessage requestOwnerOf(uint256 token);
+
+    /**
+     * @dev Sends sendIsApprovedForAll(bool)
+     */
+    onMessage requestIsApprovedForAll(address owner, address operator);
+
+
+    /**
+     * @dev Transfers a specific NFT (`token`) from one account (`from`) to
+     * another (`to`).
+     *
+     * Requirements:
+     * - `from`, `to` cannot be zero.
+     * - `token` must be owned by `from`.
+     * - If the caller is not `from`, it must be have been allowed to move this
+     * NFT by either {approve} or {setApprovalForAll}.
+     */
+    onMessage safeTransferFrom(address from, address to, uint256 token);
+
+    /**
+     * @dev Transfers a specific NFT (`token`) from one account (`from`) to
+     * another (`to`).
+     *
+     * Requirements:
+     * - If the caller is not `from`, it must be approved to move this NFT by
+     * either {approve} or {setApprovalForAll}.
+     */
+    onMessage transferFrom(address from, address to, uint256 token);
+
+    onMessage approve(address to, uint256 token);
+
+    /**
+     * @dev Sends sendGetApproved(address operator) with the operator.
+     */
+    onMessage requestGetApproved(uint256 token);
+
+    onMessage setApprovalForAll(address operator, bool approved);
+
+    onMessage safeTransferFrom(address from, address to, uint256 token, bytes calldata data);
+}

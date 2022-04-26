@@ -1,0 +1,95 @@
+pragma soliditypp ^0.4.3;
+
+contract Vitelink {
+    address publisher;
+  
+    mapping(address => bool) nodeStorage;
+    mapping(string => string) dataStorage;
+    mapping(address => uint256) balanceStorage;
+    address[] nodes;
+    
+    mapping(string => mapping(uint64 => mapping(string => uint))) voteCache;
+    mapping(string => mapping(uint64 => address)) requesterCache;
+
+    event requested(string requestAddr, uint64 requestId);
+    event rewarded(address rewardedAddr);
+
+    message _vitelinkCallback(string requestAddr, string resultData);
+
+    tokenId viteToken = tokenId("tti_5649544520544f4b454e6e40");
+    tokenId vitelinkToken = tokenId("tti_e4979a7d8462ce81945904e5");
+
+    constructor() public {
+      publisher = msg.sender;
+      nodes.push(msg.sender);
+      nodeStorage[msg.sender] = true;
+    }
+
+    getter getContractBalance(address contractAddr) returns(uint256) {
+      return balanceStorage[contractAddr];
+    }
+
+    getter getNodes() returns(address[] memory) {
+      return nodes;
+    }
+
+    getter isNode(address walletAddr) returns(bool) {
+      return nodeStorage[walletAddr];
+    }
+
+    onMessage stakeForNode() payable {
+      require(msg.tokenid == viteToken && msg.sender != publisher);
+
+      if (msg.amount == 10000 vite) {
+        if (nodeStorage[msg.sender] == true) {
+          revert();
+        } else {
+          nodes.push(msg.sender);
+          nodeStorage[msg.sender] = true;
+        }
+      } else if (msg.amount == 0 vite) {
+        if (nodeStorage[msg.sender] == true) {
+          nodeStorage[msg.sender] = false;
+          for (uint i = 0; i < nodes.length; i++) {
+            if (nodes[i] == msg.sender) {
+              _deleteFromNodeArr(i);
+              msg.sender.transfer(msg.tokenid, 10000 vite);
+            }
+          }
+        }
+      } else {
+        revert();
+      }
+    }
+
+    onMessage fundContract(address contractAddr) payable {
+      require(msg.tokenid == vitelinkToken && msg.amount != 0);
+      balanceStorage[contractAddr] += msg.amount;
+    }
+
+    onMessage request(string calldata requestAddr) {
+      require(balanceStorage[msg.sender] >= 1);
+      uint64 randomInt = random64();
+      balanceStorage[msg.sender] -= 1;
+      requesterCache[requestAddr][randomInt] = msg.sender;
+      emit requested(requestAddr, randomInt);
+    }
+
+    onMessage requestedData(string calldata requestAddr, uint64 requestId, string calldata data) {
+      require(nodeStorage[msg.sender] == true);
+      voteCache[requestAddr][requestId][data] += 1;
+      if ((nodes.length / 2) + 1 <= voteCache[requestAddr][requestId][data]) {
+        send(requesterCache[requestAddr][requestId], _vitelinkCallback(requestAddr, data));
+        address rewardedNode = nodes[random64() % nodes.length];
+        rewardedNode.transfer(vitelinkToken, 1);
+        emit rewarded(rewardedNode);
+        delete requesterCache[requestAddr][requestId];
+        delete voteCache[requestAddr][requestId][data];
+      }
+    }
+
+    function _deleteFromNodeArr(uint index) private {
+      nodes[index] = nodes[nodes.length - 1];
+      nodes.pop();
+    }
+}

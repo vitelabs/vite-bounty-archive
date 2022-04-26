@@ -1,0 +1,2 @@
+@vite/connector
+recharts

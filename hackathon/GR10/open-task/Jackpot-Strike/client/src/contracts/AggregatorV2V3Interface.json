@@ -1,0 +1,468 @@
+{
+  "contractName": "AggregatorV2V3Interface",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "int256",
+          "name": "current",
+          "type": "int256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "roundId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "updatedAt",
+          "type": "uint256"
+        }
+      ],
+      "name": "AnswerUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "roundId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "startedBy",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "startedAt",
+          "type": "uint256"
+        }
+      ],
+      "name": "NewRound",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "decimals",
+      "outputs": [
+        {
+          "internalType": "uint8",
+          "name": "",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "description",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "roundId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAnswer",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint80",
+          "name": "_roundId",
+          "type": "uint80"
+        }
+      ],
+      "name": "getRoundData",
+      "outputs": [
+        {
+          "internalType": "uint80",
+          "name": "roundId",
+          "type": "uint80"
+        },
+        {
+          "internalType": "int256",
+          "name": "answer",
+          "type": "int256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "startedAt",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "updatedAt",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint80",
+          "name": "answeredInRound",
+          "type": "uint80"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "roundId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getTimestamp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "latestAnswer",
+      "outputs": [
+        {
+          "internalType": "int256",
+          "name": "",
+          "type": "int256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "latestRound",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "latestRoundData",
+      "outputs": [
+        {
+          "internalType": "uint80",
+          "name": "roundId",
+          "type": "uint80"
+        },
+        {
+          "internalType": "int256",
+          "name": "answer",
+          "type": "int256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "startedAt",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "updatedAt",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint80",
+          "name": "answeredInRound",
+          "type": "uint80"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "latestTimestamp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "version",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "metadata": "{\"compiler\":{\"version\":\"0.8.0+commit.c7dfd78e\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"int256\",\"name\":\"current\",\"type\":\"int256\"},{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"updatedAt\",\"type\":\"uint256\"}],\"name\":\"AnswerUpdated\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"startedBy\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"startedAt\",\"type\":\"uint256\"}],\"name\":\"NewRound\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"internalType\":\"uint8\",\"name\":\"\",\"type\":\"uint8\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"description\",\"outputs\":[{\"internalType\":\"string\",\"name\":\"\",\"type\":\"string\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"}],\"name\":\"getAnswer\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint80\",\"name\":\"_roundId\",\"type\":\"uint80\"}],\"name\":\"getRoundData\",\"outputs\":[{\"internalType\":\"uint80\",\"name\":\"roundId\",\"type\":\"uint80\"},{\"internalType\":\"int256\",\"name\":\"answer\",\"type\":\"int256\"},{\"internalType\":\"uint256\",\"name\":\"startedAt\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"updatedAt\",\"type\":\"uint256\"},{\"internalType\":\"uint80\",\"name\":\"answeredInRound\",\"type\":\"uint80\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"roundId\",\"type\":\"uint256\"}],\"name\":\"getTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestAnswer\",\"outputs\":[{\"internalType\":\"int256\",\"name\":\"\",\"type\":\"int256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestRound\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestRoundData\",\"outputs\":[{\"internalType\":\"uint80\",\"name\":\"roundId\",\"type\":\"uint80\"},{\"internalType\":\"int256\",\"name\":\"answer\",\"type\":\"int256\"},{\"internalType\":\"uint256\",\"name\":\"startedAt\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"updatedAt\",\"type\":\"uint256\"},{\"internalType\":\"uint80\",\"name\":\"answeredInRound\",\"type\":\"uint80\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"latestTimestamp\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"version\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"/C/Users/amine/OneDrive/Desktop/Truffle/React - Prediction/contracts/interfaces/AggregatorV2V3Interface.sol\":\"AggregatorV2V3Interface\"},\"evmVersion\":\"istanbul\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/C/Users/amine/OneDrive/Desktop/Truffle/React - Prediction/contracts/interfaces/AggregatorInterface.sol\":{\"keccak256\":\"0x3092bfa010d084cf3363f2225c711e18e5fc73bac1b3309a6f4629405f6da486\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c846f0fc00ca0030ddc97e3cc6bbb9707b89be6c4895ef63f8bb083f7a58db5e\",\"dweb:/ipfs/QmNZPqL5PGiaPV6AfszmYypcSjkFXCHHzMd3TETCghPNYh\"]},\"/C/Users/amine/OneDrive/Desktop/Truffle/React - Prediction/contracts/interfaces/AggregatorV2V3Interface.sol\":{\"keccak256\":\"0x51e910033079c74ab7c4ff26f890e90f059d484cff2f3bf544b9a937f782e990\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://270fd2ce50e70e08ae800ae96b671af12283eb67f19ec647e2e1376784aad6ff\",\"dweb:/ipfs/QmdmeXe2LAx6H4R54i8ALeaoPjHRQn5BqpthdNAprbw6tk\"]},\"/C/Users/amine/OneDrive/Desktop/Truffle/React - Prediction/contracts/interfaces/AggregatorV3Interface.sol\":{\"keccak256\":\"0x421b0157270e11d871a88cd169789ed21771f1990c28c85298e90bb2dba0d879\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://e664747c23ab102a37f2760df1958a5cab65b9157b4ce0840e327dbdcc93ec10\",\"dweb:/ipfs/QmT5f2wJey4KHcj9cGJpLUvRmTcF78wZ1aJ8cJmgmLSj1V\"]}},\"version\":1}",
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "immutableReferences": {},
+  "generatedSources": [],
+  "deployedGeneratedSources": [],
+  "sourceMap": "",
+  "deployedSourceMap": "",
+  "source": "// SPDX-License-Identifier: MIT\r\npragma solidity >=0.6.0;\r\n\r\nimport \"./AggregatorInterface.sol\";\r\nimport \"./AggregatorV3Interface.sol\";\r\n\r\ninterface AggregatorV2V3Interface is AggregatorV3Interface, AggregatorInterface{\r\n\r\n}\r\n",
+  "sourcePath": "C:/Users/amine/OneDrive/Desktop/Truffle/React - Prediction/contracts/interfaces/AggregatorV2V3Interface.sol",
+  "ast": {
+    "absolutePath": "/C/Users/amine/OneDrive/Desktop/Truffle/React - Prediction/contracts/interfaces/AggregatorV2V3Interface.sol",
+    "exportedSymbols": {
+      "AggregatorInterface": [
+        750
+      ],
+      "AggregatorV2V3Interface": [
+        759
+      ],
+      "AggregatorV3Interface": [
+        805
+      ]
+    },
+    "id": 760,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 752,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.6",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "33:24:5"
+      },
+      {
+        "absolutePath": "/C/Users/amine/OneDrive/Desktop/Truffle/React - Prediction/contracts/interfaces/AggregatorInterface.sol",
+        "file": "./AggregatorInterface.sol",
+        "id": 753,
+        "nodeType": "ImportDirective",
+        "scope": 760,
+        "sourceUnit": 751,
+        "src": "61:35:5",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/C/Users/amine/OneDrive/Desktop/Truffle/React - Prediction/contracts/interfaces/AggregatorV3Interface.sol",
+        "file": "./AggregatorV3Interface.sol",
+        "id": 754,
+        "nodeType": "ImportDirective",
+        "scope": 760,
+        "sourceUnit": 806,
+        "src": "98:37:5",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "abstract": false,
+        "baseContracts": [
+          {
+            "baseName": {
+              "id": 755,
+              "name": "AggregatorV3Interface",
+              "nodeType": "IdentifierPath",
+              "referencedDeclaration": 805,
+              "src": "176:21:5"
+            },
+            "id": 756,
+            "nodeType": "InheritanceSpecifier",
+            "src": "176:21:5"
+          },
+          {
+            "baseName": {
+              "id": 757,
+              "name": "AggregatorInterface",
+              "nodeType": "IdentifierPath",
+              "referencedDeclaration": 750,
+              "src": "199:19:5"
+            },
+            "id": 758,
+            "nodeType": "InheritanceSpecifier",
+            "src": "199:19:5"
+          }
+        ],
+        "contractDependencies": [
+          750,
+          805
+        ],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 759,
+        "linearizedBaseContracts": [
+          759,
+          750,
+          805
+        ],
+        "name": "AggregatorV2V3Interface",
+        "nodeType": "ContractDefinition",
+        "nodes": [],
+        "scope": 760,
+        "src": "139:85:5"
+      }
+    ],
+    "src": "33:193:5"
+  },
+  "legacyAST": {
+    "absolutePath": "/C/Users/amine/OneDrive/Desktop/Truffle/React - Prediction/contracts/interfaces/AggregatorV2V3Interface.sol",
+    "exportedSymbols": {
+      "AggregatorInterface": [
+        750
+      ],
+      "AggregatorV2V3Interface": [
+        759
+      ],
+      "AggregatorV3Interface": [
+        805
+      ]
+    },
+    "id": 760,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 752,
+        "literals": [
+          "solidity",
+          ">=",
+          "0.6",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "33:24:5"
+      },
+      {
+        "absolutePath": "/C/Users/amine/OneDrive/Desktop/Truffle/React - Prediction/contracts/interfaces/AggregatorInterface.sol",
+        "file": "./AggregatorInterface.sol",
+        "id": 753,
+        "nodeType": "ImportDirective",
+        "scope": 760,
+        "sourceUnit": 751,
+        "src": "61:35:5",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "absolutePath": "/C/Users/amine/OneDrive/Desktop/Truffle/React - Prediction/contracts/interfaces/AggregatorV3Interface.sol",
+        "file": "./AggregatorV3Interface.sol",
+        "id": 754,
+        "nodeType": "ImportDirective",
+        "scope": 760,
+        "sourceUnit": 806,
+        "src": "98:37:5",
+        "symbolAliases": [],
+        "unitAlias": ""
+      },
+      {
+        "abstract": false,
+        "baseContracts": [
+          {
+            "baseName": {
+              "id": 755,
+              "name": "AggregatorV3Interface",
+              "nodeType": "IdentifierPath",
+              "referencedDeclaration": 805,
+              "src": "176:21:5"
+            },
+            "id": 756,
+            "nodeType": "InheritanceSpecifier",
+            "src": "176:21:5"
+          },
+          {
+            "baseName": {
+              "id": 757,
+              "name": "AggregatorInterface",
+              "nodeType": "IdentifierPath",
+              "referencedDeclaration": 750,
+              "src": "199:19:5"
+            },
+            "id": 758,
+            "nodeType": "InheritanceSpecifier",
+            "src": "199:19:5"
+          }
+        ],
+        "contractDependencies": [
+          750,
+          805
+        ],
+        "contractKind": "interface",
+        "fullyImplemented": false,
+        "id": 759,
+        "linearizedBaseContracts": [
+          759,
+          750,
+          805
+        ],
+        "name": "AggregatorV2V3Interface",
+        "nodeType": "ContractDefinition",
+        "nodes": [],
+        "scope": 760,
+        "src": "139:85:5"
+      }
+    ],
+    "src": "33:193:5"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.8.0+commit.c7dfd78e.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "3.4.1",
+  "updatedAt": "2021-07-06T18:57:22.684Z",
+  "devdoc": {
+    "kind": "dev",
+    "methods": {},
+    "version": 1
+  },
+  "userdoc": {
+    "kind": "user",
+    "methods": {},
+    "version": 1
+  }
+}

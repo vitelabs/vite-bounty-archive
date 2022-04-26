@@ -1,0 +1,6 @@
+{
+  "name": "examples",
+  "dependencies": {
+    "vite-standard-assets": "file:.."
+  }
+}

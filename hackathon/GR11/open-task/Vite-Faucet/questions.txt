@@ -1,0 +1,893 @@
+What is the capital of Russia?
+Moscow
+St Petersburg
+Cairo
+Omsk
+
+What element has the symbol K?
+Potassium
+Silicon
+Nitrogren
+Cobalt
+
+The total fee for a nano transaction is:
+Nothing
+0.00025 
+0.00055
+0.01000
+
+Nano uses the _______ consensus mechanism
+Open Representative Voting 
+Proof-of-Work
+Proof-of-Capacity
+Proof-of-Burn
+
+Both Nano and Vite use:
+Directed Acyclic Graphs
+Blockchain
+Markov Chains
+Turing Machines
+
+What Nano's original name?
+RaiBlocks
+SpeedCoin
+NanoCoin
+EnviroToken
+
+When was Nano released?
+2015
+2010
+2018
+2019
+
+What is the max supply of Nano?
+133,248,297
+99,272,786
+87,525,783
+1,000,000,000
+
+How much energy does a Nano transaction use?
+0.000112 kWh
+0.5479 kWh
+62.56 KWh
+707 kWh
+
+What is the total supply of Vite?
+1,018,621,598
+3,897,467,289
+7,928,819,896
+867,637
+
+What year was the ViteX decentralized exchange launched?
+2019
+2020
+2021
+2017
+
+Which of following is ViteX not?
+All of these
+A pizza company
+A clubhouse clone
+A company that makes Rubiks cubes
+
+What does DeFi mean?
+Decentralized Finance
+Decentralized Exchange
+Decentralized Fiberglass
+Decentralized Fitness
+
+In Nano, a block has _____ transaction(s)
+One
+100
+256
+1024
+
+Which of the following is NOT a type of Nano transaction ?
+Close an account
+Send
+Receive
+Open an account
+
+When was Banano created?
+2018
+2016
+2017
+2020
+
+What is Banano?
+A fork of Nano
+A token on the Nano blockchain
+A standalone coin
+An ERC-20 token
+
+What is the total supply of Banano?
+2.9 Billion
+2.8 Billion
+2.5 Billion
+3 Billion
+
+Banano Hodlers statistically have more _____ in their bodies?
+Potassium
+Beta-Carotene
+Protein
+Epic sauce
+
+What is the purpose of Banano?
+All of these
+Memes
+Decentralisation of bananas
+Fast transactions
+
+Where were the 1996 Summer Games held?
+Atlanta
+Los Angeles
+Beijing
+Tokyo
+
+What country was the first to accept Bitcoin as legal tender?
+El Salvador
+San Marino
+Tuvalu
+Iran
+
+Which of the following is not a Banano wallet?
+Exodus
+Kalium
+Discord Tip Bot
+Banano Vault
+
+What does DEX mean?
+Decentralised Exchange
+Democratic Election Xtreme
+Donkey Electric X-Rays
+Decentralised Ex-Girlfriends
+
+Who is the inventor of Nano?
+Colin LeMahieu
+Satoshi Nakomoto
+Vitalik Buterin
+Charles Hoskinson
+
+Nano is _______
+Deflationary
+Inflationary
+Static 
+Exponential
+
+The strength of Nano is as a _______
+Currency
+NFT
+Smart Contract
+DEX
+
+What is the meaning of NFT?
+Non-Fungible Token
+Non-Fiat Technology
+New Federal Trade
+Near Future Trajectory 
+
+Which is these is NOT a difference between Nano and Vite?
+Nano transactions are free but Vite transactions cost money
+Vite supports smart contracts while Nano does not
+You can stake Vite but you cannot stake Nano
+You gain rewards for running Vite nodes but not for running Nano nodes
+
+Vite gives you daily rewards for running a _________
+Full Node
+Refrigerator
+DEX
+Smart Contract
+
+In order to execute transactions on Vite, you must _________
+Earn quota by temporarily staking Vite, or solve a small PoW puzzle
+Pay gas fees
+Solve a captcha
+Upload a photo of your cat
+
+To issue a new token on Vite, you must _______
+Send a mintage transaction on the DEX
+Deploy a smart contract
+It is impossible to issue new tokens on Vite
+Mint a NFT
+
+Vite smart contracts are written in:
+Solidity++
+C#
+Solidity
+Plutus
+
+Nano smart contracts are written in:
+Nano does not have smart contracts
+Solidity
+Javascript
+C++
+
+Why is it bad to keep your crypto on exchanges?
+All of these are true
+An exchange could exit scam and steal all your crypto
+It increases centralization
+Exchanges can be hacked 
+
+When was Bitcoin released?
+2009
+2011
+2001
+1988
+
+VCP (Vite Community Points) are used for:
+Buying merch on the online store
+Voting on company wide decisions
+Mining rewards
+Paying transaction fees
+
+What are Oracles in the context of smart contracts?
+Oracles provide information from the outside world to the smart contract
+Oracles are people who write smart contracts
+Oracles produce new blocks to be used on the blockchain
+Oracles are a database 
+
+Nano uses PoW to:
+Deter spam attacks 
+Purposely slow down the network when traffic is heavy
+Because puzzles are fun
+Analyze network data
+
+An advantage of Nano over Bitcoin is
+All of these are true
+Much lower energy usage per transaction
+Instant transactions
+No transaction fees
+
+You can earn free Banano by running Folding@Home on your computer. Folding@Home is a _______
+Distributed computing project aiming to simulate protein folding
+An origami tutorial
+An AI deepfake generator
+An online community for people who love folding towels
+
+What is a DAO?
+Decentralized Autonomous Organization
+Deep AI Object
+Discrete Automata On-Chain
+Deterministic Abstract Oracle
+
+What of the following is NOT true about DAOs (Decentralized Autonomous Organization) ?
+DAOs can only exist on the Ethereum blockchain
+DAOs are global with no central authority
+Decisions are made bottom-up 
+DAOs operate using rules encoded by smart contracts
+
+What does Vite mean in French?
+Fast
+Free
+Powerful
+Life
+
+All of the following have fee-less transactions, EXCEPT
+Ethereum
+Vite
+Nano
+Banano
+
+One Bitcoin transaction uses as much energy as _________
+6,000,000 Nano transactions
+60 Nano transactions
+6,000 Nano transactions
+100,000 Nano transactions
+
+The emoji most associated with Nano is _______
+Broccoli 
+Eggplant
+Pickle
+Peanut
+
+What is Natricon?
+A visual representation of your unique Nano address in the form of a cartoon face
+Nano's version of crypto-punk NFTs
+A heavy metal band that sings about Nano
+A popular Japanese anime
+
+Which currency uses a Quota system?
+$VITE
+$BTC
+$NANO
+$BAN
+
+What does SBP stand for?
+Snapshot Block Producer
+Simulated Blockchain Processor
+Small Blue Pill
+Simple Block Photographer
+
+When was $NANO first traded on ViteX?
+July 14, 2021
+July 4, 2021
+August 12, 2021
+July 15, 2021
+
+What is ViteX?
+An order book DEX
+A stock exchange
+An AMM
+A CEX
+
+How do you mine VX?
+All of the options listed
+Trade on ViteX
+Market Making on ViteX
+Stake VITE on ViteX
+
+When did Vite launch its main net?
+September 25, 2019
+August 3, 2019
+July 4, 2019
+October 1, 2019
+
+How do you get Quota?
+Lock $VITE
+Lock $NANO
+Lock $BAN
+Lock $BTC
+
+How much $VITE is required to mint a token on the Vite Chain?
+1,000
+1
+1 million
+10
+
+What are super nodes called on the Vite chain?
+SBPs (Snapshot Block Producers)
+Operators 
+Gateways
+Quota 
+
+When was $BAN first listed on ViteX?
+January 16, 2020 
+July 16, 2020
+February 23, 2021
+March 3, 2021
+
+What is an Airdrop?
+Free tokens are distributed to a pre-selected list of wallets as a marketting stunt
+Bitcoins are released by hot air balloons onto a crowd below
+A website you can go to that will give you free crypto for solving captchas
+Another term for flatulence 
+
+What is a dApp (Distributed Application) ?
+An application built on a decentralized network that combines a smart contract and a frontend user interface. 
+An application that sits on a central server. 
+A new type of blockchain
+A token used for proof of collateral
+
+What is a NFT (Non-Fungible Token) ? 
+Proof of ownership of a digital asset like a piece of art that is stored on a blockchain
+A virtual reality game
+An application built on a decentralized network that combines a smart contract and a frontend user interface. 
+A website you can go to that will give you free crypto for solving captchas
+
+What is NOT a valid example of a NFT?
+Currency
+A JPG artwork by your favorite artist
+Trading cards
+Virtual reality real-estate
+
+What is the definition of fungibility?
+The ability to be replaced by another identical item; mutually interchangeable.
+The availability of liquid assets to a market or company.
+A measure of how much fun using a certain cryptocurrency is.
+Related to fungi. 
+
+ERC-721 and ERC-1155 are standards for:
+Non-Fungible Tokens (NFTs)
+Custom tokens on the ETH network
+Smart contracts
+Meme coins
+
+What is the purpose of the Vite Canary Network (VCN)?
+To provide a testing network with tokens that have real value
+Oracles for the Vite network
+A layer 2 network that supports faster transactions
+To provide cute canary pets to DAG enthusiasts
+
+Vite uses the following emoji:
+Running person
+Turtle
+Pickle
+Panda
+
+Which of the following is a Centralized Exchange (CEX):
+Coinbase
+ViteX
+Uniswap
+Pancake Swap
+
+Which of the following is a De-Centralized Exchange (DEX):
+ViteX
+Coinbase
+Kraken
+Binance
+
+What is an AMM?
+Automated Market Maker
+Automated Money Market
+After Market Manipulation
+Annoying Moody Maximalists
+
+How much quota is needed for one send transaction with no memo in Vite?
+1 UT
+5 UT
+10 UT
+Depends on how busy the network currently is
+
+What is Hummingbot?
+An open source crypto trading bot 
+A hummingbird simulator
+A decentralized NFT marketplace
+A Discord bot that responds "Hmmmm..." to everything
+
+Vitamin Coin is ________
+A meme coin on the Vite chain
+A way for your doctor to bribe you to take your vitamins
+The official currency of Tongo
+Vitamins in the shape of coins 
+
+Which of the following are advantages of Vite?
+All of the above
+Decentralized exchange - ViteX
+Asynchronouns transactions
+Fee-less transaction model
+
+Which of the following are ViNo projects?
+All of the above
+Adding Nano trading pairs to ViteX
+Trivia bot that gives users free Vite for answering questions correctly
+Discord bots that allow interaction with our Nano and Vite nodes
+
+How did ViNo get its name?
+Vite and Nano = ViNo
+They are wine enthusiasts
+They love vines
+Vino means money in Turkish
+
+When staking $VITE for quota, how long is the $VITE locked up for?
+3 days
+24 hours
+1 week
+This is settable by the user
+
+Who is the CEO of Vite?
+Charles Liu
+Elon Musk
+Brian Armstrong
+Joe Biden
+
+What is the purpose of the Snapshot Chain in Vite?
+To improve security and make ledger more tamper resistant
+To improve transaction speeds
+To provide snapshots of your cute pets
+Cross-chain compatibility 
+
+The emoji associated with Banano is _______
+Banana 
+Grapefruit
+Owl
+Orangess
+
+The best way to greet a nano user is?
+!ntip
+hello
+cheers
+may the nano be with you always
+
+How is $VITE distributed?
+voting for SPB and node rewards
+staking
+centralized exchanges
+airdrops
+
+what's a safe easy way to send nano to someone that has no nano wallet
+all the options
+pickupnano.com or a tip bot 
+write down the seeds and mail it
+mail them a hardware wallet
+
+What are Rai ?
+Yap Stone money 
+Italian cheese wheel
+Canadian rubber tires
+Flintstones car stone wheels 
+
+in $vite what can you do with Quota
+all the options
+prevent spam 
+transfer faster
+trade faster 
+
+Which one is the founder or inventor of bitcoin ?
+Satoshi Nakamoto
+Peter Thiel
+Warren Buffet
+Max Keiser
+
+In which year was Bitcoin proposed/founded ?
+3 January 2009
+3 January 2008
+3 January 2007
+3 January 2010
+
+Who is Satoshi Nakamoto?
+Anonymous 
+Elon Musk
+Craig White
+Bill Gates
+
+Nano is a ____________ currency
+All the options
+Digital
+Crypto
+De-centralized
+
+What best describes a blockchain ?
+A distributed ledger on a peer to peer network
+A centralized database 
+An exchange 
+A type of computer server
+
+What does P2P stand for ?
+Peer-to-Peer
+Product-to-Product
+Player-to-Player
+Private-Key-to-Public-Key
+
+What is a crypto node ?
+A computer connected to a blockchain network 
+A blockchain server
+A type of cryptocurrency
+An exchange
+
+What makes cryptocurrency secure?
+Mathematics 
+Faith
+Electronic Banks
+Insurance
+
+Where can you buy Cryptocurrencies?
+All listed options
+An Exchange
+Crypto ATM
+Peer to Peer Transactions
+
+What is the name of the famous Bitcoin exchange from Japan that collapsed in 2014?
+Mt. Gox
+Bitstamp
+BitFlyer
+Bitconnect
+
+What does the block in the blockchain consist of?
+All of these 
+Transaction data
+Hash
+Timestamp
+
+How many new bitcoins are created everyday ? 
+3600
+2200
+7200
+5000
+
+How many new $nano coins are created everyday?
+0
+133
+5000
+7
+
+What is the total supply of $VX coins in VIteX?
+29,328,807.8
+99,272,786
+133,248,297
+21,000,000
+
+A great deal of financial theory is based on the concept of free markets and in particular the theory of:
+Perfect Competition
+Monopolistic Competition
+Monopoly
+Oligopoly
+
+What will be value of $100 after two years, if the interest rate during this period is 5%?
+$110.25
+$105
+$107.5
+$95
+
+Governments and corporations issue bonds to
+Borrow money
+Lend money
+Both A and B
+None of these
+
+Any economic resource that can produce economic value to the holder is called
+Asset
+Return
+Maturity
+Yield
+
+When forward contract is traded on an exchange, it is called
+Future contract
+Spot contract
+Call option
+Put option
+
+Consider a world without scarcity of resources. Then what would be the consequences?
+All of these
+All prices would be zero
+Markets would be unnecessary
+Economics would no longer be a useful subject
+
+Who is considered the founder of modern Macroeconomics?
+John Keynes
+Adam Smith
+Friedrich Hayek
+Milton Friedman
+
+The fundamental concept of Economics about resources is that the resources are
+Scarce
+Equally Distributed
+Unequally Distributed
+Unlimited
+
+The central role of markets is to determine the
+Price of Goods
+Quality of Goods
+Quantity of Goods
+Level of Income
+
+Taxes are used to discourage __________ of a commodity.
+Consumption
+Production
+Saving
+Inflation
+
+What is a cryptocurrency blender (also known as a mixer or tumbler) ?
+A service that hides coin origins
+Coin wallet attachment
+A sweet art blog
+Futurama character
+
+which digital currency came before bitcoin?
+All the options
+HashCash
+BitGold
+B-Money
+
+What is part of a database that holds only one type of information?
+Field
+Report
+Record
+File
+
+Which is a type of Electrically-Erasable Programmable Read-Only Memory?
+Flash
+Flange
+Fury
+FRAM
+
+Who is largely responsible for breaking the German Enigma codes, created a test that provided a foundation for artificial intelligence?
+Alan Turing
+Jeff Bezos
+George Boole
+Charles Babbage
+
+Made from a variety of materials, such as carbon, which inhibits the flow of current...?
+Resistor
+Choke
+Inductor
+Capacitor
+
+Which consists of two plates separated by a dielectric and can store a charge?
+Capacitor
+Inductor
+Transistor
+Relay
+
+How many bits are in a byte?
+8
+4
+16
+32
+	
+A coating of dust on a computer's main circuit boards has this probable consequence
+Overheating
+Short circuits
+Slower hard disk
+None
+
+The first graphical browser for the WWW was named:
+Mosaic
+Netscape
+Windows
+Explorer
+
+The earliest form of banking on record was practiced in _____
+Babylon
+Israel
+Assyria
+Phillistine
+
+The early gold, used as currency, was deposited in _____ for safe keeping
+Temples
+Palaces
+Markets
+Banks
+
+The functions of money includes:
+All of these options
+Value Determination
+Store of Value
+Means of Exchange
+
+"Money is what money does." Who said it ?
+Hartley Withers
+Hawtrey
+Thomas
+Keynes
+
+Which one is included in the secondary function of money ?
+All of these
+Deferred Payments
+Store of Value
+Transfer of Value
+
+where in the vite wallet can you stake $VX tokens for daily rewards of ViteX fees ?
+Trade --> Dividends --> Stake
+Trade --> Mining --> Add
+Trade--> Mining --> Market Making
+Trade --> Spot --> Buy
+
+The quota required for a transaction in Vite depends on all EXCEPT:
+Transaction amount
+Source address
+Destination address
+Block type
+
+What is ViteJS?
+A Javascript SDK for Vite
+The hottest new rap group 
+A species of apes
+A fancy cologne 
+
+What is Rosetta API?
+An open standard designed to simplify blockchain deployment and interaction developed by Coinbase.
+An API that lets users translate between spoken languages seemlessly.
+An API that standarizes different cryptographic algorithms
+An alien space-craft from the Andromeda galaxy
+
+What is the technological singularity?
+A hypothetical point in time in which technological growth explodes in an expotential self-feeding cycle, resulting in AI superintelligence and dramatic changes to human civilization.
+Where your socks disappear to in the dryer.
+The point in which AI becomes conscious.
+What happens when you Google "google." 
+
+What does ERC mean?
+Ethereum Request for Comments
+Electric Railroad Company
+Ethical Race Cars
+Energized Raisin Cereal
+
+What does EIP mean?
+Ethereum Improvement Plan
+Email Investigation Police
+Escrow Insurance Policy
+Exchange Internal Platform
+
+What is NOT a responsibility of a full node on Vite?
+Mining new blocks on the blockchain 
+Maintaing a complete copy of the ledger
+Sending and receiving transactions
+Verifying transactions on the network
+
+gvite node was developed in:
+Go
+Javascript
+C++
+Java
+
+The minimum amount of Vite that you can stake for quota is:
+134 Vite
+1,000 Vite
+20 Vite
+9,000 Vite
+
+The maxmimum amount of Vite that you can stake for quota is:
+Unlimited
+134 Vite
+100,000 Vite
+100,000,000 Vite
+
+Blake2 is:
+A cryptographic hashing algorithms
+The hottest boy's name of 2021
+A token on the Vite network
+A collection of NFTs
+
+What makes Solidity++ different from Solidity?
+Solidity++ is asynchronouns 
+Solidity++ is object oriented
+Solidity++ has a garbage collector
+All of these 
+
+Which of the following is NOT a native type in Solidity?
+NFTs
+Boolean
+String
+Integer
+
+What does it mean for a node to synchronize ? 
+To fully download the complete ledger at current block height
+When it has mismatched data from its peers
+To be able to play a killer drum solo
+To be able to identify fake nodes 
+
+What is quadratic voting? 
+A voting prcoess where voters vote to express the degree of their preferences, rather than just the direction of their preferences.
+A voting process where election results are determined through quadratic regression.
+A voting process where you can only vote if you remember the quadratic formula. 
+A voting process where every vote you cast has only 1/4th of the weight of your previous vote. 
+
+ViteX supports all of the following mining methods EXCEPT:
+steak mining
+stake mining
+trade mining
+liquidity mining
+
+What does being "bullish" mean?
+They expect an asset to rise in price, i.e. as in a bull market. 
+They are sick of FUD bullshit.
+They have a fascination with male cows completely unrelated to crypto. 
+They expect an asset to drop in price.
+
+What does being "bearish" mean ?
+They expect an asset to drop in rise, i.e. as in a bear market
+They're so hungry that their stomach is growling like a bear
+That they like to dress up in a bear suit on the weekends
+They want to hibernate through the Winter, like a bear does
+
+What is FUD ?
+"Fear, uncertainty and doubt." Attempting to spread negative opinions of something.
+"Funny, ugly, and dorky." What your ex said when they were asked to describe you.
+"Free, united, and Democratic." A rallying call used during the American Revolutionary war. 
+"Fruit, underwear, and dinner rolls." Something that belongs on your next shopping list...
+
+What is FOMO ?
+"Fear Of Missing Out." Getting in on something before the chance disappears. 
+"For Our Minds Only." A way of saying this is top secret and should not be shared with anyone else.
+Teenage slang for something really cool.
+An infamous energy drink popular with crypto folk. 
+
+What does HODL mean ?
+A misspelling of hold, meaning to hold onto your assets and not sell.
+A social movement teaching men that it's OK to hold each others hands. 
+A friendly reminder to always wear oven mitts before HODLING a hot pot! 
+When the price of an asset drops to zero, and you're stuck HODLing the bags! 
+
+What is shilling?
+When someone promotes something out of their own financial self interest. 
+Purposely selling counterfeit goods. 
+The sale of illegal goods.
+Minting new blocks on the blockchain.
+
+What is a whale?
+Someone who holds a significant amount of a particular crypto
+A sea mammal who also happens to be the world's most notorious DeFi hacker
+A metaphor for over-bloated blockchains: beached whales 
+A casual investor with less than $100 invested 
+
+What is a pump and dump scheme ? 
+A scheme meant to scam people by artificially pumping a crypto up and then selling it all before it plummets
+A friendly person who pumps your gas for free and then dumps before you can thank him.
+Manipulating markets through inflation 
+The title to the hottest new guide on how to pick up women
+
+What is an example of arbitrage?
+Profitting off the price difference when Exchange A is selling X at 0.50, and Exchange B is selling X at 0.52. 
+Finding ways to sue crypto companies by using arbitrary legal definitions. 
+Borrowing money against their current funds to trade cryptocurrency on margin on an exchange. 
+Gaining revenue by providing liquidity to liquidity pools.

@@ -1,0 +1,26 @@
+pragma soliditypp ^0.4.3;
+
+import "./IVEP721.solpp";
+
+/**
+ * @title VEP-721 Non-Fungible Token Standard, optional enumeration extension
+ */
+contract IVEP721Enumerable is IVEP721 {
+    message sendTotalSupply(uint256);
+
+    message sendTokenOfOwnerByIndex(uint256 token);
+
+    message sendTokenByIndex(uint256 token);
+
+    getter totalSupply() returns (uint256);
+
+    getter tokenOfOwnerByIndex(address owner, uint256 index) returns (uint256 token);
+
+    getter tokenByIndex(uint256 index) returns (uint256 token);
+
+    onMessage requestTotalSupply();
+
+    onMessage requestTokenOfOwnerByIndex(address owner, uint256 index);
+
+    onMessage requestTokenByIndex(uint256 index);
+}

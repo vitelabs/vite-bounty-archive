@@ -1,0 +1,16 @@
+pragma soliditypp ^0.4.3;
+
+import "./VEP721.solpp";
+import "./VEP721Enumerable.solpp";
+import "./VEP721Metadata.solpp";
+
+/**
+ * @title Full VEP721 Token
+ * @dev This implementation includes all the required and some optional functionality of the VEP721 standard
+ * Moreover, it includes approve all functionality using operator terminology.
+ */
+contract VEP721Full is VEP721, VEP721Enumerable, VEP721Metadata {
+    constructor (string memory name, string memory symbol) public VEP721Metadata(name, symbol) {
+        // solhint-disable-previous-line no-empty-blocks
+    }
+}

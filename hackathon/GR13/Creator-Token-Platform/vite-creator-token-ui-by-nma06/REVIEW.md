@@ -1,0 +1,3 @@
+- Dark theme is still has a white background
+- bonding curve page looks decent
+- 

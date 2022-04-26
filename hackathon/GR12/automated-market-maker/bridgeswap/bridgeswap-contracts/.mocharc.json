@@ -1,0 +1,6 @@
+{
+  "exit": true,
+  "extension": ["ts"],
+  "spec": "tests/**/*.test.ts",
+  "require": "ts-node/register"
+}

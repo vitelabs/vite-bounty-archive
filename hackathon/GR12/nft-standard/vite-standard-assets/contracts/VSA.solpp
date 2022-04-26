@@ -1,0 +1,512 @@
+// SPDX-License-Identifier: MIT
+// Vite Standard Assets v0.1.0 (VSA unified standard)
+
+pragma soliditypp >=0.7.0 <0.9.0;
+
+import "./IVSA.solpp";
+import "./IVSAReceiver.solpp";
+import "./VSAErrors.solpp";
+import "./VSAUtils.solpp";
+
+contract VSA is IVSA {
+    mapping(uint256 => string) internal _names;
+
+    mapping(uint256 => string) internal _symbols;
+
+    mapping(uint256 => uint256) internal _decimalCounts;
+
+    mapping(uint256 => uint256) internal _totalSupplies;
+
+    mapping(uint256 => address) internal _owners;
+
+    mapping(uint256 => mapping(address => uint256)) internal _balances;
+
+    mapping(uint256 => mapping(address => mapping(address => uint256))) internal _allowances;
+
+    mapping(address => mapping(address => bool)) internal _operatorApprovals;
+
+    function name(uint256 id) offchain view virtual override returns (string memory) {
+        return _names[id];
+    }
+
+    function nameAsync(uint256 id) public view virtual override async returns (string memory) {
+        return _names[id];
+    }
+
+    function symbol(uint256 id) offchain view virtual override returns (string memory) {
+        return _symbols[id];
+    }
+
+    function symbolAsync(uint256 id) public view virtual override async returns (string memory) {
+        return _symbols[id];
+    }
+
+    function decimals(uint256 id) offchain view virtual override returns (uint256) {
+        return _decimalCounts[id];
+    }
+
+    function decimalsAsync(uint256 id) public view virtual override async returns (uint256) {
+        return _decimalCounts[id];
+    }
+
+    function totalSupply(uint256 id) offchain view virtual override returns (uint256) {
+        return _totalSupplies[id];
+    }
+
+    function totalSupplyAsync(uint256 id) public view virtual override async returns (uint256) {
+        return _totalSupplies[id];
+    }
+
+    function ownerOf(uint256 id) offchain view virtual override returns (address) {
+        return _owners[id];
+    }
+
+    function ownerOfAsync(uint256 id) public view virtual override async returns (address) {
+        return _owners[id];
+    }
+
+    function createToken(
+        address owner,
+        uint256 id,
+        string memory name_,
+        string memory symbol_,
+        uint256 decimals_
+    ) public virtual override async {
+        require(owner != address(0), VSAErrors.zero_address);
+        require(_owners[id] == address(0), VSAErrors.duplicate_token);
+
+        _owners[id] = owner;
+        _names[id] = name_;
+        _symbols[id] = symbol_;
+        _decimalCounts[id] = decimals_;
+        _totalSupplies[id] = 0;
+    }
+
+    function balanceOf(
+        address account, uint256 id
+    ) offchain view virtual override returns (uint256) {
+        require(account != address(0), VSAErrors.zero_address);
+        return _balances[id][account];
+    }
+
+    function balanceOfAsync(
+        address account, uint256 id
+    ) public view virtual override async returns (uint256) {
+        require(account != address(0), VSAErrors.zero_address);
+        return _balances[id][account];
+    }
+
+    function balanceOfBatch(
+        address[] memory accounts,
+        uint256[] memory ids
+    ) offchain view virtual override returns (uint256[] memory) {
+        _balanceOfBatch(accounts, ids);
+    }
+
+    function balanceOfBatchAsync(
+        address[] memory accounts,
+        uint256[] memory ids
+    ) public view virtual override async returns (uint256[] memory) {
+        _balanceOfBatch(accounts, ids);
+    }
+
+    function allowance(
+        address account, address operator, uint256 id
+    ) offchain view virtual override returns (uint256) {
+        return _allowances[id][account][operator];
+    }
+
+    function allowanceAsync(
+        address account, address operator, uint256 id
+    ) public view virtual override async returns (uint256) {
+        return _allowances[id][account][operator];
+    }
+
+    function approve(address operator, uint256 id, uint256 amount) public virtual override async {
+        require(operator != address(0), VSAErrors.zero_address);
+        require(operator != msg.sender, VSAErrors.approval_caller);
+
+        _allowances[id][msg.sender][operator] = amount;
+
+        emit Approval(msg.sender, operator, id, amount);
+    }
+
+    function isApprovedForAll(
+        address account, address operator
+    ) offchain view virtual override returns (bool) {
+        return _isApprovedForAll(account, operator);
+    }
+
+    function isApprovedForAllAsync(
+        address account, address operator
+    ) public view virtual override async returns (bool) {
+        return _isApprovedForAll(account, operator);
+    }
+
+    function approveForAll(address operator, bool approved) public virtual override async {
+        require(operator != msg.sender, VSAErrors.approval_caller);
+
+        _operatorApprovals[msg.sender][operator] = approved;
+    }
+
+    function transfer(
+        address to,
+        uint256 id,
+        uint256 amount
+    ) public virtual override async {
+        await transferFrom(msg.sender, to, id, amount);
+    }
+
+    function safeTransfer(
+        address to,
+        uint256 id,
+        uint256 amount
+    ) public virtual override async {
+        await safeTransferFrom(msg.sender, to, id, amount);
+    }
+
+    function safeTransfer(
+        address to,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) public virtual override async {
+        await safeTransferFrom(msg.sender, to, id, amount, data);
+    }
+
+    function transferBatch(
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) public virtual override async {
+        await transferFromBatch(msg.sender, to, ids, amounts);
+    }
+
+    function safeTransferBatch(
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) public virtual override async {
+        await safeTransferFromBatch(msg.sender, to, ids, amounts);
+    }
+
+    function safeTransferBatch(
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) public virtual override async {
+        await safeTransferFromBatch(msg.sender, to, ids, amounts, data);
+    }
+
+    function transferFrom(
+        address from,
+        address to,
+        uint256 id,
+        uint256 amount
+    ) public virtual override async {
+        require(to != address(0), VSAErrors.zero_address);
+        require(_isOperator(from), VSAErrors.invalid_operator);
+
+        address operator = msg.sender;
+
+        _beforeTransfer(operator, from, to, VSAUtils.singleton(id), VSAUtils.singleton(amount));
+
+        _transfer(from, to, id, amount);
+
+        emit TransferSingle(operator, from, to, id, amount);
+
+        _afterTransfer(operator, from, to, VSAUtils.singleton(id), VSAUtils.singleton(amount));
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 id,
+        uint256 amount
+    ) public virtual override async {
+        await safeTransferFrom(from, to, id, amount, "");
+    }
+
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) public virtual override async {
+        _safeTransferCheck(msg.sender, from, to, id, amount, data);
+        await transferFrom(from, to, id, amount);
+    }
+
+    function transferFromBatch(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) public virtual override async {
+        require(ids.length == amounts.length, VSAErrors.array_length_mismatch);
+        require(to != address(0), VSAErrors.zero_address);
+        require(_isOperator(from), VSAErrors.invalid_operator);
+
+        address operator = msg.sender;
+
+        _beforeTransfer(operator, from, to, ids, amounts);
+
+        for (uint i = 0; i < ids.length; i++) {
+            uint256 id = ids[i];
+            uint256 amount = amounts[i];
+
+            _transfer(from, to, id, amount);
+        }
+
+        emit TransferBatch(operator, from, to, ids, amounts);
+
+        _afterTransfer(operator, from, to, ids, amounts);
+    }
+
+    function safeTransferFromBatch(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) public virtual override async {
+        await safeTransferFromBatch(from, to, ids, amounts, "");
+    }
+
+    function safeTransferFromBatch(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) public virtual override async {
+        _safeTransferCheckBatch(msg.sender, from, to, ids, amounts, data);
+        await transferFromBatch(from, to, ids, amounts);
+    }
+
+    function mint(address to, uint256 id, uint256 amount) public virtual override async {
+        require(msg.sender == _owners[id], VSAErrors.incorrect_owner);
+        require(to != address(0), VSAErrors.zero_address);
+
+        address operator = msg.sender;
+
+        _beforeTransfer(operator, address(0), to, VSAUtils.singleton(id), VSAUtils.singleton(amount));
+
+        _mint(to, id, amount);
+
+        emit TransferSingle(operator, address(0), to, id, amount);
+
+        _afterTransfer(operator, address(0), to, VSAUtils.singleton(id), VSAUtils.singleton(amount));
+    }
+
+    function safeMint(address to, uint256 id, uint256 amount) public virtual override async {
+        await safeMint(to, id, amount, "");
+    }
+
+    function safeMint(
+        address to,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) public virtual override async {
+        _safeTransferCheck(msg.sender, address(0), to, id, amount, data);
+
+        await mint(to, id, amount);
+    }
+
+    function mintBatch(
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) public virtual override async {
+        require(ids.length == amounts.length, VSAErrors.array_length_mismatch);
+        require(to != address(0), VSAErrors.zero_address);
+
+        address operator = msg.sender;
+
+        _beforeTransfer(operator, address(0), to, ids, amounts);
+
+        for (uint i = 0; i < ids.length; i++) {
+            uint256 id = ids[i];
+            uint256 amount = amounts[i];
+
+            require(msg.sender == _owners[id], VSAErrors.incorrect_owner);
+
+            _mint(to, id, amount);
+        }
+
+        emit TransferBatch(operator, address(0), to, ids, amounts);
+
+        _afterTransfer(operator, address(0), to, ids, amounts);
+    }
+
+    function safeMintBatch(
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) public virtual override async {
+        await safeMintBatch(to, ids, amounts, "");
+    }
+
+    function safeMintBatch(
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) public virtual override async {
+        _safeTransferCheckBatch(msg.sender, address(0), to, ids, amounts, data);
+
+        await mintBatch(to, ids, amounts);
+    }
+
+    function burn(address from, uint256 id, uint256 amount) public virtual override async {
+        require(_isOperator(from), VSAErrors.invalid_operator);
+
+        address operator = msg.sender;
+
+        _beforeTransfer(operator, from, address(0), VSAUtils.singleton(id), VSAUtils.singleton(amount));
+
+        _burn(from, id, amount);
+
+        emit TransferSingle(operator, from, address(0), id, amount);
+
+        _afterTransfer(operator, from, address(0), VSAUtils.singleton(id), VSAUtils.singleton(amount));
+    }
+
+    function burnBatch(address from, uint256[] memory ids, uint256[] memory amounts) public virtual override async {
+        require(ids.length == amounts.length, VSAErrors.array_length_mismatch);
+        require(_isOperator(from), VSAErrors.invalid_operator);
+
+        address operator = msg.sender;
+
+        _beforeTransfer(operator, from, address(0), ids, amounts);
+
+        for (uint i = 0; i < ids.length; i++) {
+            uint256 id = ids[i];
+            uint256 amount = amounts[i];
+
+            _burn(from, id, amount);
+        }
+
+        emit TransferBatch(operator, from, address(0), ids, amounts);
+
+        _afterTransfer(operator, from, address(0), ids, amounts);
+    }
+
+    function _isApprovedForAll(
+        address account, address operator
+    ) internal view virtual returns (bool) {
+        return _operatorApprovals[account][operator];
+    }
+
+    function _isOperator(address account) internal view virtual returns (bool) {
+        return msg.sender == account || _isApprovedForAll(account, msg.sender);
+    }
+
+    function _balanceOfBatch(
+        address[] memory accounts,
+        uint256[] memory ids
+    ) internal view virtual returns (uint256[] memory) {
+        require(accounts.length == accounts.length, VSAErrors.array_length_mismatch);
+
+        uint256[] memory batchBalances = new uint256[](accounts.length);
+
+        for (uint i = 0; i < accounts.length; i++) {
+            address account = accounts[i];
+            uint256 id = ids[i];
+            batchBalances[i] = _balances[id][account];
+        }
+
+        return batchBalances;
+    }
+
+    function _transfer(address from, address to, uint256 id, uint256 amount) internal virtual {
+        uint256 bal = _balances[id][from];
+        require(bal >= amount, VSAErrors.insufficient_balance);
+        unchecked {
+            _balances[id][from] = bal - amount;
+        }
+        _balances[id][to] += amount;
+    }
+
+    function _mint(address to, uint256 id, uint256 amount) internal virtual {
+        _balances[id][to] += amount;
+        _totalSupplies[id] += amount;
+    }
+
+    function _burn(address from, uint256 id, uint256 amount) internal virtual {
+        uint256 bal = _balances[id][from];
+        require(bal >= amount, VSAErrors.insufficient_balance);
+        unchecked {
+            _balances[id][from] = bal - amount;
+        }
+        _totalSupplies[id] -= amount;
+    }
+
+    function _safeTransferCheck(
+        address operator,
+        address from,
+        address to,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
+    ) internal virtual {
+        /* This is not working
+        if (VSAUtils.isContract(to)) {
+            try IVSAReceiver(to).onVSAReceived(
+                operator, from, id, amount, data
+            ) returns (bytes4 response) {
+                if (response != IVSAReceiver.onVSAReceived.selector) {
+                    revert(VSAErrors.reject_tokens);
+                }
+            } catch Error(string memory reason) {
+                revert(reason);
+            } catch {
+                revert(VSAErrors.unsupported_contract);
+            }
+        }
+        */
+    }
+
+    function _safeTransferCheckBatch(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) internal virtual {
+        /* This is not working
+        if (VSAUtils.isContract(to)) {
+            try IVSAReceiver(to).onVSABatchReceived(
+                operator, from, ids, amounts, data
+            ) returns (bytes4 response) {
+                if (response != IVSAReceiver.onVSABatchReceived.selector) {
+                    revert(VSAErrors.reject_tokens);
+                }
+            } catch Error(string memory reason) {
+                revert(reason);
+            } catch {
+                revert(VSAErrors.unsupported_contract);
+            }
+        }
+        */
+    }
+
+    function _beforeTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) internal virtual {}
+
+    function _afterTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) internal virtual {}
+}

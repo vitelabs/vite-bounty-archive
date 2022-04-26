@@ -1,0 +1,132 @@
+pragma soliditypp ^0.4.3;
+
+import "./VEP721.solpp";
+import "./IVEP721Metadata.solpp";
+
+contract VEP721Metadata is VEP721, IVEP721Metadata {
+    // Token name
+    string private _name;
+
+    // Token symbol
+    string private _symbol;
+
+    // Base URI
+    string private _baseURI;
+
+    // Optional mapping for token URIs
+    mapping(uint256 => string) private _tokenURIs;
+
+    message sendBaseURI(string);
+
+    /**
+     * @dev Constructor function
+     */
+    constructor (string memory name, string memory symbol) public {
+        _name = name;
+        _symbol = symbol;
+    }
+
+    /**
+     * @dev Gets the token name.
+     * @return string representing the token name
+     */
+    getter name() returns (string memory) {
+        return _name;
+    }
+
+    /**
+     * @dev Gets the token symbol.
+     * @return string representing the token symbol
+     */
+    getter symbol() returns (string memory) {
+        return _symbol;
+    }
+
+    /**
+    * @dev Returns the base URI set via {_setBaseURI}. This will be
+    * automatically added as a preffix in {tokenURI} to each token's URI, when
+    * they are non-empty.
+    */
+    getter baseURI() returns (string memory) {
+        return _baseURI;
+    }
+
+    /**
+     * @dev Returns the URI for a given token ID. May return an empty string.
+     *
+     * If the token's URI is non-empty and a base URI was set (via
+     * {_setBaseURI}), it will be added to the token ID's URI as a prefix.
+     */
+    getter tokenURI(uint256 token) returns (string memory) {
+        return _tokenURI(token);
+    }
+
+    function _tokenURI(uint256 token) internal view returns (string memory) {
+        string memory tokenURI_ = _tokenURIs[token];
+
+        // Even if there is a base URI, it is only appended to non-empty token-specific URIs
+        if (bytes(tokenURI_).length == 0) {
+            return "";
+        } else {
+            // abi.encodePacked is being used to concatenate strings
+            return string(abi.encodePacked(_baseURI, tokenURI_));
+        }
+    }
+
+    onMessage requestName() {
+        send(msg.sender, sendName(_name));
+    }
+
+    onMessage requestSymbol() {
+        send(msg.sender, sendSymbol(_symbol));
+    }
+
+    onMessage requestTokenURI(uint256 token) {
+        require(_exists(token), "VEP721Metadata: URI query for nonexistent token");
+
+        string memory uri = _tokenURI(token);
+
+        send(msg.sender, sendTokenURI(uri));
+    }
+
+    onMessage requestBaseURI() {
+        send(msg.sender, sendBaseURI(_baseURI));
+    }
+
+    /**
+     * @dev Internal function to set the token URI for a given token.
+     *
+     * Reverts if the token ID does not exist.
+     *
+     * TIP: if all token IDs share a prefix (e.g. if your URIs look like
+     * `http://api.myproject.com/token/<id>`), use {_setBaseURI} to store
+     * it and save gas.
+     */
+    function _setTokenURI(uint256 token, string memory tokenURI_) internal {
+        require(_exists(token), "VEP721Metadata: URI set of nonexistent token");
+
+        _tokenURIs[token] = tokenURI_;
+    }
+
+    /**
+     * @dev Internal function to set the base URI for all token IDs. It is
+     * automatically added as a prefix to the value returned in {tokenURI}.
+     */
+    function _setBaseURI(string memory baseURI_) internal {
+        _baseURI = baseURI_;
+    }
+
+    /**
+     * @dev Internal function to burn a specific token.
+     * Reverts if the token does not exist.
+     * @param token uint256 ID of the token being burned by the msg.sender
+     */
+    function _burn(uint256 token) internal {
+        super._burn(token);
+
+        // Clear metadata (if any)
+        if (bytes(_tokenURIs[token]).length != 0) {
+            delete _tokenURIs[token];
+        }
+    }
+}

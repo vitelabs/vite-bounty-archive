@@ -1,0 +1,87 @@
+// SPDX-License-Identifier: MIT
+// Vite Standard Assets v0.1.0 (VSA-20 fungible token standard)
+
+pragma soliditypp >=0.7.0 <0.9.0;
+
+import "./IVSA20.solpp";
+import "./VSA.solpp";
+
+contract VSA20 is IVSA20 {
+    VSA internal _vsa;
+
+    uint256 internal _id;
+
+    constructor(
+        address vsa_,
+        uint256 id_,
+        string memory name_,
+        string memory symbol_,
+        uint256 decimals_
+    ) {
+    	if (vsa_ == address(0)) {
+    		_vsa = new VSA();
+    	} else {
+    		_vsa = VSA(vsa_);
+		}
+
+        _id = id_;
+
+        _vsa.createToken(msg.sender, id_, name_, symbol_, decimals_);
+    }
+
+    function name() offchain view virtual override returns (string memory) {
+        return await _vsa.nameAsync(_id);
+    }
+
+    function symbol() offchain view virtual override returns (string memory) {
+        return await _vsa.symbolAsync(_id);
+    }
+
+    function decimals() offchain view virtual override returns (uint256) {
+        return await _vsa.decimalsAsync(_id);
+    }
+
+    function totalSupply() offchain view virtual override returns (uint256) {
+        return await _vsa.totalSupplyAsync(_id);
+    }
+
+    function balanceOf(address account) offchain view virtual override returns (uint256) {
+        return await _vsa.balanceOfAsync(account, _id);
+    }
+
+    function allowance(address owner, address spender) offchain view virtual override returns (uint256) {
+        return await _vsa.allowanceAsync(owner, spender, _id);
+    }
+
+    function approve(address spender, uint256 amount) public virtual override async {
+        await _vsa.approve(spender, _id, amount);
+
+        emit Approval(msg.sender, spender, amount);
+    }
+
+    function transfer(address recipient, uint256 amount) public virtual override async {
+        await transferFrom(msg.sender, recipient, amount);
+    }
+
+    function transferFrom(
+        address sender,
+        address recipient,
+        uint256 amount
+    ) public virtual override async {
+        await _vsa.safeTransferFrom(sender, recipient, _id, amount);
+
+        emit Transfer(sender, recipient, amount);
+    }
+
+    function mint(address recipient, uint256 amount) public virtual override async {
+        await _vsa.safeMint(recipient, _id, amount);
+
+        emit Transfer(address(0), recipient, amount);
+    }
+
+    function burn(address sender, uint256 amount) public virtual override async {
+        await _vsa.burn(sender, _id, amount);
+
+        emit Transfer(sender, address(0), amount);
+    }
+}

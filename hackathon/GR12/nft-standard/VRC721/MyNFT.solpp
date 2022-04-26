@@ -1,0 +1,47 @@
+pragma soliditypp ^0.4.3;
+
+import "./VRC721.solpp";
+
+contract MyNFT is VRC721 {
+    uint totalSupply = 0;
+    address _owner;
+
+    uint MINT_PRICE = 1;
+    uint MAX_SUPPLY = 1000;
+
+    uint public SALE_ENABLED = 0; // booleans are broke apparently
+    constructor () VRC721("MyNFT", "MNFT") public {
+        _owner = msg.sender;
+    }
+
+    onMessage toggleSale () {
+        require(msg.sender == _owner, "Only owner can call this function.");
+        SALE_ENABLED = SALE_ENABLED == 1 ? 0 : 1;
+    }
+
+    onMessage mint (uint count) payable {
+        require(SALE_ENABLED == 1, "Sale is not enabled.");
+        require(totalSupply + count < MAX_SUPPLY, "Max supply reached");
+
+        for (uint256 i = 0; i < count; i++) {
+            totalSupply++;
+            _safeMint(msg.sender, totalSupply);
+        }
+    }
+
+    function _baseURI () internal view returns (string memory) {
+        return "https://mynft.com/api/";
+    }
+
+    getter mintPrice () returns (uint) {
+        return MINT_PRICE;
+    }
+
+    getter saleEnabled () returns (uint) {
+        return SALE_ENABLED;
+    }
+
+    getter owner () returns (address) {
+        return _owner;
+    }
+}

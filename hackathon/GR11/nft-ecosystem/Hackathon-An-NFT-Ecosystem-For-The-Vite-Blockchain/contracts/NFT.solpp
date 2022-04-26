@@ -1,0 +1,245 @@
+pragma soliditypp ^0.4.3;
+
+contract NFToken {
+     // Token name
+    string _name;
+
+    // Token symbol
+    string _symbol;
+
+    // The next ID of the token to be minted
+    uint256 nextTokenId;
+
+    // Total number of tokens
+    uint256 totalSupply;
+
+    // Array of existed tokens
+    uint256[] tokenIds;
+
+    // Mapping from token ID to owner address
+    mapping(uint256 => address) _owners;
+
+    // Mapping from owner address to token count
+    mapping (address => uint256) _balances;
+
+    // Mapping from token ID to approved address
+    mapping (uint256 => address)  _tokenApprovals;
+
+    // Mapping from owner to operator approvals
+    mapping(address => mapping(address => bool)) _operatorApprovals;
+
+    // Mapping for token URIs
+    mapping(uint256 => bytes32)  _tokenURIs;
+
+    //events
+    event Transfer(
+        address indexed _from,
+        address indexed _to,
+        uint256 indexed _tokenId,
+        string log
+    );
+
+    event Approval(
+        address indexed _from,
+        address indexed _to,
+        uint256 indexed _tokenId,
+        string log
+    );
+
+     event ApprovalForAll(
+        address indexed _from,
+        address indexed _to,
+        bool _approved
+    );
+
+    message replyBalanceOf(uint);
+    message replyOwnerOf(address);
+    message replyApproved(address);
+    message replyApprovedForAll(bool);
+
+    constructor(string memory name, string memory symbol) public payable {
+        _name = name;
+        _symbol = symbol;
+    }
+
+    // Mints `nextTokenId` and transfers it to `msg.sender`
+    onMessage mint(bytes32 _metadataURI) {
+            require(msg.sender != address(0));
+            _addNFToken(msg.sender, nextTokenId);
+            _setTokenURI(nextTokenId, _metadataURI);
+            tokenIds.push(nextTokenId);  
+            totalSupply++;
+            emit Transfer(
+                address(0), 
+                msg.sender, 
+                nextTokenId, 
+                "Token has been minted!");
+            nextTokenId++;
+     }
+
+    onMessage burn(uint256 _tokenId) {
+        require(_exists(_tokenId));
+        require(_onlyOwner(msg.sender, _tokenId));
+        _tokenApprovals[_tokenId] = address(0);
+        delete _tokenURIs[_tokenId];
+        _removeNFToken(msg.sender, _tokenId);
+        
+        for( uint256 i = 0; i < tokenIds.length; i++) {
+            if(tokenIds[i] == _tokenId) {
+                tokenIds[i] = tokenIds[tokenIds.length-1];
+                tokenIds.pop();
+                break;
+            }
+       }
+        totalSupply--;
+        emit Transfer(
+            msg.sender,
+            address(0), 
+            _tokenId, 
+            "Token has been burned!");
+    }
+
+    // Sends the number of tokens in owner's account
+    onMessage balanceOf(address _owner)  {
+        require(_owner != address(0));
+        send(msg.sender, replyBalanceOf(_balances[_owner]));
+    }
+
+    // Sends the owner of the tokenId token
+    onMessage ownerOf(uint256 _tokenId) {
+        require(_exists(_tokenId));
+        send(msg.sender, replyOwnerOf(_owners[_tokenId]));
+    }
+
+    // Gives permission to transfer tokenId token to another account. 
+    // Only a single account can be approved at a time
+    // Approving zero address clears the approval 
+    onMessage approve(address _to, uint256 _tokenId) {
+        require(_onlyOwner(msg.sender, _tokenId));
+        address owner = _owners[_tokenId];
+        require(_to != owner);
+        _approve(_to, _tokenId);
+    }
+
+    // Sends the account approved for tokenId token.
+    onMessage getApproved(uint256 _tokenId) {
+        require(_exists(_tokenId));
+        send(msg.sender, replyApproved(_tokenApprovals[_tokenId]));
+    }
+
+    // Approve or remove operator as an operator for the caller 
+    // Operators can call transferFrom or safeTransferFrom for any token owned by the caller.
+    onMessage setApprovalForAll(address _operator, bool _approved) {
+        require(_operator != msg.sender);
+        _operatorApprovals[msg.sender][_operator] = _approved;
+        emit ApprovalForAll(msg.sender, _operator, _approved);
+    }
+
+     // Sends if the operator is allowed to manage all of the assets of owner.
+    onMessage isApprovedForAll(address _owner, address _operator) {
+        send(msg.sender, replyApprovedForAll(_operatorApprovals[_owner][_operator]));
+    }
+
+    // Transfers `tokenId` token
+    onMessage transferFrom(address _from, address _to, uint _tokenId) {
+        _transfer(_from, _to, _tokenId);
+        emit Transfer(
+            _from, 
+            _to, 
+            _tokenId,
+            "Token has been transferred!");
+    }
+
+    //functions
+    function _addNFToken(address _to, uint256 _tokenId) internal {
+        _owners[_tokenId] = _to;
+        _balances[_to] ++;
+    }
+
+    // Set `_tokenURI` of `_tokenId`
+    function _setTokenURI(uint256 _tokenId, bytes32 _tokenURI) internal {
+        require(_exists(_tokenId));
+        _tokenURIs[_tokenId] = _tokenURI;
+    }
+
+    function _removeNFToken(address _from, uint256 _tokenId) internal {
+        _balances[_from] --;
+        delete _owners[_tokenId];
+    }
+
+    // Approve '_to' to operate on 'tokenId'
+    // Emits  an Approval event
+    function _approve(address _to, uint256 _tokenId) internal {
+        _tokenApprovals[_tokenId] = _to;
+        emit Approval(_owners[_tokenId], _to, _tokenId, "Token has been approved!");
+    }
+
+    function _transfer(address _from, address _to, uint256 _tokenId) internal {
+        require(_onlyOwner(_from, _tokenId));
+        require(_to != address(0));
+        require(_canTransfer(msg.sender, _from, _tokenId));
+        _tokenApprovals[_tokenId] = address(0);
+        _removeNFToken(_from, _tokenId);
+        _addNFToken(_to, _tokenId);
+    }
+
+    //  Returns whether `_tokenId` exists.
+    function _exists(uint256 _tokenId) internal view returns (bool) {
+        return _owners[_tokenId] != address(0);
+    }
+
+    //  Returns whether `_from` is owner of _tokenId.
+    function _onlyOwner(address _from, uint256 _tokenId) internal view  returns (bool) {
+        return _owners[_tokenId] == _from;
+    }
+
+    // Returns whether `_caller` can transfer the tokens
+    function _canTransfer(address _caller, address _from, uint256 _tokenId) internal view returns (bool) {
+        return _operatorApprovals[_from][_caller] || (_tokenApprovals[_tokenId] == _caller) || (_caller == _from);
+    }
+
+    //Getter functions
+
+    // Returns the number of tokens in owner's account.
+    getter getBalance(address _owner) returns(uint){
+        return  _balances[_owner];
+    }
+
+    // Returns the owner of the tokenId token.
+    getter getOwnerOf(uint256 _tokenId) returns(address){
+        return _owners[_tokenId];
+    }
+    
+    // Returns URI of `_tokenId`
+    getter getTokenURI(uint256 _tokenId) returns(bytes32){
+        return _tokenURIs[_tokenId];
+    }
+
+    getter getTokensOf(address _owner) returns(uint256[] memory) {
+        uint256[] memory _tokenIds = new uint256[](_balances[_owner]) ;
+        uint256 j = 0;
+        for(uint256 i = 0; i < nextTokenId; i++) {
+            if(_owners[i] == _owner) {
+                _tokenIds[j] = i;
+                j++;
+            }
+        }
+        return _tokenIds;
+    }
+
+    getter getTotalNumberOfTokens() returns(uint256) {
+        return totalSupply;
+    }
+
+    getter isCallerApproved(address _caller, uint256 _tokenId) returns(bool) {
+        return _tokenApprovals[_tokenId] == _caller;
+    }
+
+    getter getApprovedAddress(uint256 _tokenId) returns(address) {
+        return _tokenApprovals[_tokenId];
+    }
+    
+    getter getAllTokens() returns(uint256[] memory) {
+        return tokenIds;
+    }
+ }

@@ -1,0 +1,68 @@
+pragma soliditypp ^0.4.3;
+
+contract Cofeecontract {
+    string public constant name = "BuyCoffee";
+    string public constant symbol = "CO";
+
+    event CupCreated(address owner, uint256 cupConfiguration, string creator, uint256 amount);
+
+struct CoffeeCup{
+        address owner;
+        uint256 configuration;
+        string creator;
+        uint256 mintTime;
+        uint32 amount;
+        address recipient;
+    }
+
+CoffeeCup[] cups;
+
+mapping(uint256 => address) public CupIndexToOwner;
+mapping(address => uint256) ownershipTokenCount;
+
+mapping(uint256 => address) public CupIndexToApproved;
+mapping(address => mapping(address => bool)) private _operatorApprovals;
+
+
+function _createCup(
+        address recipient_,
+        uint32 amount_,
+        string memory creator_,
+        uint256 configuration_
+    ) private returns (uint256){
+        CoffeeCup memory _coffeeCup = CoffeeCup({
+        owner: msg.sender,
+        creator: creator_,
+        mintTime: uint64(now),
+        configuration: configuration_,
+        amount: amount_,
+        recipient: recipient_
+        });
+        uint256 newCupId = cups.push(_coffeeCup) - 1;
+        ownershipTokenCount[msg.sender]++;
+        CupIndexToOwner[newCupId] = msg.sender;
+        emit CupCreated(msg.sender, configuration_, creator_, amount_);
+        return newCupId;
+    }
+
+
+    function getCup(uint256 _id) public view returns(
+        uint256 configuration,
+        uint256 mintTime,
+        uint32 amount
+    ){
+        CoffeeCup storage cup = cups[_id];
+        configuration = uint256(cup.configuration);
+        amount = uint32(cup.amount);
+        mintTime = uint256(cup.mintTime);
+    }
+
+    // onMessage set(uint x) {
+    //     storedData = x;
+    // }
+
+    // define an off-chain method to access storedData
+    // getter get() returns(uint) {
+    //     return storedData;
+    // }
+}
