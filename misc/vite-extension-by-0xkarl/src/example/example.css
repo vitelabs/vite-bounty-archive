@@ -1,0 +1,66 @@
+@font-face {
+  font-family: Metropolis;
+  src: url(https://raw.githubusercontent.com/lovincyrus/Metropolis/master/Fonts/Webfonts/WOFF2/Metropolis-ExtraLight.woff2)
+    format('woff2');
+  font-weight: 200;
+}
+
+@font-face {
+  font-family: Metropolis;
+  src: url(https://raw.githubusercontent.com/lovincyrus/Metropolis/master/Fonts/Webfonts/WOFF2/Metropolis-Regular.woff2)
+    format('woff2');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: Metropolis;
+  src: url(https://raw.githubusercontent.com/lovincyrus/Metropolis/master/Fonts/Webfonts/WOFF2/Metropolis-SemiBold.woff2)
+    format('woff2');
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: Metropolis;
+  src: url(https://raw.githubusercontent.com/lovincyrus/Metropolis/master/Fonts/Webfonts/WOFF2/Metropolis-Bold.woff2)
+    format('woff2');
+  font-weight: 700;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Metropolis, Helvetica, Arial, sans-serif;
+  padding: 20px;
+}
+
+button,
+.button {
+  background-color: #006fe9;
+  border: 0.1rem solid #006fe9;
+  border-radius: 3px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  letter-spacing: 0.1rem;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+button:hover,
+.button:hover {
+  opacity: 0.8;
+}
+
+input {
+  background: #eee;
+  padding: 2px 5px;
+}
+
+form > div {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+}

@@ -1,0 +1,10 @@
+- mnemonics are encrypted with `browser-passworder`
+	- https://github.com/0xkarl/vite-extension/blob/main/src/background/background-popup.js#L51
+	- https://www.npmjs.com/package/browser-passworder
+- documentation for the injected code looks fine
+	- https://0xkarl.github.io/vite-extension/features/injected-script.html#properties
+- Not a fan of how there are so many functions are decoupled from the JSX and put into `background-popup.js`
+- `cache.js`
+- Related:
+	- How to securely store an API token in a Chrome Extension?
+		- https://www.reddit.com/r/javascript/comments/8txe2q/how_to_securely_store_an_api_token_in_a_chrome/

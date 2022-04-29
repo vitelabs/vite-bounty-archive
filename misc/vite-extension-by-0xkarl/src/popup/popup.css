@@ -1,0 +1,94 @@
+@font-face {
+  font-family: Metropolis;
+  src: url('fonts/WOFF2/Metropolis-ExtraLight.woff2') format('woff2');
+  font-weight: 200;
+}
+
+@font-face {
+  font-family: Metropolis;
+  src: url('fonts/WOFF2/Metropolis-Regular.woff2') format('woff2');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: Metropolis;
+  src: url('fonts/WOFF2/Metropolis-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: Metropolis;
+  src: url('fonts/WOFF2/Metropolis-Bold.woff2') format('woff2');
+  font-weight: 700;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  letter-spacing: 0.45px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body.popup {
+  height: 600px;
+  width: 360px;
+}
+
+body:not(.popup) {
+  width: 600px;
+  margin: 0 auto !important;
+}
+
+.hidden {
+  display: none;
+}
+
+.text-align {
+  text-align: left;
+}
+
+.text-align {
+  text-align: right;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.line-through {
+  text-decoration: line-through;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.text-blue,
+.text-primary {
+  color: #006fe9;
+}
+
+.text-red {
+  color: #e42f34;
+}
+
+.text-green {
+  color: #00c9a7;
+}
