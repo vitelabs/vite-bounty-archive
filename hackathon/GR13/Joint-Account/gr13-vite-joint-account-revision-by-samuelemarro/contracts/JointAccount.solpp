@@ -4,7 +4,7 @@
 
 pragma soliditypp ^0.8.0;
 
-contract JointAccount {
+contract JointAccounts {
     event AccountCreated (
         uint256 indexed accountId,
         address indexed creator
@@ -86,7 +86,7 @@ contract JointAccount {
         bool active;
     }
 
-    struct JointSubAccount {
+    struct JointAccount {
         address[] members;
         uint256 approvalThreshold;
         bool isStatic;
@@ -101,7 +101,7 @@ contract JointAccount {
     // accountId => (tokenId => amount) mapping
     mapping(uint256 => mapping(vitetoken => uint256)) balances;
     
-    JointSubAccount[] private accounts;
+    JointAccount[] private accounts;
 
     /// @notice Creates a new joint account
     ///
@@ -115,7 +115,7 @@ contract JointAccount {
         require(_approvalThreshold <= _members.length, "Approval threshold must be <= the number of members");
 
         // Initialize an empty sub-account
-        JointSubAccount storage newAccount = accounts.push();
+        JointAccount storage newAccount = accounts.push();
         newAccount.members = _members;
         newAccount.approvalThreshold = _approvalThreshold;
         newAccount.isStatic = _isStatic;

@@ -62,7 +62,7 @@ async function receiveIssuedTokens() {
     return new Promise(promiseFunction);
 }
 
-describe('test JointAccount', function () {
+describe('test JointAccounts', function () {
     before(async function() {
         provider = vite.localProvider();
         deployer = vite.newAccount(config.networks.local.mnemonic, 0);
@@ -110,9 +110,9 @@ describe('test JointAccount', function () {
         await charlie.receiveAll();
 
         // compile
-        const compiledContracts = await vite.compile('JointAccount.solpp',);
-        expect(compiledContracts).to.have.property('JointAccount');
-        contract = compiledContracts.JointAccount;
+        const compiledContracts = await vite.compile('JointAccounts.solpp',);
+        expect(compiledContracts).to.have.property('JointAccounts');
+        contract = compiledContracts.JointAccounts;
         // deploy
         contract.setDeployer(deployer).setProvider(provider);
         await contract.deploy({responseLatency: 1});
