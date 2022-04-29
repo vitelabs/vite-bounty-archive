@@ -114,15 +114,18 @@ contract JointAccount {
         require(_approvalThreshold > 0, "Approval threshold must be > 0");
         require(_approvalThreshold <= _members.length, "Approval threshold must be <= the number of members");
 
-        accounts.push();
-        accounts[accounts.length - 1].members = _members;
-        accounts[accounts.length - 1].approvalThreshold = _approvalThreshold;
-        accounts[accounts.length - 1].isStatic = _isStatic;
-        accounts[accounts.length - 1].isMemberOnlyDeposit = _isMemberOnlyDeposit;
+        // Initialize an empty sub-account
+        JointSubAccount storage newAccount = accounts.push();
+        newAccount.members = _members;
+        newAccount.approvalThreshold = _approvalThreshold;
+        newAccount.isStatic = _isStatic;
+        newAccount.isMemberOnlyDeposit = _isMemberOnlyDeposit;
 
-        emit AccountCreated(accounts.length - 1, msg.sender);
+        uint256 accountId = accounts.length - 1;
 
-        return accounts.length - 1;
+        emit AccountCreated(accountId, msg.sender);
+
+        return accountId;
     }
 
     // ===Contract size helpers===
