@@ -14,7 +14,7 @@ The Vite ecosystem needs an automated market maker like Uniswap so that:
 5. Has a component that allows adding/removing liquidity from pools
 
 ## Contract Requirements
-1. Uses Solidity++ 0.8.0
+1. Uses Solidity++ 0.8
 2. Unit tests for all contract functionality using the setup provided by [Vite Express](https://github.com/vitelabs/vite-express)
 3. Takes into account "Frontend Requirements"
 4. Each trading pair maintains separate accounting of deposited tokens/liquidity
