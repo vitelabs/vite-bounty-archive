@@ -1,0 +1,359 @@
+// SPDX-License-Identifier: MIT
+pragma soliditypp ^0.8.0;
+
+import "./IterableMapping.solpp";
+
+contract TokenDripVault {
+    using IterableMapping for IterableMapping.Map;
+
+    event CreateVault(
+        bytes32 indexed _id,
+        address indexed _owner,
+        uint256 _frequency,
+        vitetoken indexed _token
+    );
+    event FundVault(
+        bytes32 indexed _id,
+        vitetoken indexed _token,
+        address _from,
+        uint256 _amount
+    );
+    event Withdraw(bytes32 indexed _id, vitetoken indexed _token, address indexed _beneficiary, address _to, uint256 _amount);
+
+    constructor() {}
+
+    struct Vault {
+        address owner;
+        uint256 frequency;
+        uint256 startTime;
+        uint256 tokenAmountPerCycle;
+        vitetoken token;
+        bool ownerCanWithdrawAllFunds;
+        bool settingsLocked;
+        bool withdrawableAmountStacks;
+        bool acceptsAdditionalFunds;
+    }
+
+    // mapping of cycle numbers to withdrawals within cycle per vault
+    mapping(bytes32 => mapping(uint => uint)) private cycleWithdrawals;
+
+    // mapping of vault ids to vault data
+    mapping(bytes32 => uint) private vaultWithdrawals;
+
+
+    mapping(bytes32 => Vault) private vaults;
+    mapping(bytes32 => uint256) private balances;
+    mapping(bytes32 => IterableMapping.Map) private beneficiaries;
+
+    modifier onlySettingsUnlocked(bytes32 _id) {
+        require(!vaults[_id].settingsLocked, "TokenDripVault: Settings locked");
+        _;
+    }
+
+    modifier onlyVaultMember(bytes32 _id) {
+        require(isBeneficiary(_id, msg.sender), "TokenDripVault: Not a beneficiary");
+        _;
+    }
+
+    modifier onlyVaultOwner(bytes32 _id) {
+        require(msg.sender == vaults[_id].owner, "TokenDripVault: Not owner");
+        require(isBeneficiary(_id, msg.sender), "TokenDripVault: No longer a beneficiary");
+        _;
+    }
+
+    function min(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a < b ? a : b;
+    }
+
+
+    // ********** This is for mainnet/testnet **********
+    // ********** Begin **********
+    /* function timestamp() public view returns (uint) {
+        return block.timestamp;
+    } */
+    // ********** End **********
+
+
+    // ********** This is for non-standard network tests **********
+    // ********** Begin **********
+    uint private currentTimeStamp;
+    function setTime(uint time_) public {
+        currentTimeStamp = time_;
+    }
+
+    function advanceTime(uint addition_) public {
+        currentTimeStamp = timestamp() + addition_;
+    }
+
+    function timestamp() public view returns (uint) {
+        return currentTimeStamp;
+    }
+    // ********** End **********
+
+
+    function isBeneficiary(bytes32 _id, address _beneficiary) public view returns (bool) {
+        return beneficiaries[_id].get(_beneficiary) != 0;
+    }
+
+    /// @notice Creates a new vault
+    /// @param frequency The frequency of the drip
+    /// @param tokenAmountPerCycle The amount of tokens to drip per cycle
+    /// @param ownerWithdrawAll Whether the owner can withdraw all funds
+    /// @param acceptAdditionalFunds Whether the vault accepts additional funds
+    /// @param withdrawAmountStacks Whether the vault withdrawable amount stacks
+    /// @param settingsLocked Whether the vault settings are locked
+    /// @return id The id of the vault
+    function createVault(
+        uint256 frequency,
+        uint256 tokenAmountPerCycle,
+        bool ownerWithdrawAll,
+        bool settingsLocked,
+        bool withdrawAmountStacks,
+        bool acceptAdditionalFunds
+    ) external payable returns (bytes32 id) {
+        require(
+            frequency > 0,
+            "TokenDripVault: Frequency must be greater than 0"
+        );
+        require(
+            tokenAmountPerCycle > 0,
+            "TokenDripVault: Token amount per cycle must be greater than 0"
+        );
+
+        id = fromhash();
+        Vault memory vault = Vault({
+            owner: msg.sender,
+            frequency: frequency,
+            startTime: timestamp(),
+            token: msg.token,
+            tokenAmountPerCycle: tokenAmountPerCycle,
+            ownerCanWithdrawAllFunds: ownerWithdrawAll,
+            settingsLocked: settingsLocked,
+            withdrawableAmountStacks: withdrawAmountStacks,
+            acceptsAdditionalFunds: acceptAdditionalFunds
+        });
+        vaults[id] = vault;
+        balances[id] = msg.value;
+        // Add the owner as a beneficiary that can be removed later
+        beneficiaries[id].set(msg.sender, 1);
+
+        emit CreateVault(id, msg.sender, frequency, msg.token);
+    }
+
+    /// @notice Add a beneficiary to a vault
+    /// @param _id The id of the vault
+    /// @param _beneficiary The beneficiary address
+    function addBeneficiary(bytes32 _id, address _beneficiary) external onlyVaultOwner(_id) {
+        if (isBeneficiary(_id, _beneficiary)) return;
+        require(
+            _beneficiary != address(0),
+            "TokenDripVault: Beneficiary cannot be the zero address"
+        );
+
+        beneficiaries[_id].set(_beneficiary, 1);
+    }
+
+    /// @notice Remove a beneficiary from the list of beneficiaries
+    /// @param _id The id of the vault
+    /// @param _beneficiary The address of the beneficiary
+    function removeBeneficiary(bytes32 _id, address _beneficiary) external onlyVaultMember(_id) {
+        require(
+            vaults[_id].owner == msg.sender || msg.sender == _beneficiary,
+            "TokenDripVault: Only owner or the _beneficiary can remove beneficiaries"
+        );
+        require(
+            _beneficiary != address(0),
+            "TokenDripVault: Beneficiary cannot be the zero address"
+        );
+        require(
+            isBeneficiary(_id, _beneficiary),
+            "TokenDripVault: Beneficiary not found"
+        );
+
+        beneficiaries[_id].remove(_beneficiary);
+    }
+
+    /// @notice Withdraw funds from the vault
+    /// @param _id The id of the vault
+    /// @param _amount The amount to withdraw
+    function withdraw(bytes32 _id, uint256 _amount) external onlyVaultMember(_id) {
+        return _withdraw(_id, _amount, msg.sender, msg.sender);
+    }
+
+    /// @notice Withdraw funds from the vault
+    /// @param _id The id of the vault
+    /// @param _amount The amount to withdraw
+    function withdraw(bytes32 _id, uint256 _amount, address _to) external onlyVaultMember(_id) {
+        return _withdraw(_id, _amount, msg.sender, _to);
+    }
+    
+    function _withdraw(bytes32 _id, uint256 _amount, address _from, address _to) internal {
+        require(_amount > 0, "TokenDripVault: Amount must be greater than 0");
+        Vault storage vault = vaults[_id];
+        require(
+            vaultBalance(_id) >= _amount,
+            "TokenDripVault: Insufficient funds"
+        );
+        require(_amount <= withdrawableAmount(_id), "TokenDripVault: Exceeds withdrawable amount");
+
+        balances[_id] -= _amount;
+        vaultWithdrawals[_id] += _amount;
+        cycleWithdrawals[_id][withdrawalCycleNumber(_id)] += _amount;
+
+        emit Withdraw(_id, vault.token, _from, _to, _amount);
+        payable(_to).transfer(vault.token, _amount);
+    }
+
+
+    function withdrawAll(bytes32 _id) external onlyVaultOwner(_id) {
+        Vault storage vault = vaults[_id];
+        require(vault.ownerCanWithdrawAllFunds, "TokenDripVault: Owner cannot withdraw all funds");
+
+        uint amount = vaultBalance(_id);
+        if (amount == 0) return;
+        balances[_id] = 0;
+
+        emit Withdraw(_id, vault.token, msg.sender, msg.sender, amount);
+        payable(msg.sender).transfer(vault.token, amount);
+    }
+
+    /// @notice Add funds to a vault
+    /// @param _id The id of the vault
+    function fund(bytes32 _id) external payable {
+        if (msg.value == 0) return;
+        Vault storage vault = vaults[_id];
+        require(
+            vault.acceptsAdditionalFunds,
+            "TokenDripVault: Vault does not accept additional funds"
+        );
+        require(msg.token == vault.token, "TokenDripVault: Incorrect token");
+
+        balances[_id] += msg.value;
+        emit FundVault(_id, msg.token, msg.sender, msg.value);
+    }
+
+    /// @notice returns the maximum amount of tokens that can be withdrawn from the vault at this moment
+    /// @param _id the id of the vault
+    function withdrawableAmount(bytes32 _id) public view returns (uint256 amount_) {
+        Vault memory vault = vaults[_id];
+        if (vault.withdrawableAmountStacks) {
+            amount_ = (withdrawalCycleNumber(_id) * vault.tokenAmountPerCycle) - vaultWithdrawals[_id];
+        } else {
+            uint currentWithdrawal = cycleWithdrawals[_id][withdrawalCycleNumber(_id)];
+            amount_ = vault.tokenAmountPerCycle - currentWithdrawal;
+        }
+        amount_ = min(amount_, vaultBalance(_id));
+        return amount_;
+    }
+
+    function withdrawalCycleNumber(bytes32 _id) public view returns (uint) {
+        return (timestamp() - startTime(_id)) / getVaultFrequency(_id) + 1;
+    }
+
+    // This is just to be able to test the withdrawableAmount function in the debugger
+    event LogUint(uint msg);
+    function callWithAmount(bytes32 _id) public returns (uint) { 
+       uint amount_ = withdrawableAmount(_id);
+        emit LogUint(amount_);
+        return amount_;
+    }
+
+    // Property setters
+
+    /// @notice Sets whether the withdrawable amount stacks on previously unwithdrawn tokens
+    /// @param _id The id of the vault
+    /// @param _withdrawAmountStacks Whether the withdrawable amount stacks
+    function setWithdrawAmountStacks(bytes32 _id, bool _withdrawAmountStacks)
+        external onlySettingsUnlocked(_id) onlyVaultMember(_id) {
+        vaults[_id].withdrawableAmountStacks = _withdrawAmountStacks;
+    }
+
+    /// @notice Sets whether the vault accepts additional funds
+    /// @param _id The id of the vault
+    /// @param _acceptsAdditionalFunds Whether the vault accepts additional funds
+    function setAcceptsAdditionalFunds(bytes32 _id, bool _acceptsAdditionalFunds)
+        external onlySettingsUnlocked(_id) onlyVaultMember(_id) {
+        vaults[_id].acceptsAdditionalFunds = _acceptsAdditionalFunds;
+    }
+
+
+    // Getters
+
+    /// @notice Get the balance of the vault
+    /// @param _id The id of the vault
+    function vaultBalance(bytes32 _id) public view returns (uint256) {
+        return balances[_id];
+    }
+
+    /// @notice Get a beneficiary at a given index of a vault
+    /// @param _id The id of the vault
+    /// @param _index The index of the beneficiary
+    function beneficiary(bytes32 _id, uint256 _index)
+        public
+        view
+        returns (address)
+    {
+        require(_index < beneficiaries[_id].size());
+        return beneficiaries[_id].getKeyAtIndex(_index);
+    }
+
+    /// @notice Get the number of beneficiaries of a vault
+    /// @param _id The id of the vault
+    function totalBeneficiaries(bytes32 _id) public view returns (uint256) {
+        return beneficiaries[_id].size();
+    }
+
+    /// @notice returns the vault's owner
+    /// @param _id the vault's id
+    function getVaultOwner(bytes32 _id) public view returns (address) {
+        return vaults[_id].owner;
+    }
+
+    /// @notice returns the number of seconds per cycle
+    /// @param _id the vault's id
+    function getVaultFrequency(bytes32 _id) public view returns (uint256) {
+        return vaults[_id].frequency;
+    }
+
+    function startTime(bytes32 _id) public view returns (uint256) {
+        return vaults[_id].startTime;
+    }
+
+    /// @notice returns the vault's token type id
+    /// @param _id the vault's id
+    function getVaultToken(bytes32 _id) public view returns (vitetoken) {
+        return vaults[_id].token;
+    }
+
+    /// @notice returns the amount of tokens unlocked per cycle
+    /// @param _id the vault's id
+    function getVaultTokenAmountPerCycle(bytes32 _id) public view returns (uint256) {
+        return vaults[_id].tokenAmountPerCycle;
+    }
+
+    /// @notice returns whether the vault's owner can withdraw all funds
+    /// @param _id the vault's id
+    function getVaultOwnerCanWithdrawAllFunds(bytes32 _id) public view returns (bool) {
+        return vaults[_id].ownerCanWithdrawAllFunds;
+    }
+
+    /// @notice returns whether the vault's settings are locked
+    /// @param _id the vault's id
+    function getVaultSettingsLocked(bytes32 _id) public view returns (bool) {
+        return vaults[_id].settingsLocked;
+    }
+
+    /// @notice returns whether the vault's withdrawable amount stacks 
+    /// on top of any previously unwithdrawn tokens (e.g. 1000 more 
+    /// VITE becomes withdrawable per cycle vs 1000 VITE max can be withdrawn per cycle)
+    /// @param _id the vault's id
+    function getVaultWithdrawableAmountStacks(bytes32 _id) public view returns (bool) {
+        return vaults[_id].withdrawableAmountStacks;
+    }
+
+    /// @notice returns whether the vault accepts additional funds after creation
+    /// @param _id the vault's id
+    function getVaultAcceptsAdditionalFunds(bytes32 _id) public view returns (bool) {
+        return vaults[_id].acceptsAdditionalFunds;
+    }
+}

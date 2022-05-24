@@ -1,0 +1,4 @@
+- Good layout, looks functional
+- weird spacing (too much/little in different places)
+- Sometimes font size is too small
+- Overall, looks like it could work, but it just doesn't look refined
