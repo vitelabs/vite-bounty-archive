@@ -11,11 +11,11 @@ The Vite ecosystem needs a dapp for governing an arbitrary number of DAO project
 - Anyone can create their own DAO "space"
 - Users can join a space
 - Users can submit proposals to a space
-- Users can vote for proposals with a token specified in the proposal. The token can be native token issued on Vite
+- Users vote on proposals with the token specified during proposal creation
 - Displays voting results for ongoing and expired polls
 - Proposals are voted on via weighted voting where token holders can spread their votes over any number of options
 - Voting involves locking up governance tokens in the DAO governance contract
-- Proposals include a title, description, expiration date (or ongoing until a certain number of votes have been reached), and optionally a contract to call with the proposal results when the proposal closes.
+- Proposals include a title, description, expiration date (or ongoing until a certain number of votes have been reached), token id used for voting, and optionally a contract to call with the proposal results when the proposal closes.
 
 
 ## Frontend Requirements
