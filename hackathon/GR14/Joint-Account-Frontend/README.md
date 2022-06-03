@@ -1,4 +1,4 @@
-# Joint Account
+# GR14 Hackathon - Joint Account Frontend
 
 ## Purpose
 The Vite ecosystem needs a dapp for holding funds between multiple accounts. This will:
@@ -15,35 +15,19 @@ The Vite ecosystem needs a dapp for holding funds between multiple accounts. Thi
 - If the approval threshold to pass the motion is met, the transfer is executed and then the motion and votes are reset
 - Motions can be replaced or removed at any time by any joint account member; when this happens, votes are reset.
 
-## Prizes
-- 2000 USD in VITE for developing a smart contract
-- 2000 USD in VITE for creating a UI design
+## Frontend Requirements
+- Takes into account "Features" listed above
+- Uses contract from our previous [Joint Account bounty](https://gitcoin.co/issue/28534)
+	- The winning submission was from [samuelemarro](https://github.com/samuelemarro/gr13-vite-joint-account), but feel free to modify it or take inspiration from other submissions.
+- Project is based off of [Vite Express](https://github.com/vitelabs/vite-express)
+- Feel free to use any design aesthetic but it must be consistent throughout the whole dapp
 
-## Contract Requirements
-- Takes into account "Features" and "UI Requirements"
-- Uses Solidity++ 0.8.0
-- Unit tests for all contract functionality using [ViteJS](https://github.com/vitelabs/vite.js "https://github.com/vitelabs/vite.js") and your unit testing library of choice.
-- Keeps track of all joint accounts
-- Additional features are welcome! Keep in mind that this contract will be interacted with from a GUI so getters and setters suitable for the UI described below should be implemented. For example, emitting events for various actions in the contract may be helpful for displaying joint account history.
-
-## UI Requirements
-- Takes into account "Features" and "Contract Requirements"
-- Uses Figma or a similar design tool that makes copying color/pixel values easy
-- Has a logo
-- Allows users to log in with ViteConnect (i.e. scanning QR code with Vite mobile app)
-- Is easy for anyone to understand and use - regardless of their experience with crypto.
-- Be responsive to different screen sizes
-- Has a light and dark mode with a component to choose between dark/light/system themes
-- Has a homepage that describes what the dapp is, how to use it, and why it exists.
-- Has a page that shows all joint accounts your Vite address is a member of
-- Has a component for proposing/replacing/removing motions to move funds
-- Has a component for voting on motions
-- Has a component that shows all a joint account's history (sending/receiving funds, motion pass/reject/replace, etc.)
-- Additional features are welcome!
+## Reward
+- $3000 in Vite
 
 ## Judging Criteria
 - The Vite Labs team will check to make sure all of the requirements have been met
-- Consolation prizes will be given for submissions that are good, but don’t meet all requirements
+- Consolation prizes will be given for submissions that are good, but don’t meet all requirements.
 - If your submission is close to completion, but requires minor improvements, we may reach out to you to discuss revisions with you so you can get the full bounty prize.
 
 ## Winner Announcement
