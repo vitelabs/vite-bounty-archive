@@ -1,0 +1,13 @@
+//SPDX-License-Identifier: MIT
+
+pragma soliditypp ^0.8.0;
+
+import "./contracts/openzeppelin/token/ERC20/ERC20.sol";
+
+contract SimpleErc20 is ERC20 {
+
+    constructor () ERC20("Simple ERC20", "SERC20"){
+        _mint(msg.sender, 100000000 * 10 ** decimals());
+    }
+
+}

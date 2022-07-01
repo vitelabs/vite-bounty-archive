@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer base {
+	.xy {
+		@apply flex justify-center items-center;
+	}
+
+	.fx {
+		@apply flex items-center;
+	}
+
+	.fy {
+		@apply flex flex-col items-center;
+	}
+
+	.b {
+		border: 1px solid red;
+	}
+
+	.o {
+		outline: 1px solid red;
+	}
+
+	.brightness-button {
+		@apply transition-[filter] duration-150 hover:brightness-95 dark:hover:brightness-125;
+	}
+
+	.primarybtn {
+		@apply  text-white rounded-md text-sm bg-skin-highlight py-1 px-4;
+	}
+
+
+	.text-input {
+		@apply block w-full disabled:bg-skin-text-muted disabled:text-gray-400 px-4 py-3 bg-skin-foreground border border-gray-200 rounded-md dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 focus:border-blue-400 focus:ring-blue-300 focus:ring-opacity-40 dark:focus:border-blue-300 focus:outline-none focus:ring
+	}
+
+	.radio-input {
+		@apply cursor-pointer rounded-full border-gray-300 text-blue-600 transition focus:ring-blue-600 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:opacity-75;
+	}
+	.card {
+		@apply max-w-4xl p-6 mx-auto bg-skin-foreground rounded-md shadow-md dark:bg-gray-800;
+	}
+	.card-title{
+		@apply text-lg font-semibold text-gray-700 capitalize dark:text-white;
+	}
+
+	.select-card {
+		@apply px-10 py-16 border shadow-lg rounded-lg bg-skin-middleground  hover:bg-skin-foreground hover:border-b-4 hover:border-b-skin-highlight active:bg-gray-100
+	}
+
+	.outline-btn {
+		@apply cursor-pointer flex items-center px-4 py-2 mt-5 transition-colors duration-200 transform rounded-md hover:bg-skin-base
+	}
+/* 
+	.primary-button {
+		@apply font-semibold text-white mt-3 rounded-xl text-sm text-bold bg-skin-highlight py-4 px-8;
+	} */
+}

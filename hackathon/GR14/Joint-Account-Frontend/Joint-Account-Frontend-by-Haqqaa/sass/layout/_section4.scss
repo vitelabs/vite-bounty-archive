@@ -1,0 +1,28 @@
+.knowmore {
+    color: $color-background;
+    background-color: $color-text;
+    height: 100vh;
+
+    &__span {
+        float: right;
+        margin-top: 13rem;
+        margin-right: 10rem;
+    }
+
+    &__text {
+        font-size: 5rem;
+    }
+
+    & p {
+        font-size: 15px;
+        margin-top: 2rem;
+    }
+
+}
+
+.motion {
+    float: left;
+    margin: 15rem;
+    height: 50rem;
+    box-shadow: -1rem 2rem 2rem rgba($color-black,0.9);
+}

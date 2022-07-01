@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "@vite/solppc": "^0.8.0-alpha.4",
+    "@vite/vitejs": "^2.3.18",
+    "@vite/vitejs-http": "^2.3.19-alpha.3",
+    "@vite/vitejs-ws": "^2.3.18",
+    "@vite/vuilder": "^0.1.0-alpha.16",
+    "dotenv": "^16.0.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.1",
+    "chai": "^4.3.6",
+    "chai-as-promised": "^7.1.1",
+    "ts-node": "^10.8.1",
+    "typescript": "^4.7.3"
+  },
+  "name": "vite-dao",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

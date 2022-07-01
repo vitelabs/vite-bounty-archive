@@ -1,0 +1,342 @@
+//SPDX-License-Identifier: MIT
+
+pragma soliditypp ^0.8.0;
+
+import "./contracts/openzeppelin/security/ReentrancyGuard.sol";
+import "./contracts/openzeppelin/token/ERC721/extensions/ERC721Enumerable.sol";
+import "./contracts/openzeppelin/token/ERC20/ERC20.sol";
+import "./contracts/openzeppelin/utils/Counters.sol";
+
+//auction status: waitting for start; on going; success; failed; canceled; finished(success, failed and canceled etc.);
+enum Status{
+    UPCOMING, //0
+    ONGOING, //1
+    CANCELED, //2   
+    FAILED, //3     
+    SUCCESS, //4
+    CLAIMED, //5
+    RETURNBACK, //6
+    FINISHED //7
+}
+
+struct AucInfo {
+    uint256 auctionId; //auction id
+    uint256 nftId; //nft id to sell
+    address nftContract; //nft contract to sell
+    address nftOwner; //nft owner
+    address payContract; //payment token contract
+    address bidAddress; //bid address for higest price now
+    
+    uint startTime; //auction start time
+    uint endTime; //auction end time
+    uint cancelTime; //the time that the auction can be canceled by the owner
+    
+    uint256 startPrice; //start price
+    uint256 reversePrice; //reverse price
+    uint256 minBidIncrease; //min bid increase price every time
+    uint256 bidPrice; //bid price for now
+    Status status; //auction status
+}
+
+contract EnglishAuction is ERC721Enumerable, ReentrancyGuard {
+
+    using Counters for Counters.Counter;
+    
+    //auctionId
+    Counters.Counter private _aucId;
+
+    //auctionInfo
+    mapping(uint256 => AucInfo) private _aucInfos;
+
+    constructor() ERC721("English Auction", "EAC") {
+    }   
+
+    //mint as a nft, and start a new auction
+    function mint(
+        uint startTime, 
+        uint endTime, 
+        uint cancelTime,    
+        uint256 startPrice, 
+        uint256 reversePrice, 
+        uint256 minBidIncrease,   
+        uint256 nftId,      
+        address nftContract,
+        bool payForNative, 
+        address payContract
+    ) public returns (uint256) {
+
+        require(startPrice > 0 && reversePrice > 0, "price invalid");
+
+        if(payForNative){
+            payContract = address(0x0);
+        }        
+
+        //transfer nft to the contract
+        ERC721(nftContract).transferFrom(msg.sender, address(this), nftId);         
+
+        //mint auction as a nft
+        _aucId.increment();
+        uint256 newId = _aucId.current();
+        _mint(msg.sender, newId);
+
+        //init auction info
+        _aucInfos[newId] = AucInfo({
+            auctionId: newId,
+            nftId: nftId,
+            nftContract: nftContract,
+            nftOwner: msg.sender,
+            payContract: payContract,
+            bidAddress: address(0x0),
+            startTime: startTime,
+            endTime: endTime,
+            cancelTime: cancelTime,
+            startPrice: startPrice,
+            reversePrice: reversePrice,
+            minBidIncrease: minBidIncrease,
+            bidPrice: 0,
+            status: Status.UPCOMING
+        });
+
+        return newId;
+    } 
+
+    //cancel the auction
+    function cancelAuction(uint256 auctionId) public nonReentrant payable returns(bool){
+        AucInfo memory auc = _aucInfos[auctionId];
+
+        //check if already success or not
+        require(auc.status == Status.UPCOMING || auc.status == Status.ONGOING, "auction finished!");
+
+        //check the auction owner
+        require(msg.sender == auc.nftOwner, "only owner allowed!");
+
+        //check if it can be canceled for now
+        require(block.timestamp <= auc.cancelTime, "time not allowed!");    
+
+        //set auction to canceled;
+        _aucInfos[auctionId].status = Status.CANCELED;    
+
+        //transfer the nft to the owner
+        ERC721(auc.nftContract).transferFrom(address(this), auc.nftOwner, auc.nftId);            
+
+        //transfer the payment to the bid address
+        if(auc.bidPrice > 0){
+            if(auc.payContract == address(0x0)){
+                payable(auc.bidAddress).transfer("tti_5649544520544f4b454e6e40", auc.bidPrice);
+            }else{
+                ERC20(auc.payContract).transferFrom(address(this), auc.bidAddress, auc.bidPrice);
+            }
+        }
+
+        return true;
+    }
+
+    //bid a price for the nft token
+    function bidForNft(uint256 auctionId, uint256 amount) public nonReentrant payable returns(bool){
+        AucInfo memory auc = _getAucInfoById(auctionId);     
+
+        //check if the acution is finished or not
+        require(auc.status == Status.ONGOING, "auction not on going!");
+
+        //check paytoken is erc20 or not
+        if(auc.payContract == address(0x0)){
+            amount = msg.value;
+        }
+
+        //check the bid price large than the start price or not
+        require(amount >= auc.startPrice, "bid price not enough!");
+
+        //if no body bid a price yet
+        if(auc.bidPrice > 0){
+            //must large than the old bid price + min bid increase
+            require(amount >= auc.bidPrice + auc.minBidIncrease, "bid price not enough!");
+
+            //send back the payment to the old bid address
+            if(auc.payContract == address(0x0)){
+                payable(auc.bidAddress).transfer("tti_5649544520544f4b454e6e40", auc.bidPrice);
+            }else{
+                ERC20(auc.payContract).transferFrom(address(this), auc.bidAddress, auc.bidPrice);
+            }
+        }
+
+        //receive tokens
+        if(auc.payContract != address(0x0)){
+            ERC20(auc.payContract).transferFrom(msg.sender, address(this), amount);
+        }
+    
+        //set new highest bid price and bid address
+        _aucInfos[auctionId].bidPrice = amount;
+        _aucInfos[auctionId].bidAddress = msg.sender;
+        return true;
+    }
+
+    //claim the auction by the nft owner or the bid address
+    function claimAuction(uint256 auctionId) public nonReentrant payable returns(bool){
+        AucInfo memory auc = _getAucInfoById(auctionId);
+
+        //only success status can be claimed
+        require(auc.status == Status.SUCCESS, "status not success!");
+
+        //only nft owner and bid address can be claimed
+        require(msg.sender == auc.bidAddress || msg.sender == auc.nftOwner, "user not allowed!");
+
+        //set auction status to success
+        _aucInfos[auctionId].status = Status.CLAIMED;   
+
+        //send nft to the bid address
+        ERC721(auc.nftContract).transferFrom(address(this), auc.bidAddress, auc.nftId);              
+
+        //send the payment to the nft owner
+        if(auc.payContract == address(0x0)){
+            payable(auc.nftOwner).transfer("tti_5649544520544f4b454e6e40", auc.bidPrice);
+        }else{
+            ERC20(auc.payContract).transferFrom(address(this), auc.nftOwner, auc.bidPrice);
+        }       
+
+        return true;
+    }      
+
+    //claim when auction is failed
+    function claimFailedAuction(uint256 auctionId) public nonReentrant payable returns(bool){
+        AucInfo memory auc = _getAucInfoById(auctionId);
+
+        //only failed status can be claimed
+        require(auc.status == Status.FAILED, "status not failed!");
+
+        //only nft owner and bid address can be claimed
+        require(msg.sender == auc.bidAddress || msg.sender == auc.nftOwner, "user not allowed!");
+
+        _aucInfos[auctionId].status = Status.RETURNBACK;
+
+        //send back the nft to the nft owner
+        ERC721(auc.nftContract).transferFrom(address(this), auc.nftOwner, auc.nftId); 
+
+        //no bid price
+        if(auc.bidPrice == 0){
+            return true;
+        }        
+
+        //send back the payment to the bid address
+        if(auc.payContract == address(0x0)){
+            payable(auc.bidAddress).transfer("tti_5649544520544f4b454e6e40", auc.bidPrice);
+        }else{
+            ERC20(auc.payContract).transferFrom(address(this), auc.bidAddress, auc.bidPrice);
+        } 
+
+        return true;                
+    } 
+
+    //get auction info by id
+    function _getAucInfoById(uint256 aucId) internal view returns(AucInfo memory){
+        AucInfo memory auc = _aucInfos[aucId];
+
+        //UPCOMING is init status
+        if(auc.status == Status.UPCOMING){
+            if(block.timestamp < auc.startTime){
+                //UPCOMING status
+                return auc;
+            }else if(block.timestamp <= auc.endTime){
+                //on going
+                auc.status = Status.ONGOING;
+            }else if(auc.bidPrice >= auc.reversePrice){
+                //auction success
+                auc.status = Status.SUCCESS;
+            }else{
+                //auction failed
+                auc.status = Status.FAILED;
+            }       
+        }
+
+        return auc;
+    }
+
+    //get auction address info
+    function getAucBaseInfoById(uint256 aucId) public view returns(uint256, uint256, address, address, address, address){
+        return (
+            aucId,
+            _aucInfos[aucId].nftId,
+            _aucInfos[aucId].nftContract, 
+            _aucInfos[aucId].nftOwner,
+            _aucInfos[aucId].payContract,
+            _aucInfos[aucId].bidAddress
+        );
+    }    
+
+    //get auction time info
+    function getAucTimeInfoById(uint256 aucId) public view returns (uint,uint,uint){
+        return (
+            _aucInfos[aucId].startTime,
+            _aucInfos[aucId].endTime, 
+            _aucInfos[aucId].cancelTime
+        );
+    }
+
+    //get auction price info
+    function getAucPriceInfoById(uint256 aucId) public view returns(uint256, uint256, uint256, uint256, Status){
+        AucInfo memory auc = _getAucInfoById(aucId);
+
+        if(auc.status == Status.UPCOMING || auc.status == Status.ONGOING){
+            auc.reversePrice = 0;
+        }
+
+        return (
+            auc.startPrice, 
+            auc.reversePrice,
+            auc.bidPrice,
+            auc.minBidIncrease, 
+            auc.status
+        );
+    }
+
+    //get auction ids by Paginations
+    function getAuctionPaginations(uint pageSize, uint pageCount, Status auctionType, bool owner) public view returns(uint256[] memory, uint256){
+        uint256[] memory tmpList = new uint256[](pageSize);
+        uint256[] memory indexList;
+
+        uint start = pageSize * pageCount;
+        uint end = start + pageSize;
+        uint count;
+        uint index;
+        uint aucId;
+        uint256 balance;   
+
+        if(owner){
+            balance = super.balanceOf(msg.sender);
+        }else{
+            balance = super.totalSupply();
+        }     
+
+        for(uint i = 0; i < balance; i++){
+            //get own auction or not
+            if(owner){
+                aucId = super.tokenOfOwnerByIndex(msg.sender, i);
+            }else{
+                aucId = super.tokenByIndex(i);
+            }     
+
+            AucInfo memory auc = _getAucInfoById(aucId);
+            if(auctionType == Status.FINISHED && (auc.status == Status.UPCOMING || auc.status == Status.ONGOING)){
+                continue;
+            }else if(auctionType != Status.FINISHED && auctionType != auc.status){
+                continue;
+            }else{
+                count++;
+            }          
+
+            if(count < start || count > end){
+                continue;
+            } else {
+                tmpList[index++] = aucId;
+            }
+        }
+
+        if(index > 0){
+            indexList = new uint256[](index);
+            for(uint i = 0; i < index; i++){
+                indexList[i] = tmpList[i];
+            }
+        }
+
+        return (indexList, count);
+    }
+}

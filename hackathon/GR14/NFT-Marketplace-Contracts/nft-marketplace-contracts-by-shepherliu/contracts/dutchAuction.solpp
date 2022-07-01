@@ -1,0 +1,303 @@
+//SPDX-License-Identifier: MIT
+
+pragma soliditypp ^0.8.0;
+
+import "./contracts/openzeppelin/security/ReentrancyGuard.sol";
+import "./contracts/openzeppelin/token/ERC721/extensions/ERC721Enumerable.sol";
+import "./contracts/openzeppelin/token/ERC20/ERC20.sol";
+import "./contracts/openzeppelin/utils/Counters.sol";
+
+//auction status: waitting for start; on going; success; failed; canceled; finished(success, failed and canceled etc.);
+enum Status{
+    UPCOMING, //0
+    ONGOING, //1
+    CANCELED, //2   
+    FAILED, //3     
+    SUCCESS, //4
+    CLAIMED, //5
+    RETURNBACK, //6
+    FINISHED //7
+}
+
+struct AucInfo {
+    uint256 auctionId; //auction id
+    uint256 nftId; //nft id to sell
+    address nftContract; //nft contract to sell
+    address nftOwner; //nft owner
+    address payContract; //payment token contract
+    address bidAddress; //bid address for now
+    uint startTime; //auction start time
+    uint endTime; //auction end time
+    uint cancelTime; //the time that the auction can be canceled by the owner
+    uint256 startPrice; //start price
+    uint256 reversePrice; //reverse price
+    uint256 priceDecreaseRate; //price decrease rate per 24h
+    uint256 bidPrice; //bid price for now
+    Status status; //auction status
+} 
+
+contract DutchAuction is ERC721Enumerable, ReentrancyGuard {   
+
+    using Counters for Counters.Counter;
+
+    //auctionId
+    Counters.Counter private _aucId;
+
+    //auctionInfo
+    mapping(uint256 => AucInfo) private _aucInfos;      
+
+    constructor() ERC721("Dutch Acution", "DAC") {
+    } 
+
+    //mint as a nft, and start a new auction
+    function mint(
+        uint startTime, 
+        uint endTime, 
+        uint cancelTime,    
+        uint256 startPrice, 
+        uint256 reversePrice, 
+        uint256 priceDecreaseRate,   
+        uint256 nftId,      
+        address nftContract,
+        bool payForNative, 
+        address payContract
+    ) public returns (uint256) {
+
+        require(startPrice > 0 && reversePrice > 0, "price invalid");
+
+        if(payForNative){
+            payContract = address(0x0);
+        }        
+
+        //transfer nft to the contract
+        ERC721(nftContract).transferFrom(msg.sender, address(this), nftId);     
+
+        //mint auction as a nft
+        _aucId.increment();
+        uint256 newId = _aucId.current();
+        _mint(msg.sender, newId);
+
+        //init auction info
+        _aucInfos[newId] = AucInfo({
+            auctionId: newId,
+            nftId: nftId,
+            nftContract: nftContract,
+            nftOwner: msg.sender,
+            payContract: payContract,
+            bidAddress: address(0x0),
+            startTime: startTime,
+            endTime: endTime,
+            cancelTime: cancelTime,
+            startPrice: startPrice,
+            reversePrice: reversePrice,
+            priceDecreaseRate: priceDecreaseRate,
+            bidPrice: 0,
+            status: Status.UPCOMING
+        });
+
+        return newId;
+    }     
+
+    function cancelAuction(uint256 auctionId) public nonReentrant payable returns(bool){
+        AucInfo memory auc = _aucInfos[auctionId];     
+
+        //check if already success or not
+        require(auc.status == Status.UPCOMING || auc.status == Status.ONGOING, "auction finished!");
+
+        //check the auction owner
+        require(msg.sender == auc.nftOwner, "only owner allowed!");
+
+        //check if it can be canceled for now
+        require(block.timestamp <= auc.cancelTime, "time not allowed!");
+
+        //set auction to canceled;
+        _aucInfos[auctionId].status = Status.CANCELED;           
+
+        //transfer the nft to the owner
+        ERC721(auc.nftContract).transferFrom(address(this), auc.nftOwner, auc.nftId);
+
+        return true;
+    }
+
+    //bid a price for the nft token
+    function bidForNft(uint256 auctionId, uint256 amount) public nonReentrant payable returns(bool){
+        AucInfo memory auc = _getAucInfoById(auctionId);
+
+        //check if the acution is finished or not
+        require(auc.status == Status.ONGOING, "auction not on going!");
+
+        //check paytoken is erc20 or not
+        if(auc.payContract == address(0x0)){
+            amount = msg.value;
+        }
+
+        //check bid price
+        require(amount + (block.timestamp - auc.startTime)*auc.priceDecreaseRate/86400 >= auc.startPrice, "bid price not enough!");
+
+        //set the auction status, success if large than the reverse price and exchange tokens directly.
+        if(amount >= auc.reversePrice){
+            //set status to claimed
+            _aucInfos[auctionId].status = Status.CLAIMED;
+
+            //transfer nft to bid address
+            ERC721(auc.nftContract).transferFrom(address(this), msg.sender, auc.nftId);              
+
+            //transfer pay token to nftowner
+            if(auc.payContract == address(0x0)){
+                payable(auc.nftOwner).transfer("tti_5649544520544f4b454e6e40", amount);
+            }else{
+                ERC20(auc.payContract).transferFrom(msg.sender, auc.nftOwner, amount);  
+            }        
+        }else{
+            //set status to failed
+            _aucInfos[auctionId].status = Status.RETURNBACK;
+
+            //if auction failed, send back the nft to the owner
+            ERC721(auc.nftContract).transferFrom(address(this), auc.nftOwner, auc.nftId);            
+
+            if(auc.payContract == address(0x0)){
+                //if auction failed, send back payment to msg.sender
+                payable(msg.sender).transfer("tti_5649544520544f4b454e6e40", amount);
+            }
+        }
+
+        //set new highest bid price and bid address
+        _aucInfos[auctionId].bidPrice = amount;
+        _aucInfos[auctionId].bidAddress = msg.sender;        
+        
+        return true;
+    }
+
+    //claim when auction is failed
+    function claimFailedAuction(uint256 auctionId) public nonReentrant payable returns(bool){
+        AucInfo memory auc = _getAucInfoById(auctionId);     
+
+        //only failed status can be claimed
+        require(auc.status == Status.FAILED, "status not failed!");
+
+        //only nft owner and bid address can be claimed
+        require(msg.sender == auc.nftOwner, "user not allowed!");
+
+        //set pay back status
+        _aucInfos[auctionId].status = Status.RETURNBACK;
+
+        //send back the nft to the nft owner
+        ERC721(auc.nftContract).transferFrom(address(this), auc.nftOwner, auc.nftId); 
+
+        return true;             
+    }     
+
+    //get auction info by id
+    function _getAucInfoById(uint256 aucId) internal view returns(AucInfo memory){
+        AucInfo memory auc = _aucInfos[aucId];
+
+        //UPCOMING is init status
+        if(auc.status == Status.UPCOMING){
+            if(block.timestamp < auc.startTime){
+                //UPCOMING status
+                return auc;
+            }else if(block.timestamp <= auc.endTime){
+                //on going
+                auc.status = Status.ONGOING;
+            }else if(auc.bidPrice >= auc.reversePrice){
+                //auction success
+                auc.status = Status.SUCCESS;
+            }else{
+                //auction failed
+                auc.status = Status.FAILED;
+            }       
+        }
+
+        return auc;
+    }
+
+    //get auction address info
+    function getAucBaseInfoById(uint256 aucId) public view returns(uint256, uint256, address, address, address, address){
+        return (
+            aucId,
+            _aucInfos[aucId].nftId,
+            _aucInfos[aucId].nftContract, 
+            _aucInfos[aucId].nftOwner,
+            _aucInfos[aucId].payContract,
+            _aucInfos[aucId].bidAddress
+        );
+    }    
+
+    //get auction time info
+    function getAucTimeInfoById(uint256 aucId) public view returns (uint,uint,uint){
+        return (
+            _aucInfos[aucId].startTime,
+            _aucInfos[aucId].endTime, 
+            _aucInfos[aucId].cancelTime
+        );
+    }
+
+    //get auction price info
+    function getAucPriceInfoById(uint256 aucId) public view returns(uint256, uint256, uint256, uint256, Status){
+        AucInfo memory auc = _getAucInfoById(aucId);
+
+        if(auc.status == Status.UPCOMING || auc.status == Status.ONGOING){
+            auc.reversePrice = 0;
+        }
+
+        return (
+            auc.startPrice, 
+            auc.reversePrice,
+            auc.bidPrice,
+            auc.priceDecreaseRate, 
+            auc.status
+        );
+    }
+
+    //get auction ids by Paginations
+    function getAuctionPaginations(uint pageSize, uint pageCount, Status auctionType, bool owner) public view returns(uint256[] memory, uint256){
+        uint256[] memory tmpList = new uint256[](pageSize);
+        uint256[] memory indexList;
+
+        uint start = pageSize * pageCount;
+        uint end = start + pageSize;
+        uint count;
+        uint index;
+        uint aucId;
+        uint256 balance;   
+
+        if(owner){
+            balance = super.balanceOf(msg.sender);
+        }else{
+            balance = super.totalSupply();
+        }     
+
+        for(uint i = 0; i < balance; i++){
+            //get own auction or not
+            if(owner){
+                aucId = super.tokenOfOwnerByIndex(msg.sender, i);
+            }else{
+                aucId = super.tokenByIndex(i);
+            }     
+
+            AucInfo memory auc = _getAucInfoById(aucId);
+            if(auctionType == Status.FINISHED && (auc.status == Status.UPCOMING || auc.status == Status.ONGOING)){
+                continue;
+            }else if(auctionType != Status.FINISHED && auctionType != auc.status){
+                continue;
+            }else{
+                count++;
+            }          
+
+            if(count < start || count > end){
+                continue;
+            } else {
+                tmpList[index++] = aucId;
+            }
+        }
+
+        if(index > 0){
+            indexList = new uint256[](index);
+            for(uint i = 0; i < index; i++){
+                indexList[i] = tmpList[i];
+            }
+        }
+
+        return (indexList, count);
+    }
+}

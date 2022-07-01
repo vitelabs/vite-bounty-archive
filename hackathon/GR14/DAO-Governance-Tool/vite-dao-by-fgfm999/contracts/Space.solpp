@@ -1,0 +1,315 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma soliditypp ^0.8.0;
+
+contract Space {
+    string public name;
+    vitetoken public tokenId;
+    uint public quorumVotes;
+    uint256 public votingPeriod = 604800; // 7 days
+
+    address public owner;
+
+    uint public proposalCount;
+
+    mapping(uint256 => Proposal) private _proposals; // id start at 1, 0 means not exist
+    mapping(uint256 => Vote) private _votes;
+
+    mapping(address => bool) private _members;
+    uint public memberCount;
+
+    // proposal will be expired after `expiredPeriod` since vote end.
+    uint256 public expirePeriod = 604800; // 7 days
+
+    event ProposalCreated(
+        uint256 proposalId,
+        address proposer,
+        address[] targets,
+        uint256[] values,
+        bytes[] calldatas,
+        uint256 voteStart,
+        uint256 voteEnd,
+        string description
+    );
+
+    event CastVote(
+        uint256 proposalId,
+        address user,
+        uint256 amount,
+        VoteType support
+    );
+
+    event Withdrawn(
+        uint256 proposalId,
+        address user,
+        uint256 amount,
+        uint256 ts
+    );
+
+    event ProposalExecuted(
+        uint256 proposalId
+    );
+
+    event ProposalCanceled(
+        uint256 proposalId
+    );
+
+    enum VoteType {
+        Against,
+        For
+    }
+
+    struct Vote {
+        uint256 againstVotes;
+        uint256 forVotes;
+        mapping(address => uint256) voteAmount;
+        mapping(address => bool) withdrawn;
+    }
+    
+    enum State {
+        Pending,
+        Active,
+        Canceled,
+        Defeated,
+        Succeeded,
+        Queued,
+        Expired,
+        Executed
+    }
+
+    struct Proposal {
+        uint id;
+        string title;
+        string description;
+        address proposer;
+
+        address[] targets;
+        uint256[] values;
+        bytes[] calldatas;
+
+        uint256 voteStart;
+        uint256 voteEnd;
+        bool executed;
+        bool canceled;
+    }
+
+    struct Rect {
+        uint width;
+        uint height;
+    }
+
+    constructor(string memory name_, vitetoken tokenId_, uint256 quorumVotes_, uint256 votingPeriod_) {
+        name = name_;
+        tokenId = tokenId_;
+        quorumVotes = quorumVotes_;
+        votingPeriod = votingPeriod_;
+        owner = msg.sender;
+    }
+
+    function testString() external pure returns(string[] memory result) {
+        result = new string[](5);
+        for (uint i = 0; i< 5;i++ ) {
+            result[i] = "123";
+        }
+        return result;
+    }
+
+    // callData = abi.encodePacked(bytes4(keccak256(bytes(signature))), data);
+    function propose(
+        address[] memory targets,
+        uint256[] memory values,
+        bytes[] memory calldatas,
+        string memory title,
+        string memory description
+    ) public onlyMember returns (uint256) {
+        // TODO: latestProposalIds
+        // 1655052716, seconds
+        require(targets.length == values.length, "Invalid proposal length");
+        require(targets.length == calldatas.length, "Invalid proposal length");
+
+        uint256 startTs = block.timestamp;
+        uint256 endTs = startTs + votingPeriod;
+        proposalCount++;
+        Proposal memory proposal = Proposal({
+            id: proposalCount,
+            title: title,
+            description: description,
+            voteStart: startTs,
+            voteEnd: endTs,
+            proposer: msg.sender,
+            targets: targets,
+            values: values,
+            calldatas: calldatas,
+            executed: false,
+            canceled: false
+        });
+        _proposals[proposal.id] = proposal;
+
+        emit ProposalCreated(
+            proposal.id,
+            msg.sender,
+            targets,
+            values,
+            calldatas,
+            startTs,
+            endTs,
+            description
+        );
+        return proposal.id;
+    }
+
+    function getProposal(uint256 proposalId) external view returns (uint id, 
+            string memory title, string memory description, address proposer,
+            uint256 voteStart, uint256 voteEnd, 
+            bool executed, bool canceled) {
+        Proposal storage proposal = _proposals[proposalId];
+        return (proposal.id, proposal.title, proposal.description, proposal.proposer, proposal.voteStart, proposal.voteEnd, proposal.executed, proposal.canceled);
+    }
+
+    function _state(uint256 proposalId) private view returns (State) {
+        return state(proposalId, block.timestamp);
+    }
+
+    function state(uint256 proposalId, uint256 ts) public view returns (State) {
+        Proposal storage proposal = _proposals[proposalId];
+        Vote storage vote = _votes[proposalId];
+
+        if (proposal.canceled) {
+            return State.Canceled;
+        } else if(proposal.executed) {
+            return State.Executed;
+        } else if(ts < proposal.voteEnd) {
+            return State.Active;
+        } else if(ts >= (proposal.voteEnd + expirePeriod)) {
+            return State.Expired; 
+        } else if (vote.forVotes <= vote.againstVotes || vote.forVotes < quorumVotes) {
+            return State.Defeated;
+        } else {
+            return State.Succeeded;
+        }
+    }
+
+    function execute(uint256 proposalId) external {
+        require(_state(proposalId) == State.Succeeded, "Proposal can only be executed if it is succeeded.");
+        Proposal storage proposal = _proposals[proposalId];
+        if(proposal.targets.length != 0) { // on-chain proposal
+            // TODO: seeems solpp doese not support `call` yet
+            //      InternalCompilerError: I sense a disturbance in the stack: 1 vs 2 
+            // for(uint i = 0; i < proposal.targets.length; i++) {
+            //     proposal.targets[i].call{token: tokenId, value: proposal.values[i]}(proposal.calldatas[i])
+            // }
+
+        }
+        proposal.executed = true;
+        emit ProposalExecuted(proposalId);
+    }
+
+
+    function cancel(uint256 proposalId) external {
+        State s = _state(proposalId);
+        require(s != State.Executed, "Cannot cancel executed proposal.");
+
+        Proposal storage proposal = _proposals[proposalId];
+        if(msg.sender == proposal.proposer) {
+            proposal.canceled = true;
+        } else if(s == State.Defeated) {
+            proposal.canceled = true;
+        }
+        emit ProposalCanceled(proposalId);
+    }
+
+    function castVote(uint256 proposalId, uint8 support) external onlyMember payable returns (uint256) {
+        require(_state(proposalId) == State.Active, "Proposal can only be executed if it is succeeded.");
+        require(msg.token == tokenId, "token not match");
+
+        uint256 amount = msg.value;
+        address account = msg.sender;
+        require(amount > 0, "amount cant be zero");
+
+        Vote storage vote = _votes[proposalId];
+        require(vote.voteAmount[account] == 0, "Vote already cast");
+        vote.voteAmount[account] = amount;
+
+        if (support == uint8(VoteType.Against)) {
+          vote.againstVotes += amount;
+        } else if (support == uint8(VoteType.For)) {
+          vote.forVotes += amount;
+        } else {
+            revert("Invalid value for enum VoteType");
+        }
+        emit CastVote(proposalId, msg.sender, amount, VoteType(support));
+        return amount;
+    }
+
+    function votes(uint256 proposalId) external view returns(uint againstVotes, uint256 forVotes) {
+      Vote storage vote = _votes[proposalId];
+      return (vote.againstVotes, vote.forVotes);
+    }
+
+    function voteAmount(uint256 proposalId, address account) external view returns (uint256 ) {
+      return _votes[proposalId].voteAmount[account];
+    }
+
+    function voteWithdrawn(uint256 proposalId, address account) external view returns (bool) {
+      return _votes[proposalId].withdrawn[account];
+    }
+
+    function voteWithdraw(uint256 proposalId) external {
+        Proposal storage proposal = _proposals[proposalId];
+        State s = _state(proposalId);
+        if(s != State.Canceled) {
+            require(block.timestamp >= proposal.voteEnd, "Withdraw will open when proposal was end");
+        }
+
+        Vote storage vote = _votes[proposalId];
+        uint256 amount = vote.voteAmount[msg.sender];
+        require(amount > 0, "No vote before");
+        require(!vote.withdrawn[msg.sender], "Already withdrawn");
+
+        payable(msg.sender).transfer(tokenId, amount);
+        vote.withdrawn[msg.sender] = true;
+        emit Withdrawn(proposalId, msg.sender, amount, block.timestamp);
+    }
+
+    // Note: Solidity & vite.js seems cantnot handle struct array very well.
+    function getProposalsPaging(uint offset, uint limit) external view returns(uint256[] memory ids) {
+        uint remain = proposalCount - offset;
+        if(limit > remain) {
+            limit = remain;
+        }
+        ids = new uint256[](limit);
+
+        for (uint i = 0; i < limit; i++) {
+            Proposal storage proposal = _proposals[offset + i + 1]; // since the first proposal id in `_proposals` is `1`, not `0`
+            ids[i] = proposal.id;
+        }
+        return ids;
+    }
+
+    function setOwner(address owner_) external {
+        require(owner == msg.sender, "Caller is not the owner");
+        owner = owner_;
+    }
+
+    function detail(address user) external view returns(string memory name_, uint memberCount_, bool isMember_) {
+        return (name, memberCount, isMember(user));
+    }
+
+    function isMember(address user) public view returns(bool) {
+        return _members[user];
+    }
+
+    function join() external {
+        _members[msg.sender] = true;
+        memberCount++;
+    }
+
+    function leave() external {
+        delete _members[msg.sender];
+        memberCount--;
+    }
+
+    modifier onlyMember {
+        require(isMember(msg.sender), "Not Member");
+        _;
+    }
+}

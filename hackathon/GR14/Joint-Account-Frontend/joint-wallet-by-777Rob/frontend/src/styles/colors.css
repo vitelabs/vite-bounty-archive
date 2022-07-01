@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* @layer base { */
+:root {
+	/* Theme agnostic colors */
+	--highlight-color: #016BFF;
+	--medlight-color: #3f9afb;
+	--lowlight-color: #7ab5f5;
+
+	/* Light mode */
+
+	--bg-base-color: #ebecf0;
+	--bg-middleground-color: #f4f5f8;
+	--bg-foreground-color: #ffffff;
+	--text-primary-color: #1d2024;
+	--text-secondary-color: #6e737c;
+	--text-muted-color: #EEEFF2;
+	--text-muted-background-color: #E2E4E8;
+	--alt-color: #E2E4E8;
+	--text-blue: #2C3857;
+	--bg-line-divider-color: #dbe4f0;
+	
+}
+.dark {
+	--bg-base-color: #28243D;
+	--bg-middleground-color: #312D4B;
+	--bg-foreground-color: #312D4B;
+	--text-primary-color: #FFFFFF;
+	--text-secondary-color: #a6a9b6;
+	--text-muted-color: #818388;
+	--alt-color: #1b1d24;
+	--bg-line-divider-color: #0e1118;
+	--divider-color: #0e1118;
+	--highlight-color:bg-indigo-500;
+	--tw-bg-opacity: 1;
+    --highlight-color: rgb(15 23 42 / var(--tw-bg-opacity));
+	--purple-shadow: 0px 24px 24px -16px #703ACA1A;
+}
+/* } */

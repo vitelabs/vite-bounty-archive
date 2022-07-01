@@ -1,0 +1,22 @@
+{
+  "name": "vile-gr14",
+  "version": "1.0.0",
+  "description": "landing page for vile joint account",
+  "main": "index.js",
+  "scripts": {
+    "compile:sass": "node-sass sass/main.scss css/style.css -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Haqqaa/Joint-Account-Frontend.git"
+  },
+  "author": "haqqaa",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Haqqaa/Joint-Account-Frontend/issues"
+  },
+  "homepage": "https://github.com/Haqqaa/Joint-Account-Frontend#readme",
+  "devDependencies": {
+    "node-sass": "^7.0.1"
+  }
+}

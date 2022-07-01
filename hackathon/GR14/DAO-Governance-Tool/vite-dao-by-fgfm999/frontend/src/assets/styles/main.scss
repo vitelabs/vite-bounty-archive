@@ -1,0 +1,292 @@
+.modal-qr {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  padding: 30px;
+  width: 300px;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 4px;
+
+  p {
+    margin: 0 0 15px;
+    font-size: 20px;
+  }
+}
+
+.proposals-title {
+  margin-top: 0;
+  margin-bottom: 15px;
+}
+
+.proposal {
+  position: relative;
+  margin: 0 0 15px;
+  padding: 15px;
+  border: 1px solid #efefef;
+  line-height: 1.4;
+  background: #fff;
+
+  .title {
+    margin-bottom: 6px;
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .proposer {
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+
+  .desc {
+    font-size: 14px;
+  }
+
+  .state {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+
+    &.active {
+      background: rgb(33,182,111);
+    }
+
+    &.canceled {
+      background: rgb(124,58,237);
+    }
+  }
+}
+
+.space {
+  padding-bottom: 15px;
+  border: 1px solid #efefef;
+  background: #fff;
+
+  .meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 0 10px;
+
+    p {
+      margin: 8px 0;
+    }
+  }
+
+  .links {
+    padding: 0;
+
+    .MuiListItem-root {
+      padding: 5px 15px 5px 0;
+    }
+
+    a {
+      padding-left: 12px;
+      text-decoration: none;
+      color: #7a7a7a;
+
+      &.active {
+        padding-left: 10px;
+        border-left: 2px solid #666;
+      }
+    }
+  }
+}
+
+.proposal-card {
+  margin-bottom: 15px;
+  padding: 30px 15px 20px;
+
+  h3 {
+    margin: 0;
+  }
+
+  .proposal-card-item {
+    display: flex;
+    padding: 5px 0;
+
+
+    .label {
+      flex: 1;
+      color: #7a7a7a;
+      font-weight: 500;
+    }
+  }
+}
+
+.link-back {
+  display: flex;
+  align-items: center;
+  color: #333;
+  text-decoration: none;
+
+  span {
+    margin-left: 5px;
+  }
+}
+
+.proposal-show {
+  & > .MuiGrid-container {
+    margin-top: 10px;
+  }
+
+  .proposal-content {
+    padding: 30px;
+
+    h3 {
+      margin: 0 0 15px;
+      font-size: 36px;
+    }
+
+    .meta {
+      margin-bottom: 15px;
+      line-height: 1;
+
+      .state {
+        margin-right: 5px;
+        color: #2e7d32;
+        font-weight: 500;
+      }
+
+      em {
+        color: #0072E5;
+        font-style: normal;
+      }
+    }
+
+    .desc-wrapper {
+      h3 {
+        font-size: 24px;
+      }
+    }
+  }
+
+  .vote {
+    margin-top: 30px;
+    padding: 30px;
+
+    h3 {
+      margin: 0 0 15px;
+    }
+
+    .vote-item {
+      span {
+        display: block;
+        padding: 8px 16px;
+        width: 100%;
+        border: 1px solid #aeaeae;
+        border-radius: 4px;
+        text-align: center;
+        cursor: pointer;
+
+        &:hover {
+          border-color: #333;
+        }
+
+        &.active {
+          background: #efefef;
+          border-color: #333;
+        }
+      }
+    }
+
+    .vote-options-group {
+      margin-bottom: 10px;
+    }
+
+    .action-wrapper {
+      display: flex;
+      margin-top: 10px;
+
+      .btn-vote {
+        flex: 1;
+      }
+    }
+  }
+}
+
+.proposal-new {
+  margin-top: 15px;
+  padding: 30px;
+
+  h2 {
+    font-size: 36px;
+    margin: 0 0 15px;
+  }
+
+  .MuiOutlinedInput-root {
+    margin-bottom: 15px;
+  }
+}
+
+.spaces-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+
+  .space-card {
+    margin-bottom: 15px;
+    padding: 0 10px;
+    width: 25%;
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+      border: 1px solid #efefef;
+      border-radius: 4px;
+      background: #fff;
+      line-height: 1.7;
+
+      .name {
+        margin-top: 5px;
+      }
+
+      button {
+        margin-top: 10px;
+      }
+
+      &:hover {
+        border-color: #e2e2e2;
+        cursor: pointer;
+      }
+    }
+  }
+}
+
+.space-header {
+  margin-bottom: 15px;
+  padding: 0 10px;
+
+  a {
+    display: inline-block;
+    padding: 5px 15px;
+    text-decoration: none;
+    border: 1px solid #2196f3;
+    border-radius: 4px;
+    color: #2196f3;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0, .25);
+  }
+}
+
+.input-voting-period {
+  margin-bottom: 15px !important;
+
+  .MuiInputBase-formControl {
+    margin-bottom: 0;
+
+    input {
+      padding-right: 48px;
+    }
+  }
+
+  & > span {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translate(0, -50%);
+  }
+}

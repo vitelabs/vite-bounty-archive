@@ -1,0 +1,35 @@
+{
+  "name": "nft-marketplace",
+  "version": "0.0.2",
+  "description": "A NFT marketplace build ontop of Vite",
+  "main": "app.js",
+  "scripts": {
+    "test": "npx vuilder test --config test/vite.node.json",
+    "run": "./node_modules/.bin/ts-node "
+  },
+  "author": "franz101 and fortylabs",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^4.3.1",
+    "@types/chai-as-promised": "^7.1.5",
+    "@types/chai-like": "^1.1.1",
+    "@types/chai-things": "^0.0.35",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^14.6.2",
+    "axios": "^0.21.4",
+    "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
+    "chai-like": "^1.1.1",
+    "chai-things": "^0.2.0",
+    "get-stream": "^6.0.1",
+    "mocha": "^9.1.1",
+    "nodemon": "^2.0.4",
+    "ts-node": "^9.0.0",
+    "typescript": "^4.0.2"
+  },
+  "dependencies": {
+    "@vite/solppc": "0.8.0-alpha.4",
+    "@vite/vitejs": "^2.3.18",
+    "@vite/vuilder": "^0.1.0-alpha.12"
+  }
+}

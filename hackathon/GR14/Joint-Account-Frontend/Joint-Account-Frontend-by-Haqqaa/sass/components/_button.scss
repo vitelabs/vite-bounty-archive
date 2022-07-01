@@ -1,0 +1,83 @@
+/*
+.btn {
+    &:link,
+    &:visited {
+        text-transform: uppercase;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 1rem 2rem;
+        display: inline-block;
+        transition: all 0.2s;
+        font-size: 1.2rem;
+        position: relative;
+        color: $color-text;
+        background-color: $color-primary;
+    }
+
+    &:hover {
+        display: inline-block;
+        padding: 1rem 1.5rem;
+        background-color: $color-secondary;
+        color: $color-text;
+        transform: translateY(-2px);
+    }
+
+    &:active {
+        transform: translateY(-0.1rem);
+    }
+
+
+}
+
+
+*/
+
+.btn:link,
+.btn:visited {
+    margin-top: 2rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 1rem 2rem;
+    display: inline-block;
+    transition: all 0.2s;
+    font-size: 1.2rem;
+    position: relative;
+    color: $color-text;
+}
+
+
+.btn-full:link,
+.btn-full:visited {
+    background-color: $color-primary;
+    margin-right: 15px;
+}
+
+.btn-ghost:link,
+.btn-ghost:visited {
+    border: 2px solid $color-primary;
+}
+
+
+.btn:hover{
+    display: inline-block;
+    padding: 1rem 1.5rem;
+    background-color: $color-secondary;
+    color: $color-text;
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(-0.3rem);
+} 
+
+.btn-ghost:hover,
+.btn-ghost:active {
+    background-color: $color-secondary;
+    border: 1px solid $color-secondary;
+    transform: translateY(-2px);
+}
+
+.btn-ghost:active {
+    transform: translateY(-0.3rem);
+}

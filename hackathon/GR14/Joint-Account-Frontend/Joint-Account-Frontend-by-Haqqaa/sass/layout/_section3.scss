@@ -1,0 +1,63 @@
+.section-3 {
+    background-image: url(/IMG/section3.png);
+    background-size: cover;
+    padding-bottom: 20rem;
+
+    &__start {
+        text-align: center;
+        font-size: 3rem;
+        padding: 10rem 0;
+    }
+
+    &__text {
+        border-bottom: 4px double $color-primary;
+        display: inline-block;
+    }
+
+
+}
+
+
+.details {
+    text-align: center;
+
+    &__list {
+        list-style: none;
+    }
+
+    &__list li {
+        display: inline-block;
+        padding: 0.5rem;
+        background-color:$color-background;
+        font-size: 1.5rem;
+        border: 0.5px solid $color-secondary;
+        transition: all 0.2s;
+        text-align: center;
+        margin: 1rem;
+        border-radius: 1rem;
+        
+        & h4 {
+            font-size: 2rem;
+            margin-top: -1rem;
+        } 
+         & p {
+             font-size: 1.2rem;
+             margin-bottom: 5px;
+         } 
+    
+    }
+
+
+
+}
+
+.details__list li:hover,
+.details__list li:active {
+    background-color: $color-secondary;
+    transform: scale(1.05);
+}
+
+.icon_section3 {
+    height: 5rem;
+    margin-bottom:2rem;
+}

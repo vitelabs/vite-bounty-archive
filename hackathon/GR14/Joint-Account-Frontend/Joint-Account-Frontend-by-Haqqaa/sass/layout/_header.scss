@@ -1,0 +1,83 @@
+.header {
+    background-image: url(/IMG/backvile.png);
+    height: 185vh;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+
+    &-logo-box {
+    height: 5rem;
+    }
+
+
+    &-logo {
+        position: absolute;
+        top: 4rem;
+        left: 15rem;
+    }
+
+    &-text-box {
+        text-decoration: none;
+        color: $color-text;
+        font-size: 2rem;
+        position: absolute;
+        top: 2rem;
+    }
+
+    &-school {
+        font-size: 3rem;
+        top: 20%;
+        left: 15rem;
+        position: absolute;
+
+        animation-name: moveInfromLeft;
+        animation-duration: 2s;
+    }
+}
+
+
+.header-icon{
+    position: absolute;
+    right: 20%;
+    top: 6rem;
+}
+
+.icon-text {
+    text-decoration: none;
+    color: $color-text;
+}
+
+.row {
+    max-width: 1250px;
+    margin: 0;
+}
+
+.sidebyside {
+    float: right;
+    list-style: none;
+    margin-top: 5rem;
+}
+
+.sidebyside li {
+    display: inline-block;
+    margin-left: 2rem;
+}
+
+
+.sidebyside li a {
+    text-decoration: none;
+    text-transform: uppercase;
+    margin-left: 6px;
+    color: $color-text;
+}
+
+.sidebyside li img {
+    height: 1rem;
+}
+
+.sidebyside li:visited,
+.sidebyside li:hover {
+    border-bottom: 1px solid $color-primary;
+    transition: 0.2s;
+    padding: 3px 0;
+}

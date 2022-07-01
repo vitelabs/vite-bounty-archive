@@ -1,0 +1,18 @@
+
+// SPDX-License-Identifier: GPL-3.0
+pragma soliditypp >=0.8.0;
+
+contract Target {
+  uint public times = 2;
+
+  function incr() external {
+    times++;
+  }
+}
+
+contract Source {
+
+  function incr(address target) external {
+    target.call{value: 0, token: 'tti_564954455820434f494e69b5'}(abi.encodeWithSignature("incr()"));
+  }
+}

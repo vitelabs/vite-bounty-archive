@@ -1,0 +1,45 @@
+.mainclass {
+    margin-top: 120vh;
+    color: $color-text;
+    font-size: 1.3rem;
+}
+
+.text {
+    margin-left: 15rem;
+}
+
+.imagery {
+    height: 35rem;
+    float: right;
+    transform: translate(-10%,-50%);
+}
+
+.imagery2 {
+    height: 30rem;
+    float: right;
+
+}
+
+.about {
+    background-color: $color-text;
+    position: relative;
+    color: $color-black;
+    margin-top: 5rem;
+    padding-bottom: 10rem;
+}
+
+.about-school {
+    font-size: 3rem;
+    margin-left: 15rem;
+    float: left;
+    position: absolute;
+}
+
+.about-text-para {
+    font-size: 1.5rem;
+    width: 36rem;
+    margin-top: 1.5rem;
+    color: $color-grey;
+}
+
+

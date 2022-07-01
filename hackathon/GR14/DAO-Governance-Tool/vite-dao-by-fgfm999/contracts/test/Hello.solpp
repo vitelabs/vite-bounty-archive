@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma soliditypp ^0.8.0;
+
+contract Hello {
+
+    struct User {
+        string name;
+        uint age;
+    }
+
+    string private user = "alice";
+    function strArr1() external pure returns (string[] memory result) {
+        result = new string[](5);
+        for (uint256 i = 0; i < 5; i++) {
+            result[i] = "2";
+        }
+        return result;
+    }
+
+    function strArr2() external view returns (bytes[] memory result) {
+        result = new bytes[](5);
+        for (uint256 i = 0; i < 5; i++) {
+            result[i] = abi.encode(user);
+        }
+        return result;
+    }
+
+    function strArr3() external view returns (bytes memory) {
+        string[] memory result = new string[](5);
+        for (uint256 i = 0; i < 5; i++) {
+            result[i] = user;
+        }
+        return abi.encode(result);
+    }
+
+    function strArr4() external view returns (bytes memory) {
+        bytes[] memory result = new bytes[](5);
+        for (uint256 i = 0; i < 5; i++) {
+            result[i] = abi.encode(user);
+        }
+        return abi.encode(result);
+    }
+
+    function users() external view returns(User[] memory result) {
+        result = new User[](3);
+        for (uint256 i = 0; i < 3; i++) {
+            result[i] = User(user ,i);
+        }
+        return result;
+    }
+}

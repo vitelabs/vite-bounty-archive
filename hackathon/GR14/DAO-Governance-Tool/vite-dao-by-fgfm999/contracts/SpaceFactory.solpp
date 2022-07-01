@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma soliditypp ^0.8.0;
+
+contract SpaceFactory {
+    // id start from 1
+    mapping(uint256 => address) private _spaces;
+    mapping(address => uint256) private _spaceIds;
+    uint256 public spaceCount;
+
+    // normally we will deploy a new Space contract in this function
+    // but since soliditypp does not support `CREATE` instruction,
+    // we can only
+    function newSpace(address space) external {
+        // TODO: validate `space` is actually is Space instance
+        require(_spaceIds[space] == 0, "Already in factory");
+        spaceCount++;
+        _spaces[spaceCount] = space;
+        _spaceIds[space] = spaceCount;
+    }
+
+    function getSpacesPaging(uint256 offset, uint256 limit)
+        external
+        view
+        returns (address[] memory spaces)
+    {
+        uint256 remain = spaceCount - offset;
+        if (limit > remain) {
+            limit = remain;
+        }
+        spaces = new address[](limit);
+
+        for (uint256 i = 0; i < limit; i++) {
+            spaces[i] = _spaces[ offset + i + 1];
+        }
+        return (spaces);
+    }
+}
