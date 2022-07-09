@@ -1,0 +1,8 @@
+- EnglishAuctions.solpp
+	- has functions for creating/canceling/bidding/ending auctions
+	- has a lot of getters for frontends to display auction data
+- DutchAuctions.solpp
+	- `contract DutchAuctions is ReentrancyGuard` but Vite can't have re-entrancy attacks
+	- placeBid does not end auction as it should
+	- keeps track of lastHighestBidder for some reason
+	- Looks like an altered version of EnglishAuctions.solpp but doesn't exactly do a Dutch Auction

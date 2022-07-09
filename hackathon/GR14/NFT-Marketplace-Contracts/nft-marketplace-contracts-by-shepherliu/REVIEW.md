@@ -1,0 +1,7 @@
+- englishAuction.solpp
+	- accepts Vite tokens and ERC20 tokens!
+	- Supports multiple auctions but only within the same NFT contract (bad)
+- dutchAuction.solpp
+	- accepts Vite tokens and ERC20 tokens!
+	- Supports multiple auctions but only within the same NFT contract (bad)
+	- Not a Dutch auction

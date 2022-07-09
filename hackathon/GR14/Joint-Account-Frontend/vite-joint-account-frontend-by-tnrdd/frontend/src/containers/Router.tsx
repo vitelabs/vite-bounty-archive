@@ -108,6 +108,7 @@ const Router = ({ setState, vcInstance, networkType }: Props) => {
 				throw new Error(`method not found: ${methodName}`);
 			}
 			const toAddress = contract.address[networkType];
+			console.log('toAddress:', toAddress)
 			if (!toAddress) {
 				throw new Error(`${networkType} contract address not found`);
 			}

@@ -1,0 +1,12 @@
+- SingleDutchAuction.solpp
+	- a single auction that self destructs when someone buys the NFT
+		- https://ethereum.stackexchange.com/questions/315/why-are-selfdestructs-used-in-contract-programming
+	- Simple and neat!
+- SingleEnglishAuction.solpp
+	- simple auction for a single NFT
+	- very clean!
+- MultiDutchAuction.solpp and MultiEnglishAuction.solpp
+	- supportsInterface is a nice function for letting other contracts know that this contract can accept 721 standards
+	- Lots of empty functions, but make sense in terms of interface
+		- not sure why they aren't implemented
+	- incomplete
