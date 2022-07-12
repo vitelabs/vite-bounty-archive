@@ -20,6 +20,8 @@ const AppHome = ({
 	activeTab,
 }: Props) => {
 	useTitle(i18n.app);
+	console.log('activeTab:', activeTab)
+	accountId =123
 
 	return (
 		<div className="space-y-4 max-w-3xl mx-auto">

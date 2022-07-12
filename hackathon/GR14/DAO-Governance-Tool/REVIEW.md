@@ -1,0 +1,3 @@
+- consolation prize for vite-dao-by-fgfm999
+	- The frontend is decent but doesn't use tailwind and the contracts only support off-chain proposals (no on-chain proposals)
+	- This person is a good dev. Liked their documentation and clean code, lots of potential

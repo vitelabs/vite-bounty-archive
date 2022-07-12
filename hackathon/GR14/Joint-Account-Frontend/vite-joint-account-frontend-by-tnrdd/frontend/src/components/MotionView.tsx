@@ -32,7 +32,15 @@ const MotionView = ({
 	accountId,
 }: Props) => {
 	const [promptTxConfirmation, promptTxConfirmationSet] = useState(false);
-	const [motion, motionSet] = useState<Motion>({});
+	const [motion, motionSet] = useState<Motion>({
+			threshold: 'string',
+	id: 'string',
+	proposer: 'string',
+	to: 'string',
+	tokenId: 'string',
+	transferAmount: 'string',
+	votes: '2' 
+	});
 	const [tokenId, tokenIdSet] = useState('');
 	const [amount, amountSet] = useState('');
 	const [beneficiaryAddress, beneficiaryAddressSet] = useState('');

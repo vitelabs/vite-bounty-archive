@@ -11,6 +11,7 @@ type Props = State & {};
 
 const JointWallet = ({ i18n }: Props) => {
 	const { id } = useParams();
+	console.log('id:', id);
 
 	const tabs = [
 		{ name: 'Overview', link: `/app/wallet/${id}/dashboard` },

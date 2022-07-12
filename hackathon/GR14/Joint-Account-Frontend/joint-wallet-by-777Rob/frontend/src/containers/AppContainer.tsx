@@ -12,7 +12,7 @@ type Props = State & {};
 const AppContainer = ({ i18n, vcInstance, callContract, setState }: Props) => {
 	const navigate = useNavigate();
 
-	return !vcInstance ? (
+	return !!vcInstance ? (
 		<LandingSignedOut />
 	) : (
 		<div className="">
