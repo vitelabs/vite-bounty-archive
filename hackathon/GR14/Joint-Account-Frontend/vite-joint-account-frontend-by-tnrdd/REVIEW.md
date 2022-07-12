@@ -1,4 +1,3 @@
-- dapp can't confirm confirm account creation via vite connect
-vite_d6c91d14a41d1428e386212473b34eadd56199b8a8d54d3b01
-vite_f30697191707a723c70d0652ab80304195e5928dcf71fcab99
-vite_6369f5a080ff85e37b5977b91feba34a74671b4b38ad41afcb
+- Frontend code is kinda messy but it makes sense
+- ui/ux could be better but it's functional
+- shows good understanding interacting with smart contract

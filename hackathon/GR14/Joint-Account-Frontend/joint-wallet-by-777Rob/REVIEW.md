@@ -1,1 +1,7 @@
-- 
+- ui/ux is kinda bad
+- uses a graphql server which takes away from the dapp's decentralization
+- React code isn't very clean/rational
+	- lots of nested routes with `Route` components (not ideal)
+	- `Tabs` component is only used once (in that case there's no need to make it it's own component unless it's very large which it isn't)
+- This dev put a lot of effort into building something not good
+	- lacks conciseness (graphql in a dapp???)
