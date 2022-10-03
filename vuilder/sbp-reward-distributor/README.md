@@ -27,7 +27,7 @@ The Vite ecosystem needs a tool for SBPs to distribute their block creation	and 
 
 
 ## Prizes
-- 2,700 USD in VITE
+- 2,000 USD in either VITE or USDT
 
 ## Judging Criteria
 - The Vite Labs team will check to make sure all of the requirements have been met
