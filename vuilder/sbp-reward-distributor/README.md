@@ -1,7 +1,7 @@
 # Vuilder Hackathon Bounty: SBP Reward Distributor
 
 ## Purpose
-The Vite ecosystem needs a tool for SBPs to distribute their block creation	and votes rewards. This will:
+The Vite ecosystem needs a tool for SBPs to distribute their block creation	and voting rewards. This will:
 1. Enable more equitable Vite inflation distribution
 2. Give Vite holders more opportunities to earn yield
 3. Increase community engagement
@@ -9,18 +9,28 @@ The Vite ecosystem needs a tool for SBPs to distribute their block creation	and 
 ## Minimum Requirements
 1. Existing nodes can run this program on the same machine
 2. Keeps track of votes by address, amount, and time/history.
-3. SBP operators can define several parameters including:
-	1. Distribution frequency
-	2. Minimum distribution size for specific addresses
-	3. A mechanism that gives loyal voters more rewards
-	4. Additional tokens to distribute to voters
-	5. Customizable cronjob/hooks that are passed current voting stats as arguments (e.g. an SBP operator could write a script that tweets when certain milestones or events happen)
-	6. An option to write a script that gives the SBP operator full control over how rewards are distributed (overwriting some of the settings above)
-	7. Optional RPC API for fetching voting stats
-4. 
+3. Step-by-step documentation for how to get the reward distributor running
+4. SBP operators can define parameters including:
+	1. A TypeScript function that retrieves and distributes SBP rewards
+	2. Frequency for how often the TypeScript function gets called
+	3. How much disk space the voting history can take up (if the limit is reached, the oldest records are discarded)
+5. The TypeScript function should have easy-to-set parameters (either at the top of the file or in a separate config file) for adjusting/disabling specific functionality. These parameters should include:
+	1. Minimum/Maximum distribution size for specific/all voting addresses
+	2. A mechanism that gives loyal voters more rewards
+	3. Additional tokens to distribute to voters
+6. The TypeScript function should be passed current and past voting stats as arguments and give SBP operators full control over how rewards are distributed. This should enable endless possibilities. For example, SBP operators could add custom functionality that:
+	1. tweets when certain milestones or events happen
+	2. DMs specific users on Telegram when an error occurs
+	3. blacklists certain addresses
+7. Unit tests
+
+## Stretch Goals
+1. Stops in the code that wait for a certain number of snapshots to pass before continuing
+2. An optional RPC API (with customizable CORS) for fetching voting stats
+
 
 ## Prizes
-- $4000 in Vite
+- 100,000 Vite
 
 ## Judging Criteria
 - The Vite Labs team will check to make sure all of the requirements have been met
