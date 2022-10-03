@@ -14,6 +14,7 @@ The Vite ecosystem needs a tool for SBPs to distribute their block creation	and 
 	1. A TypeScript function that retrieves and distributes SBP rewards
 	2. Frequency for how often the TypeScript function gets called
 	3. How much disk space the voting history can take up (if the limit is reached, the oldest records are discarded)
+	4. Number of snapshots that should pass before calling the TypeScript function
 5. The TypeScript function should have easy-to-set parameters (either at the top of the file or in a separate config file) for adjusting/disabling specific functionality. These parameters should include:
 	1. Minimum/Maximum distribution size for specific/all voting addresses
 	2. A mechanism that gives loyal voters more rewards
@@ -23,10 +24,6 @@ The Vite ecosystem needs a tool for SBPs to distribute their block creation	and 
 	2. DMs specific users on Telegram when an error occurs
 	3. blacklists certain addresses
 7. Unit tests
-
-## Stretch Goals
-1. Stops in the code that wait for a certain number of snapshots to pass before continuing
-2. An optional RPC API (with customizable CORS) for fetching voting stats
 
 
 ## Prizes
