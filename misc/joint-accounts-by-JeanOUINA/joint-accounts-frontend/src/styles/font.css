@@ -1,0 +1,6 @@
+/* Overpass Mono - Used for addresses */
+@import url('https://fonts.googleapis.com/css2?family=Overpass+Mono&display=swap');
+.overpass-mono {
+    font-family: 'Overpass Mono', monospace;
+    letter-spacing: 0.00938em;
+}
