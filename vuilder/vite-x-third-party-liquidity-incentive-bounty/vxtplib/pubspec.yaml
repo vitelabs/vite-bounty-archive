@@ -1,0 +1,31 @@
+name: vxtplib
+description: ViteX Third-Party Liquidity Incentive Bounty.
+version: 0.0.2
+publish_to: none
+
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+
+dependencies:
+  args: ^2.3.1
+  crypto: ^3.0.2
+  decimal: ^2.2.0
+  fast_immutable_collections: ^7.4.3
+  freezed_annotation: ^2.2.0
+  hive: ^2.2.3
+  json_annotation: ^4.7.0
+  path: ^1.8.0
+  protobuf: ^2.1.0
+  vite: ^0.3.1
+  intl: ^0.17.0
+
+dev_dependencies:
+  build_runner: ^2.3.0
+  freezed: ^2.2.0
+  json_serializable: ^6.5.1
+  lints: ^2.0.0
+  test: ^1.16.0
+
+
+scripts:
+  codegen: dart run build_runner build --delete-conflicting-outputs

@@ -15,7 +15,6 @@ import Loading from './Loading';
 const Access = ({ i18n, viteApi, networkType, vcInstance, setState }: State) => {
 	const [accountId, accountIdSet] = useState('');
 	const accountIdRef = useRef<TextInputRefObject>();
-	// REVIEW: I would use `undefined` or `null` instead of `'loading'` and `!accounts` instead of `accounts === 'loading'` for the same effect. Less typing, harder to mess up. This applies to other files that use `'loading'` as well.
 	const [accounts, setAccounts] = useState<'loading'|Error|JointAccount[]>(vcInstance?.accounts[0] ? [] : 'loading');
     const [accountsRefreshId, refreshAccounts] = useRefresh()
 

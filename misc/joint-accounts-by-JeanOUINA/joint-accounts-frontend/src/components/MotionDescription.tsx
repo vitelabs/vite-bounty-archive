@@ -51,7 +51,6 @@ const MotionDescription = (props: Props&State) => {
         }
     }
     if(!description)return null
-		// REVIEW: Similar issue with format.tsx. Regular expressions are inefficient. I'd try making a simpler solution that doesn't rely on regexes.
     const parts = description.split(/_/g)
     const children = []
     for(let i = 0; i < parts.length; i++) {

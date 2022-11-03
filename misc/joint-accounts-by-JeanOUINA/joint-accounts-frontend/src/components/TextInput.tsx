@@ -1,5 +1,3 @@
-// REVIEW: I would use the latest version of TextInput: https://github.com/vitelabs/vite-express/blob/master/frontend/src/containers/TextInput.tsx
-
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import React, { useRef, useMemo, useState, HTMLProps } from 'react';
 

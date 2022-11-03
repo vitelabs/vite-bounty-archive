@@ -76,7 +76,7 @@ export type Events = AccountCreatedEvent|
 	ThresholdChangedEvent|
 	DepositEvent
 export type Event<Name=string, Values=Record<string, string|string[]>> = {
-	returnValues: Values & Record<'accountId', string>; // REVIEW: I haven't used ts' `Record` type before, but why not use `{ accountId: string }` here instead? Applies to other uses of `Record` in this project
+	returnValues: Values & Record<'accountId', string>;
 	event: Name;
 	raw: {
 		data?: string;

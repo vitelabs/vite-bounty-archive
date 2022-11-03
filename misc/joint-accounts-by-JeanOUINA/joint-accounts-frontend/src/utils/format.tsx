@@ -1,6 +1,5 @@
 import React from 'react';
 
-// REVIEW: this looks overcomplicated. You could probably get the same effect with a simpler component. Like `const parts = text.split(/ +/g)...` is a bit much for a component to do.
 export function ReactFormat({
     children: text,
     params,

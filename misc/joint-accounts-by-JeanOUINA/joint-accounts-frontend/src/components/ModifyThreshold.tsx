@@ -22,8 +22,7 @@ const ModifyThreshold = ({ i18n, onValue, members }: Props) => {
                 _ref={thresholdRef}
                 label={i18n.threshold}
                 value={threshold}
-                maxDecimals={18} // REVIEW: The threshold should be an integer, maxDecimals=0. which is the default value in the latest iteration of the `TextInput` component in VE: https://github.com/vitelabs/vite-express/blob/master/frontend/src/containers/TextInput.tsx#L69
-								// May apply to other places where `maxDecimals={18}` is used
+                maxDecimals={18}
                 onUserInput={(v) => thresholdSet(v)}
                 getIssue={(v) => {
                     if (+v <= 0) {

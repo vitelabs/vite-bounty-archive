@@ -91,7 +91,6 @@ const Router = ({ setState, vcInstance, networkType }: Props) => {
 		return () => viteApi.unsubscribeAll();
 	}, [setState, subscribe, vcInstance, viteApi, updateViteBalanceInfo]);
 
-	// REVIEW: the latest version of VE integrates Vite Passport
 	const callContract = useCallback(
 		(
 			contract: typeof JointContract,

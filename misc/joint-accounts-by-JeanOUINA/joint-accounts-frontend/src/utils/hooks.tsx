@@ -60,7 +60,6 @@ export const useAccountDisplaySettings = (account: JointAccount) => {
 	}
 
 	const callback = useCallback((settings: AccountDisplaySettings) => {
-		// REVIEW: It might be easier to instead make the settings a part of the global `State`, save a stringified version of that state in localStorage, and restore that saved portion for the app's initial state
 		localStorage.setItem(`account-${account.id}-hidden`, settings.hidden ? 'true' : 'false')
 		localStorage.setItem(`account-${account.id}-favorite`, settings.favorite ? 'true' : 'false')
 		account.hidden = settings.hidden

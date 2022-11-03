@@ -60,7 +60,7 @@ const AccountCard = ({setState, account, refresh, i18n}: Props) => {
                     i18n.amountTicker
                     .replace(
                         '{amount}',
-                        new BigNumber(account.balances[vite.constant.Vite_TokenId]) // REVIEW: Use `toBiggestUnit` here and anywhere where `.shiftedBy(-` is used instead
+                        new BigNumber(account.balances[vite.constant.Vite_TokenId])
                         .shiftedBy(-vite.constant.Vite_Token_Info.decimals)
                         .toFixed()
                     ).replace('{ticker}', vite.constant.Vite_Token_Info.tokenSymbol)

@@ -22,8 +22,6 @@ const MemberInputCard = ({
     disabled
 }: Props) => {
 	const [memberAddress, memberAddressSet] = useState('');
-	// REVIEW: The latest vite-express version uses a different input paradigm that is a lot cleaner.
-	// https://github.com/vitelabs/vite-express/blob/master/frontend/src/containers/TextInput.tsx#L14
 	const memberAddressRef = useRef<TextInputRefObject>();
     useEffect(() => {
         if(confirm || disabled)return

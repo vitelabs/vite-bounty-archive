@@ -18,7 +18,6 @@ const NewAccount = ({ i18n, viteApi, vcInstance, callContract, setState }: Props
 	const [threshold, thresholdSet] = useState('');
 	const [members, membersSet] = useState<string[]>([]);
 	const thresholdRef = useRef<TextInputRefObject>();
-	// REVIEW: typo "staticAcconut". I use the "Code Spell Checker" VS Code extension.
 	const [staticAcconut, setStaticAccount] = useState<boolean>(false);
 	const [depositPermission, setDepositPermission] = useState<boolean>(false);
 
@@ -58,10 +57,10 @@ const NewAccount = ({ i18n, viteApi, vcInstance, callContract, setState }: Props
 					maxDecimals={18}
 					onUserInput={(v) => thresholdSet(v)}
 					getIssue={(v) => {
-						if (+v <= 0) { //
+						if (+v <= 0) {
 							return i18n.amountMustBePositive;
 						}
-						if (+v % 1 !== 0) { // REVIEW: maxDecimals = 0, default in latest commit of VE's `TextInput`
+						if (+v % 1 !== 0) {
 							return i18n.positiveIntegersOnly;
 						}
 						if (+v > members.length) {

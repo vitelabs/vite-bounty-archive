@@ -33,4 +33,4 @@ const TabNavigation = ({ tabNames, defaultTab, activeTab, setState }: Props) => 
 	);
 };
 
-export default connect(TabNavigation); // REVIEW: For better organization, any component that uses `connect` should go in the `containers` folder
+export default connect(TabNavigation);
